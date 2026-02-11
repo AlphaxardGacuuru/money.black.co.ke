@@ -3,7 +3,7 @@ import React from "react"
 const HomeSVG = () => {
 	return (
 		<svg
-			className="mb-1 bi bi-house"
+			className="bi bi-house"
 			width="1em"
 			height="1em"
 			viewBox="0 0 16 16"

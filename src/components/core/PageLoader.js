@@ -41,10 +41,7 @@ const PageLoader = (props) => {
 					transition: Bounce,
 					closeButton: false,
 					stacked: false,
-					className: cn(
-						"text-sm sm:text-base",
-						isMobile && "right-[30%]"
-					),
+					className: cn("text-sm sm:text-base", isMobile && "right-[30%]"),
 					bodyClassName: cn(
 						"min-h-[50px] sm:min-h-[68px]",
 						isSmallMobile && "m-1 p-3"
@@ -59,7 +56,7 @@ const PageLoader = (props) => {
 		}
 	}, [props.loadingItems])
 
-	return <div className="py-3"></div>
+	return props.loadingItems > 0 ? <div className="py-3"></div> : null
 }
 
 export default PageLoader

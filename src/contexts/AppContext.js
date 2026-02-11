@@ -9,11 +9,13 @@ import {
 } from "@/lib/localStorage"
 
 import Axios from "@/lib/axios"
+import { useAuth } from "@/hooks/auth"
 
 const AppContext = createContext()
 
 export const useApp = () => {
 	const context = useContext(AppContext)
+
 	if (!context) {
 		throw new Error("useApp must be used within AppProvider")
 	}
@@ -21,22 +23,10 @@ export const useApp = () => {
 }
 
 export const AppProvider = ({ children }) => {
-	// Declare states
 	const [messages, setMessages] = useState([])
 	const [errors, setErrors] = useState([])
 	const [formErrors, setFormErrors] = useState([])
 	const [login, setLogin] = useState()
-	const [auth, setAuth] = useState({
-		id: 0,
-		name: "Guest",
-		username: "@guest",
-		avatar: "/storage/avatars/male-avatar.png",
-		accountType: "normal",
-		propertyIds: [],
-		assignedPropertyIds: [],
-		subscriptionByPropertyIds: [],
-		permissions: [],
-	})
 	const [headerMenu, setHeaderMenu] = useState()
 	const [adminMenu, setAdminMenu] = useState("left-open")
 	const [properties, setProperties] = useState([])
@@ -52,23 +42,11 @@ export const AppProvider = ({ children }) => {
 
 	// Initialize client-side only state after mount
 	useEffect(() => {
-		// Load auth from localStorage
-		setAuth(getLocalStorageAuth("auth"))
-		
-		// Load properties from localStorage
-		setProperties(getLocalStorage("properties"))
-		
+
 		// Set admin menu based on screen size
 		if (typeof window !== "undefined" && window.innerWidth <= 768) {
 			setAdminMenu("")
 		}
-		
-		// Load selected property ID
-		const storedId = getNormalLocalStorage("selectedPropertyId")
-		const authData = getLocalStorageAuth("auth")
-		setSelectedPropertyId(
-			storedId || [...(authData.propertyIds ?? []), ...(authData.subscriptionByPropertyIds ?? [])]
-		)
 	}, [])
 
 	// Function for fetching data from API
@@ -190,40 +168,41 @@ export const AppProvider = ({ children }) => {
 	/*
 	 * Genereate Month and Year Arrays
 	 */
-	const { currentDate, currentYear, currentMonth, months, years } = useMemo(() => {
-		const date = new Date()
-		const year = date.getFullYear()
-		const month = date.getMonth() + 1
+	const { currentDate, currentYear, currentMonth, months, years } =
+		useMemo(() => {
+			const date = new Date()
+			const year = date.getFullYear()
+			const month = date.getMonth() + 1
 
-		const monthsList = [
-			"Select Month",
-			"January",
-			"February",
-			"March",
-			"April",
-			"May",
-			"June",
-			"July",
-			"August",
-			"September",
-			"October",
-			"November",
-			"December",
-		]
+			const monthsList = [
+				"Select Month",
+				"January",
+				"February",
+				"March",
+				"April",
+				"May",
+				"June",
+				"July",
+				"August",
+				"September",
+				"October",
+				"November",
+				"December",
+			]
 
-		const yearsList = []
-		for (let i = year; i > 2009; i--) {
-			yearsList.push(i)
-		}
+			const yearsList = []
+			for (let i = year; i > 2009; i--) {
+				yearsList.push(i)
+			}
 
-		return {
-			currentDate: date,
-			currentYear: year,
-			currentMonth: month,
-			months: monthsList,
-			years: yearsList,
-		}
-	}, [])
+			return {
+				currentDate: date,
+				currentYear: year,
+				currentMonth: month,
+				months: monthsList,
+				years: yearsList,
+			}
+		}, [])
 
 	const value = {
 		messages,
@@ -234,8 +213,6 @@ export const AppProvider = ({ children }) => {
 		setFormErrors,
 		login,
 		setLogin,
-		auth,
-		setAuth,
 		headerMenu,
 		setHeaderMenu,
 		adminMenu,

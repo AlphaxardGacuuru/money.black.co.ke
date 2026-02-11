@@ -9,7 +9,7 @@ import { Btn } from "@/components/ui/button"
 const Page = () => {
 	const { register, authLoading } = useAuth({
 		middleware: "guest",
-		redirectIfAuthenticated: "/dashboard",
+		redirectIfAuthenticated: "/accounts",
 	})
 
 	const [name, setName] = useState("")

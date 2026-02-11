@@ -7,7 +7,7 @@ const ForwardSVG = () => {
 			width="1em"
 			height="1em"
 			fill="currentColor"
-			className="mb-1 bi bi-arrow-right"
+			className="bi bi-arrow-right"
 			viewBox="0 0 16 16">
 			<path
 				fillRule="evenodd"

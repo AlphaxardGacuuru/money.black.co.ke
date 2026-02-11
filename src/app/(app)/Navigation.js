@@ -32,53 +32,37 @@ const Navigation = ({ user }) => {
 
 						{/* Navigation Links */}
 						<div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-							{/* Dashboard Start */}
+							{/* Accounts Start */}
 							<NavLink
-								href="/dashboard"
-								active={usePathname() === "/dashboard"}>
-								Dashboard
+								href="/accounts"
+								active={usePathname() === "/accounts"}>
+								Accounts
 							</NavLink>
-							{/* Dashboard End */}
+							{/* Accounts End */}
 
-							{/* Clients Start */}
+							{/* Categories Start */}
 							<NavLink
-								href="/clients"
-								active={usePathname().startsWith("/clients")}>
-								Clients
+								href="/categories"
+								active={usePathname().startsWith("/categories")}>
+								Categories
 							</NavLink>
-							{/* Clients End */}
+							{/* Categories End */}
 
-							{/* Invoices Start */}
+							{/* Transactions Start */}
 							<NavLink
-								href="/invoices"
-								active={usePathname().startsWith("/invoices")}>
-								Invoices
+								href="/transactions"
+								active={usePathname().startsWith("/transactions")}>
+								Transactions
 							</NavLink>
-							{/* Invoices End */}
+							{/* Transactions End */}
 
-							{/* Payments Start */}
+							{/* Overview Start */}
 							<NavLink
-								href="/payments"
-								active={usePathname().startsWith("/payments")}>
-								Payments
+								href="/overview"
+								active={usePathname().startsWith("/overview")}>
+								Overview
 							</NavLink>
-							{/* Payments End */}
-
-							{/* Credit Notes Start */}
-							<NavLink
-								href="/credit-notes"
-								active={usePathname().startsWith("/credit-notes")}>
-								Credit Notes
-							</NavLink>
-							{/* Credit Notes End */}
-
-							{/* Deductions Start */}
-							<NavLink
-								href="/deductions"
-								active={usePathname().startsWith("/deductions")}>
-								Deductions
-							</NavLink>
-							{/* Deductions End */}
+							{/* Overview End */}
 						</div>
 					</div>
 
@@ -139,9 +123,9 @@ const Navigation = ({ user }) => {
 				<div className="block sm:hidden bg-white/5 backdrop-blur-xl">
 					<div className="pt-2 pb-3 space-y-1">
 						<ResponsiveNavLink
-							href="/dashboard"
-							active={usePathname() === "/dashboard"}>
-							Dashboard
+							href="/accounts"
+							active={usePathname() === "/accounts"}>
+							Accounts
 						</ResponsiveNavLink>
 					</div>
 

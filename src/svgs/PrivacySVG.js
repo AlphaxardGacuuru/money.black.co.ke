@@ -7,7 +7,7 @@ const PrivacySVG = () => {
 			width="1em"
 			height="1em"
 			fill="currentColor"
-			className="mb-1 bi bi-shield-shaded"
+			className="bi bi-shield-shaded"
 			viewBox="0 0 16 16">
 			<path
 				fillRule="evenodd"

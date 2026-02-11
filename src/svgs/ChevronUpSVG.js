@@ -7,7 +7,7 @@ const ChevronUpSVG = () => {
 			width="1em"
 			height="1em"
 			fill="currentColor"
-			className="mb-2 bi bi-chevron-up"
+			className="bi bi-chevron-up"
 			viewBox="0 0 16 16">
 			<path
 				fillRule="evenodd"

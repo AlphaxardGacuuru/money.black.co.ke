@@ -7,7 +7,7 @@ const LogInSVG = () => {
 			width="1em"
 			height="1em"
 			fill="currentColor"
-			className="mb-1 bi bi-box-arrow-in-right"
+			className="bi bi-box-arrow-in-right"
 			viewBox="0 0 16 16">
 			<path
 				fillRule="evenodd"

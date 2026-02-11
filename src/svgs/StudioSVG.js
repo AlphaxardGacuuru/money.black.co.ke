@@ -7,7 +7,7 @@ const StudioSVG = () => {
 			width="1em"
 			height="1em"
 			fill="currentColor"
-			className="mb-1 bi bi-sliders"
+			className="bi bi-sliders"
 			viewBox="0 0 16 16">
 			<path
 				fillRule="evenodd"

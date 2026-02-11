@@ -3,7 +3,7 @@ import React from "react"
 const DiscoverSVG = () => {
 	return (
 		<svg
-			className="mb-2 bi bi-compass"
+			className="bi bi-compass"
 			width="1em"
 			height="1em"
 			viewBox="0 0 16 16"

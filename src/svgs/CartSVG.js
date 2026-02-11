@@ -3,7 +3,7 @@ import React from "react"
 const CartSVG = () => {
 	return (
 		<svg
-			className="mb-2 bi bi-cart3"
+			className="bi bi-cart3"
 			width="1em"
 			height="1em"
 			viewBox="0 0 16 16"

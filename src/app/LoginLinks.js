@@ -11,8 +11,8 @@ const LoginLinks = () => {
 		<div className="hidden fixed top-0 right-0 px-6 py-4 sm:block z-10">
 			{user ? (
 				<MyLink
-					href="/dashboard">
-					Dashboard
+					href="/accounts">
+					Accounts
 				</MyLink>
 			) : (
 				<>

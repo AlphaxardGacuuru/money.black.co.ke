@@ -3,7 +3,7 @@ import React from "react"
 const OptionsSVG = () => {
 	return (
 		<svg
-			className="mb-2 bi bi-three-dots-vertical"
+			className="bi bi-three-dots-vertical"
 			width="1em"
 			height="1em"
 			viewBox="0 0 16 16"

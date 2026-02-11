@@ -3,7 +3,7 @@ import React from "react"
 const BellSVG = () => {
 	return (
 		<svg
-			className="mb-2 bi bi-bell"
+			className="bi bi-bell"
 			width="1em"
 			height="1em"
 			viewBox="0 0 16 16"

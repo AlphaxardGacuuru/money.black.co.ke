@@ -3,7 +3,7 @@ import React from "react"
 const SearchSVG = () => {
 	return (
 		<svg
-			className="mb-2 bi bi-search"
+			className="bi bi-search"
 			width="1em"
 			height="1em"
 			viewBox="0 0 16 16"

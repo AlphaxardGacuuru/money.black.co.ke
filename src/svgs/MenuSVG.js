@@ -7,7 +7,7 @@ const MenuSVG = () => {
 			width="1em"
 			height="1em"
 			fill="#fff"
-			className="mb-2 bi bi-list"
+			className="bi bi-list"
 			viewBox="0 0 16 16">
 			<path
 				fillRule="evenodd"
