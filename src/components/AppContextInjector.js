@@ -4,6 +4,7 @@ import { useApp } from "@/contexts/AppContext"
 import { Children, cloneElement, isValidElement } from "react"
 import Messages from "@/components/core/Messages"
 import PageLoader from "@/components/core/PageLoader"
+import PWABtn from "@/components/core/PWABtn"
 
 export default function AppContextInjector({ children }) {
 	const appContext = useApp()
@@ -25,6 +26,7 @@ export default function AppContextInjector({ children }) {
 				setErrors={appContext.setErrors}
 				setFormErrors={appContext.setFormErrors}
 			/>
+			<PWABtn />
 			<PageLoader loadingItems={appContext.loadingItems} />
 			{childrenWithProps}
 		</>

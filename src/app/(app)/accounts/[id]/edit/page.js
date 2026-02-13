@@ -14,9 +14,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 
 import BackSVG from "@/svgs/BackSVG"
-import UpdateSVG from "@/svgs/PlusSVG" // You might want to rename this icon
 import MyLink from "@/components/ui/my-link"
 import IconInput from "@/components/ui/IconInput"
+import EditSVG from "@/svgs/EditSVG"
 
 const EditAccount = (props) => {
 	const router = useRouter()
@@ -93,7 +93,7 @@ const EditAccount = (props) => {
 		<>
 			<Header title="Edit Account" />
 
-			<div className="py-12">
+			<div className="py-6">
 				<div className="max-w-4xl mx-auto px-6 lg:px-8">
 					<form onSubmit={onSubmit}>
 						<div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 space-y-8 shadow-2xl">
@@ -175,9 +175,8 @@ const EditAccount = (props) => {
 								/>
 
 								<Btn
-									text="Update Account" // Changed Label
+									text="Update Account"
 									loading={loading}
-									icon={<UpdateSVG />}
 								/>
 							</div>
 						</div>

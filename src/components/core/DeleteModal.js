@@ -46,7 +46,7 @@ const DeleteModal = ({ index, model, modelName, onDelete }) => {
 			{/* Button trigger modal */}
 			<Btn
 				icon={<DeleteSVG />}
-				text="delete"
+				// text="delete"
 				onClick={() => setOpen(true)}
 			/>
 			{/* Button trigger modal End */}

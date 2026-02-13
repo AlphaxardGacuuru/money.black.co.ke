@@ -5,8 +5,8 @@ import { useApp } from "@/contexts/AppContext"
 import Axios from "@/lib/axios"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { useAuth } from "@/hooks/auth"
+import Link from "next/link"
 
-import Header from "@/app/(app)/Header"
 import HeroHeading from "@/components/core/HeroHeading"
 import HeroIcon from "@/components/core/HeroIcon"
 import MyLink from "@/components/ui/my-link"
@@ -17,6 +17,7 @@ import DeleteModal from "@/components/core/DeleteModal"
 import MoneySVG from "@/svgs/MoneySVG"
 import PeopleSVG from "@/svgs/PeopleSVG"
 import PlusSVG from "@/svgs/PlusSVG"
+import { EditSVG } from "@/svgs"
 
 const Account = () => {
 	const appProps = useApp()
@@ -62,36 +63,26 @@ const Account = () => {
 
 	return (
 		<>
-			<Header title="Account" />
-			<div className="py-12">
-				<div className="max-w-7xl mx-auto px-6 lg:px-8">
-					{/* Create Account Link Start */}
-					<div className="flex justify-end mb-4">
-						<MyLink
-							href={`/accounts/create`}
-							icon={<PlusSVG />}
-							text="create account"
+			<div className="max-w-7xl mx-auto px-6 lg:px-8">
+				{/* Account Card Start */}
+				{accounts.data?.length === 0 ? (
+					<div className="flex flex-start gap-4 py-20">
+						<HeroIcon color="emerald">
+							<MoneySVG />
+						</HeroIcon>
+						<HeroHeading
+							heading="No Accounts Yet"
+							data="Get started by creating your first account."
 						/>
 					</div>
-					{/* Create Account Link End */}
-
-					{/* Account Card Start */}
-					{accounts.data?.length === 0 ? (
-						<div className="flex flex-start gap-4 py-20">
-							<HeroIcon color="emerald">
-								<MoneySVG />
-							</HeroIcon>
-							<HeroHeading
-								heading="No Accounts Yet"
-								data="Get started by creating your first account."
-							/>
-						</div>
-					) : (
-						<React.Fragment>
-							{accounts.data?.map((account, key) => (
+				) : (
+					<React.Fragment>
+						{accounts.data?.map((account, key) => (
+							<Link
+								href={`/accounts/${account.id}/edit`}
+								key={key}>
 								<div
-									key={key}
-									className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-sm rounded-3xl p-6 hover:bg-white/15 transition-all duration-500 mb-4">
+									className={`bg-white/10 backdrop-blur-xl border border-white/20 ${account.isDefault ? "border-4" : ""} shadow-sm rounded-3xl p-6 hover:bg-white/15 transition-all duration-500 mb-4`}>
 									<div className="flex justify-start gap-4 items-center mb-4">
 										<HeroIcon color={account.color || "purple"}>
 											<IconDisplay
@@ -103,52 +94,24 @@ const Account = () => {
 											heading={account.name}
 											data={`${account.currency} ${account.balance}`}
 										/>
-										{/* Type Start */}
-										<div className="capitalize text-white/70 border border-white/20 px-2 py-1 rounded-lg text-xs">
-											{account.type}
-										</div>
-										{/* Type End */}
-										<div className="ml-auto text-white/70">
-											<div className="flex justify-end mb-4">
-												{/* Default Start */}
-												<div className="grid grid-cols-1 me-2">
-													<FieldGroup className="w-full">
-														<Field orientation="horizontal">
-															<Switch
-																id="switch-size-default"
-																size="lg"
-																checked={account.isDefault}
-																onCheckedChange={setIsDefault}
-															/>
-														</Field>
-													</FieldGroup>
-												</div>
-												{/* Default End */}
-												{/* Edit Account Link Start */}
-												<MyLink
-													href={`/accounts/${account.id}/edit`}
-													icon={<PlusSVG />}
-													text="edit account"
-													className="me-2"
-												/>
-												{/* Edit Account Link End */}
-												{/* Delete Account Start */}
-												<DeleteModal
-													index={`account-dt-${account.id}`}
-													model={account}
-													modelName="Account"
-													onDelete={onDeleteAccount}
-												/>
-												{/* Delete Account End */}
-											</div>
-										</div>
 									</div>
 								</div>
-							))}
-						</React.Fragment>
-					)}
-					{/* Account Card End */}
+							</Link>
+						))}
+					</React.Fragment>
+				)}
+				{/* Account Card End */}
+
+				{/* Create Account Link Start */}
+				<div className="fixed bottom-20 right-4 z-50">
+					<MyLink
+						href={`/accounts/create`}
+						icon={<PlusSVG />}
+						className=""
+						size="lg"
+					/>
 				</div>
+				{/* Create Account Link End */}
 			</div>
 		</>
 	)
