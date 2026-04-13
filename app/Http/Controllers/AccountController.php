@@ -6,6 +6,8 @@ use App\Http\Resources\AccountResource;
 use App\Http\Services\AccountService;
 use App\Models\Account;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class AccountController extends Controller
 {
@@ -16,9 +18,27 @@ class AccountController extends Controller
      */
     public function index(Request $request)
     {
-        $accounts = $this->service->index($request);
+        if ($request->expectsJson()) {
+            $accounts = $this->service->index($request);
 
-        return AccountResource::collection($accounts);
+            return AccountResource::collection($accounts);
+        }
+
+        $accounts = Account::where('user_id', $request->user()->id)
+            ->orderBy('name')
+            ->get();
+
+        return Inertia::render('accounts/index', [
+            'accounts' => AccountResource::collection($accounts),
+        ]);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create(): Response
+    {
+        return Inertia::render('accounts/create');
     }
 
     /**
@@ -31,17 +51,21 @@ class AccountController extends Controller
             'color' => 'required|string|max:255',
             'name' => 'required|string|max:255',
             'currency' => 'nullable|string|max:255',
-            'type' => 'nullable|string|in:regular',
+            'type' => 'nullable|string|in:regular,savings,mobile',
             'description' => 'nullable|string|max:255',
             'is_default' => 'nullable|boolean',
         ]);
 
         [$saved, $message, $account] = $this->service->store($request);
 
-        return (new AccountResource($account))->additional([
-            'saved' => $saved,
-            'message' => $message,
-        ]);
+        if ($request->expectsJson()) {
+            return (new AccountResource($account))->additional([
+                'saved' => $saved,
+                'message' => $message,
+            ]);
+        }
+
+        return to_route('accounts.index');
     }
 
     /**
@@ -55,6 +79,18 @@ class AccountController extends Controller
     }
 
     /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit($id): Response
+    {
+        $account = Account::findOrFail($id);
+
+        return Inertia::render('accounts/[id]/edit', [
+            'account' => new AccountResource($account),
+        ]);
+    }
+
+    /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, $id)
@@ -64,29 +100,37 @@ class AccountController extends Controller
             'color' => 'sometimes|string|max:255',
             'name' => 'sometimes|string|max:255',
             'currency' => 'nullable|string|max:255',
-            'type' => 'nullable|string|in:regular',
+            'type' => 'nullable|string|in:regular,savings,mobile',
             'description' => 'nullable|string|max:255',
             'is_default' => 'nullable|boolean',
         ]);
 
         [$saved, $message, $account] = $this->service->update($request, $id);
 
-        return (new AccountResource($account))->additional([
-            'saved' => $saved,
-            'message' => $message,
-        ]);
+        if ($request->expectsJson()) {
+            return (new AccountResource($account))->additional([
+                'saved' => $saved,
+                'message' => $message,
+            ]);
+        }
+
+        return to_route('accounts.index');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         [$deleted, $message, $account] = $this->service->destory($id);
 
-        return (new AccountResource($account))->additional([
-            'deleted' => $deleted,
-            'message' => $message,
-        ]);
+        if ($request->expectsJson()) {
+            return (new AccountResource($account))->additional([
+                'deleted' => $deleted,
+                'message' => $message,
+            ]);
+        }
+
+        return to_route('accounts.index');
     }
 }

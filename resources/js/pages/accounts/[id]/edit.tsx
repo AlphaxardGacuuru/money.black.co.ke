@@ -1,190 +1,226 @@
-"use client"
+import { Form, Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
+import AccountController from '@/actions/App/Http/Controllers/AccountController';
+import Heading from '@/components/heading';
+import InputError from '@/components/input-error';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
-import React, { useEffect, useState, useCallback } from "react"
-import { useRouter, useParams } from "next/navigation" // Added useParams
-import { useApp } from "@/contexts/AppContext"
-import Axios from "@/lib/axios"
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
+type Account = {
+    id: string;
+    name: string;
+    icon: string;
+    color: string;
+    currency: string;
+    type: string | null;
+    description: string | null;
+    isDefault: boolean;
+};
 
-import Header from "@/app/(app)/Header"
-import Btn from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
+type EditAccountProps = {
+    account?: Account | { data?: Account };
+};
 
-import BackSVG from "@/svgs/BackSVG"
-import MyLink from "@/components/ui/my-link"
-import IconInput from "@/components/ui/IconInput"
-import EditSVG from "@/svgs/EditSVG"
+function normalizeAccount(
+    account?: Account | { data?: Account },
+): Account | null {
+    if (!account) {
+        return null;
+    }
 
-const EditAccount = (props) => {
-	const router = useRouter()
-	const params = useParams() // Extract ID from URL
-	const appProps = useApp()
+    if ('data' in account) {
+        return (account as { data?: Account }).data ?? null;
+    }
 
-	props = { ...props, ...appProps }
-
-	const [loading, setLoading] = useState(false)
-	const [fetching, setFetching] = useState(true)
-
-	// State
-	const [name, setName] = useState("")
-	const [icon, setIcon] = useState("")
-	const [color, setColor] = useState("#000000")
-	const [type, setType] = useState("")
-	const [description, setDescription] = useState("")
-	const [currency, setCurrency] = useState("KES")
-	const [isDefault, setIsDefault] = useState(false)
-
-	useEffect(() => {
-		Axios.get(`/api/accounts/${params.id}`)
-			.then((res) => {
-				const account = res.data.data
-				setName(account.name)
-				setIcon(account.icon)
-				setColor(account.color)
-				setType(account.type)
-				setDescription(account.description || "")
-				setCurrency(account.currency)
-				setIsDefault(account.isDefault)
-				setFetching(false)
-			})
-			.catch((err) => {
-				props.getErrors(err)
-				setFetching(false)
-			})
-	}, [])
-
-	/*
-	 * Submit Form (Update)
-	 */
-	const onSubmit = (e) => {
-		e.preventDefault()
-		setLoading(true)
-
-		const accountData = {
-			name,
-			icon,
-			color,
-			type,
-			description,
-			currency,
-			is_default: isDefault,
-		}
-
-		// Changed to PUT and added ID to endpoint
-		Axios.put(`/api/accounts/${params.id}`, accountData)
-			.then((res) => {
-				setLoading(false)
-				props.setMessages([res.data.message])
-			})
-			.catch((err) => {
-				setLoading(false)
-				props.getErrors(err)
-			})
-	}
-
-	if (fetching) {
-		return <Header title="Loading Account..." />
-	}
-
-	return (
-		<>
-			<Header title="Edit Account" />
-
-			<div className="py-6">
-				<div className="max-w-4xl mx-auto px-6 lg:px-8">
-					<form onSubmit={onSubmit}>
-						<div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 space-y-8 shadow-2xl">
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-								<IconInput
-									value={icon}
-									onChange={setIcon}
-								/>
-								<Input
-									label="Color"
-									type="color"
-									value={color}
-									onChange={(e) => setColor(e.target.value)}
-									required
-								/>
-							</div>
-
-							<div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-								<Input
-									label="Name"
-									placeholder="e.g., Equity Bank, M-Pesa Business"
-									value={name} // Uncommented value
-									onChange={(e) => setName(e.target.value)}
-									required
-								/>
-							</div>
-
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-								<Select
-									label="Currency"
-									value={currency}
-									onChange={(e) => setCurrency(e.target.value)}>
-									<option value="KES">KES</option>
-									<option value="USD">USD</option>
-								</Select>
-
-								<Select
-									label="Type"
-									value={type}
-									onChange={(e) => setType(e.target.value)}>
-									<option value=""></option>
-									<option value="regular">Regular</option>
-									<option value="savings">Savings</option>
-									<option value="mobile">Mobile</option>
-								</Select>
-							</div>
-
-							<Textarea
-								label="Description"
-								rows={3}
-								placeholder="Optional details about this account..."
-								value={description}
-								onChange={(e) => setDescription(e.target.value)}
-							/>
-
-							<div className="grid grid-cols-1">
-								<FieldGroup className="w-full">
-									<Field orientation="horizontal">
-										<Switch
-											id="switch-size-default"
-											size="lg"
-											checked={isDefault}
-											onCheckedChange={setIsDefault}
-										/>
-										<FieldLabel
-											htmlFor="switch-size-default"
-											className="text-white">
-											Set as Default Account
-										</FieldLabel>
-									</Field>
-								</FieldGroup>
-							</div>
-
-							<div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-								<MyLink
-									href="/accounts"
-									icon={<BackSVG />}
-									text="Back to Accounts"
-								/>
-
-								<Btn
-									text="Update Account"
-									loading={loading}
-								/>
-							</div>
-						</div>
-					</form>
-				</div>
-			</div>
-		</>
-	)
+    return account as Account;
 }
 
-export default EditAccount
+export default function EditAccount({ account }: EditAccountProps) {
+    const accountData = normalizeAccount(account);
+    const [isDefault, setIsDefault] = useState(accountData?.isDefault ?? false);
+
+    const handleDelete = (): void => {
+        if (!confirm('Delete this account? This action cannot be undone.')) {
+            return;
+        }
+
+        router.delete(
+            AccountController.destroy['/accounts/{account}'].url(accountData?.id ?? ''),
+        );
+    };
+
+    if (!accountData?.id) {
+        return (
+            <div className="p-4">
+                <Heading
+                    title="Account not found"
+                    description="We couldn't load this account. Please go back and try again."
+                />
+            </div>
+        );
+    }
+
+    return (
+        <>
+            <Head title={`Edit ${accountData.name}`} />
+
+            <div className="flex flex-1 flex-col gap-6 p-4">
+                <Heading
+                    title={`Edit ${accountData.name}`}
+                    description="Update your account details."
+                />
+
+                <Form
+                    {...AccountController.update['/accounts/{account}'].form(
+                        accountData.id,
+                    )}
+                    options={{ preserveScroll: true }}
+                    className="space-y-6"
+                >
+                    {({ processing, errors }) => (
+                        <>
+                            <div className="grid gap-6 sm:grid-cols-2">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="icon">Icon</Label>
+                                    <Input
+                                        id="icon"
+                                        name="icon"
+                                        required
+                                        defaultValue={accountData.icon}
+                                        placeholder="e.g., 💳 or wallet"
+                                    />
+                                    <InputError message={errors.icon} />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label htmlFor="color">Color</Label>
+                                    <Input
+                                        id="color"
+                                        type="color"
+                                        name="color"
+                                        defaultValue={accountData.color}
+                                        required
+                                    />
+                                    <InputError message={errors.color} />
+                                </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="name">Name</Label>
+                                <Input
+                                    id="name"
+                                    name="name"
+                                    required
+                                    defaultValue={accountData.name}
+                                    placeholder="e.g., Equity Bank, M-Pesa"
+                                />
+                                <InputError message={errors.name} />
+                            </div>
+
+                            <div className="grid gap-6 sm:grid-cols-2">
+                                <div className="grid gap-2">
+                                    <Label>Currency</Label>
+                                    <Select name="currency" defaultValue={accountData.currency ?? 'KES'}>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="KES">KES</SelectItem>
+                                            <SelectItem value="USD">USD</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError message={errors.currency} />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label>Type</Label>
+                                    <Select
+                                        name="type"
+                                        defaultValue={
+                                            accountData.type ?? undefined
+                                        }
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Select type" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="regular">Regular</SelectItem>
+                                            <SelectItem value="savings">Savings</SelectItem>
+                                            <SelectItem value="mobile">Mobile</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError message={errors.type} />
+                                </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="description">Description</Label>
+                                <textarea
+                                    id="description"
+                                    name="description"
+                                    rows={3}
+                                    placeholder="Optional details about this account..."
+                                    defaultValue={
+                                        accountData.description ?? undefined
+                                    }
+                                    className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 flex w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:ring-[3px]"
+                                />
+                                <InputError message={errors.description} />
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                                <input type="hidden" name="is_default" value={isDefault ? '1' : '0'} />
+                                <input
+                                    id="is_default"
+                                    type="checkbox"
+                                    className="size-4 cursor-pointer rounded"
+                                    checked={isDefault}
+                                    onChange={(e) => setIsDefault(e.target.checked)}
+                                />
+                                <Label htmlFor="is_default" className="cursor-pointer">
+                                    Set as Default Account
+                                </Label>
+                            </div>
+
+                            <div className="flex justify-between gap-3">
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        onClick={handleDelete}
+                                    >
+                                        Delete Account
+                                    </Button>
+
+                                    <Button type="submit" disabled={processing}>
+                                        {processing ? 'Saving…' : 'Save Changes'}
+                                    </Button>
+                            </div>
+							<div className="flex justify-center">
+                                <Button variant="outline" asChild>
+                                    <Link href={AccountController.index['/accounts'].url()}>
+                                        ← Back to Accounts
+                                    </Link>
+                                </Button>
+							</div>
+                        </>
+                    )}
+                </Form>
+            </div>
+        </>
+    );
+}
+
+EditAccount.layout = {
+    breadcrumbs: [
+        { title: 'Accounts', href: '/accounts' },
+        { title: 'Edit', href: '#' },
+    ],
+};

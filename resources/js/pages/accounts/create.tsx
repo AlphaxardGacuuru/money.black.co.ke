@@ -1,180 +1,153 @@
-"use client"
+import { Form, Head, Link } from '@inertiajs/react';
+import { useState } from 'react';
+import AccountController from '@/actions/App/Http/Controllers/AccountController';
+import Heading from '@/components/heading';
+import InputError from '@/components/input-error';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
-import React, { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { useApp } from "@/contexts/AppContext"
-import Axios from "@/lib/axios"
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
+export default function CreateAccount() {
+    const [isDefault, setIsDefault] = useState(false);
 
-import Header from "@/app/(app)/Header"
-import Btn from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
+    return (
+        <>
+            <Head title="Create Account" />
 
-import BackSVG from "@/svgs/BackSVG"
-import PlusSVG from "@/svgs/PlusSVG"
-import MyLink from "@/components/ui/my-link"
-import IconInput from "@/components/ui/IconInput"
+            <div className="flex flex-1 flex-col gap-6 p-4">
+                <Heading
+                    title="Create Account"
+                    description="Add a new account to track your finances."
+                />
 
-const CreateAccount = (props) => {
-	const router = useRouter()
-	const appProps = useApp()
+                <Form
+                    {...AccountController.store['/accounts'].form()}
+                    options={{ preserveScroll: true }}
+                    className="space-y-6"
+                >
+                    {({ processing, errors }) => (
+                        <>
+                            <div className="grid gap-6 sm:grid-cols-2">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="icon">Icon</Label>
+                                    <Input
+                                        id="icon"
+                                        name="icon"
+                                        required
+                                        placeholder="e.g., 💳 or wallet"
+                                    />
+                                    <InputError message={errors.icon} />
+                                </div>
 
-	props = { ...props, ...appProps }
+                                <div className="grid gap-2">
+                                    <Label htmlFor="color">Color</Label>
+                                    <Input
+                                        id="color"
+                                        type="color"
+                                        name="color"
+                                        defaultValue="#0f172a"
+                                        required
+                                    />
+                                    <InputError message={errors.color} />
+                                </div>
+                            </div>
 
-	const [loading, setLoading] = useState(false)
+                            <div className="grid gap-2">
+                                <Label htmlFor="name">Name</Label>
+                                <Input
+                                    id="name"
+                                    name="name"
+                                    required
+                                    placeholder="e.g., Equity Bank, M-Pesa"
+                                />
+                                <InputError message={errors.name} />
+                            </div>
 
-	// Account Migration Fields State
-	const [name, setName] = useState()
-	const [icon, setIcon] = useState()
-	const [color, setColor] = useState("#000000")
-	const [type, setType] = useState()
-	const [description, setDescription] = useState()
-	const [currency, setCurrency] = useState("KES")
-	const [isDefault, setIsDefault] = useState(true)
+                            <div className="grid gap-6 sm:grid-cols-2">
+                                <div className="grid gap-2">
+                                    <Label>Currency</Label>
+                                    <Select name="currency" defaultValue="KES">
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="KES">KES</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError message={errors.currency} />
+                                </div>
 
-	/*
-	 * Submit Form
-	 */
-	const onSubmit = (e) => {
-		e.preventDefault()
-		setLoading(true)
+                                <div className="grid gap-2">
+                                    <Label>Type</Label>
+                                    <Select name="type">
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Select type" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="regular">Regular</SelectItem>
+                                            <SelectItem value="savings">Savings</SelectItem>
+                                            <SelectItem value="mobile">Mobile</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError message={errors.type} />
+                                </div>
+                            </div>
 
-		const accountData = {
-			name,
-			icon,
-			color,
-			type,
-			description,
-			currency,
-			is_default: isDefault,
-		}
+                            <div className="grid gap-2">
+                                <Label htmlFor="description">Description</Label>
+                                <textarea
+                                    id="description"
+                                    name="description"
+                                    rows={3}
+                                    placeholder="Optional details about this account..."
+                                    className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 flex w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:ring-[3px]"
+                                />
+                                <InputError message={errors.description} />
+                            </div>
 
-		// Updated endpoint to /api/accounts
-		Axios.post("/api/accounts", accountData)
-			.then((res) => {
-				setLoading(false)
-				props.setMessages([res.data.message])
-				setTimeout(() => router.push(`/accounts`), 500)
-			})
-			.catch((err) => {
-				setLoading(false)
-				props.getErrors(err)
-			})
-	}
+                            <div className="flex items-center gap-3">
+                                <input type="hidden" name="is_default" value={isDefault ? '1' : '0'} />
+                                <input
+                                    id="is_default"
+                                    type="checkbox"
+                                    className="size-4 cursor-pointer rounded"
+                                    checked={isDefault}
+                                    onChange={(e) => setIsDefault(e.target.checked)}
+                                />
+                                <Label htmlFor="is_default" className="cursor-pointer">
+                                    Set as Default Account
+                                </Label>
+                            </div>
 
-	return (
-		<>
-			<Header title="Create Account" />
+                            <div className="flex justify-between">
+                                <Button variant="outline" asChild>
+                                    <Link href={AccountController.index['/accounts'].url()}>
+                                        ← Back to Accounts
+                                    </Link>
+                                </Button>
 
-			<div className="py-6">
-				<div className="max-w-4xl mx-auto px-6 lg:px-8">
-					<form onSubmit={onSubmit}>
-						<div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 space-y-8 shadow-2xl">
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-								{/* Icon Start */}
-								<IconInput
-									value={icon}
-									onChange={setIcon}
-								/>
-								{/* Icon End */}
-
-								{/* Color Start */}
-								<Input
-									label="Color"
-									type="color"
-									value={color}
-									onChange={(e) => setColor(e.target.value)}
-									required
-								/>
-								{/* Color End */}
-							</div>
-
-							<div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-								{/* Name Start */}
-								<Input
-									label="Name"
-									placeholder="e.g., Equity Bank, M-Pesa Business"
-									// value={name}
-									onChange={(e) => setName(e.target.value)}
-									required
-								/>
-								{/* Name End */}
-							</div>
-
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-								{/* Currency Start */}
-								<Select
-									label="Currency"
-									value={currency}
-									onChange={(e) => setCurrency(e.target.value)}>
-									<option value="KES">KES</option>
-								</Select>
-								{/* Currency End */}
-
-								{/* Type Start */}
-								<Select
-									label="Type"
-									value={type}
-									onChange={(e) => setType(e.target.value)}>
-									<option value=""></option>
-									<option value="regular">Regular</option>
-									<option value="savings">Savings</option>
-									<option value="mobile">Mobile</option>
-								</Select>
-								{/* Type End */}
-							</div>
-
-							{/* Description Start */}
-							<Textarea
-								label="Description"
-								rows={3}
-								placeholder="Optional details about this account..."
-								value={description}
-								onChange={(e) => setDescription(e.target.value)}
-							/>
-							{/* Description End */}
-
-							{/* Default Start */}
-							<div className="grid grid-cols-1">
-								<FieldGroup className="w-full">
-									<Field orientation="horizontal">
-										<Switch
-											id="switch-size-default"
-											size="lg"
-											checked={isDefault}
-											onCheckedChange={setIsDefault}
-										/>
-										<FieldLabel
-											htmlFor="switch-size-default"
-											className="text-white">
-											Set as Default Account
-										</FieldLabel>
-									</Field>
-								</FieldGroup>
-							</div>
-							{/* Default End */}
-
-							<div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-								<MyLink
-									href="/accounts"
-									icon={<BackSVG />}
-									text="Back to Accounts"
-								/>
-
-								<Btn
-									text="Create Account"
-									loading={loading}
-								/>
-							</div>
-						</div>
-					</form>
-				</div>
-			</div>
-		</>
-	)
+                                <Button type="submit" disabled={processing}>
+                                    {processing ? 'Creating…' : 'Create Account'}
+                                </Button>
+                            </div>
+                        </>
+                    )}
+                </Form>
+            </div>
+        </>
+    );
 }
 
-export default CreateAccount
+CreateAccount.layout = {
+    breadcrumbs: [
+        { title: 'Accounts', href: '/accounts' },
+        { title: 'Create', href: '/accounts/create' },
+    ],
+};

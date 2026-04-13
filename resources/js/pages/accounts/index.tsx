@@ -1,120 +1,195 @@
-"use client"
+import { Head, Link } from '@inertiajs/react';
+import { ChevronRight, Plus, Wallet } from 'lucide-react';
+import AccountController from '@/actions/App/Http/Controllers/AccountController';
+import Heading from '@/components/heading';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 
-import React, { useState, useEffect } from "react"
-import { useApp } from "@/contexts/AppContext"
-import Axios from "@/lib/axios"
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
-import { useAuth } from "@/hooks/auth"
-import Link from "next/link"
+type Account = {
+    id: number | string;
+    name: string;
+    color?: string | null;
+    icon?: string | null;
+    currency?: string | null;
+    balance?: number | string | null;
+    type?: string | null;
+    description?: string | null;
+    isDefault?: boolean;
+};
 
-import HeroHeading from "@/components/core/HeroHeading"
-import HeroIcon from "@/components/core/HeroIcon"
-import MyLink from "@/components/ui/my-link"
-import IconDisplay from "@/components/ui/icon-display"
-import { Switch } from "@/components/ui/switch"
-import DeleteModal from "@/components/core/DeleteModal"
+type PaginatedAccounts = {
+    data?: Account[];
+};
 
-import MoneySVG from "@/svgs/MoneySVG"
-import PeopleSVG from "@/svgs/PeopleSVG"
-import PlusSVG from "@/svgs/PlusSVG"
-import { EditSVG } from "@/svgs"
+type AccountsPageProps = {
+    accounts?: Account[] | PaginatedAccounts;
+};
 
-const Account = () => {
-	const appProps = useApp()
-	const { user } = useAuth({ middleware: "auth" })
+function getAccounts(accounts?: Account[] | PaginatedAccounts): Account[] {
+    if (Array.isArray(accounts)) {
+        return accounts;
+    }
 
-	const [accounts, setAccounts] = useState([])
-	const [isDefault, setIsDefault] = useState(true)
-	const [loading, setLoading] = useState(true)
-
-	useEffect(() => {
-		appProps.getPaginated(`accounts?userId=${user?.id}`, setAccounts)
-	}, [user])
-
-	/*
-	 * Delete Account
-	 */
-	const onDeleteAccount = (accountId) => {
-		setLoading(true)
-		var accountIds = Array.isArray(accountId) ? accountId.join(",") : accountId
-
-		Axios.delete(`/api/accounts/${accountIds}`)
-			.then((res) => {
-				setLoading(false)
-				appProps.setMessages([res.data.message])
-				// Remove row
-				setAccounts({
-					meta: accounts.meta,
-					links: accounts.links,
-					data: accounts.data.filter((account) => {
-						if (Array.isArray(accountId)) {
-							return !accountIds.map(String).includes(String(account.id))
-						} else {
-							return account.id != accountId
-						}
-					}),
-				})
-			})
-			.catch((err) => {
-				setLoading(false)
-				appProps.getErrors(err)
-			})
-	}
-
-	return (
-		<>
-			<div className="max-w-7xl mx-auto px-6 lg:px-8">
-				{/* Account Card Start */}
-				{accounts.data?.length === 0 ? (
-					<div className="flex flex-start gap-4 py-20">
-						<HeroIcon color="emerald">
-							<MoneySVG />
-						</HeroIcon>
-						<HeroHeading
-							heading="No Accounts Yet"
-							data="Get started by creating your first account."
-						/>
-					</div>
-				) : (
-					<React.Fragment>
-						{accounts.data?.map((account, key) => (
-							<Link
-								href={`/accounts/${account.id}/edit`}
-								key={key}>
-								<div
-									className={`bg-white/10 backdrop-blur-xl border border-white/20 ${account.isDefault ? "border-4" : ""} shadow-sm rounded-3xl p-6 hover:bg-white/15 transition-all duration-500 mb-4`}>
-									<div className="flex justify-start gap-4 items-center mb-4">
-										<HeroIcon color={account.color || "purple"}>
-											<IconDisplay
-												icon={account.icon}
-												defaultIcon={PeopleSVG}
-											/>
-										</HeroIcon>
-										<HeroHeading
-											heading={account.name}
-											data={`${account.currency} ${account.balance}`}
-										/>
-									</div>
-								</div>
-							</Link>
-						))}
-					</React.Fragment>
-				)}
-				{/* Account Card End */}
-
-				{/* Create Account Link Start */}
-				<div className="fixed bottom-20 right-4 z-50">
-					<MyLink
-						href={`/accounts/create`}
-						icon={<PlusSVG />}
-						className=""
-						size="lg"
-					/>
-				</div>
-				{/* Create Account Link End */}
-			</div>
-		</>
-	)
+    return accounts?.data ?? [];
 }
 
-export default Account
+function formatBalance(account: Account): string {
+    const balance = Number(account.balance ?? 0);
+
+    if (Number.isNaN(balance)) {
+        return String(account.balance ?? 0);
+    }
+
+    return new Intl.NumberFormat(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    }).format(balance);
+}
+
+function getInitials(name: string): string {
+    return name
+        .split(' ')
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase() ?? '')
+        .join('');
+}
+
+export default function AccountsIndex({ accounts }: AccountsPageProps) {
+    const accountList = getAccounts(accounts);
+
+    return (
+        <>
+            <Head title="Accounts" />
+
+            <div className="flex flex-1 flex-col gap-6 p-4">
+                <div className="flex flex-col gap-4 rounded-xl border bg-card p-6 shadow-sm sm:flex-row sm:items-start sm:justify-between">
+                    <Heading
+                        title="Accounts"
+                        description="Track the wallets, banks, and cash accounts that power the rest of your bookkeeping."
+                    />
+
+                    <Button asChild className="sm:self-start">
+                        <Link href={AccountController.create.url()}>
+                            <Plus />
+                            Create account
+                        </Link>
+                    </Button>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    {accountList.length > 0 ? (
+                        accountList.map((account) => (
+                            <Link
+                                key={account.id}
+                                href={AccountController.edit.url(account.id)}
+                                className="group block"
+                            >
+                                <Card className="h-full border-border/80 transition-colors group-hover:border-primary/40 group-hover:bg-accent/20">
+                                    <CardHeader className="gap-4">
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div className="flex items-center gap-4">
+                                                <div
+                                                    className="flex size-12 items-center justify-center rounded-xl border border-border/60 text-white shadow-sm"
+                                                    style={{
+                                                        backgroundColor:
+                                                            account.color ??
+                                                            '#0f172a',
+                                                    }}
+                                                >
+                                                    <span className="text-sm font-semibold">
+                                                        {getInitials(
+                                                            account.name,
+                                                        ) || 'A'}
+                                                    </span>
+                                                </div>
+
+                                                <div className="space-y-1">
+                                                    <CardTitle>
+                                                        {account.name}
+                                                    </CardTitle>
+                                                    <CardDescription>
+                                                        {account.description ||
+                                                            'No description added yet.'}
+                                                    </CardDescription>
+                                                </div>
+                                            </div>
+
+                                            <ChevronRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
+                                        </div>
+                                    </CardHeader>
+
+                                    <CardContent className="space-y-4">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <Badge variant="secondary">
+                                                {account.currency ?? 'KES'}
+                                            </Badge>
+                                            {account.type ? (
+                                                <Badge variant="outline">
+                                                    {account.type}
+                                                </Badge>
+                                            ) : null}
+                                            {account.isDefault ? (
+                                                <Badge>Default</Badge>
+                                            ) : null}
+                                        </div>
+
+                                        <div className="rounded-lg border border-border/70 bg-muted/40 px-4 py-3">
+                                            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                                                Balance
+                                            </p>
+                                            <p className="mt-2 text-2xl font-semibold tracking-tight">
+                                                {account.currency ?? 'KES'}{' '}
+                                                {formatBalance(account)}
+                                            </p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                        ))
+                    ) : (
+                        <Card className="relative overflow-hidden border-dashed md:col-span-2 xl:col-span-3">
+                            <PlaceholderPattern className="absolute inset-0 size-full stroke-muted-foreground/15" />
+                            <CardContent className="relative flex min-h-72 flex-col items-center justify-center gap-4 text-center">
+                                <div className="flex size-14 items-center justify-center rounded-full border bg-background shadow-sm">
+                                    <Wallet className="size-6 text-muted-foreground" />
+                                </div>
+                                <div className="space-y-2">
+                                    <h2 className="text-lg font-semibold">
+                                        No accounts yet
+                                    </h2>
+                                    <p className="max-w-md text-sm text-muted-foreground">
+                                        Create your first account to start tracking balances, defaults, and account-specific activity inside the app.
+                                    </p>
+                                </div>
+                                <Button asChild>
+                                    <Link href="/accounts/create">
+                                        <Plus />
+                                        Create your first account
+                                    </Link>
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    )}
+                </div>
+            </div>
+        </>
+    );
+}
+
+AccountsIndex.layout = {
+    breadcrumbs: [
+        {
+            title: 'Accounts',
+            href: '/accounts',
+        },
+    ],
+};
