@@ -170,12 +170,6 @@ export default function AccountsIndex({ accounts }: AccountsPageProps) {
                                         Create your first account to start tracking balances, defaults, and account-specific activity inside the app.
                                     </p>
                                 </div>
-                                <Button asChild>
-                                    <Link href="/accounts/create">
-                                        <Plus />
-                                        Create your first account
-                                    </Link>
-                                </Button>
                             </CardContent>
                         </Card>
                     )}

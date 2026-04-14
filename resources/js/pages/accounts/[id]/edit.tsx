@@ -1,5 +1,6 @@
 import { Form, Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
+import { ArrowLeft } from 'lucide-react';
 import AccountController from '@/actions/App/Http/Controllers/AccountController';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
@@ -23,6 +24,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
 
 type Account = {
     id: string;
@@ -232,20 +234,23 @@ export default function EditAccount({ account }: EditAccountProps) {
                                                 onClick={handleDelete}
                                                 disabled={isDeleting}
                                             >
-                                                {isDeleting ? 'Deleting…' : 'Yes, Delete Account'}
+                                                {isDeleting && <Spinner />}
+                                                Yes, Delete Account
                                             </Button>
                                         </DialogFooter>
                                     </DialogContent>
                                 </Dialog>
 
                                     <Button type="submit" disabled={processing}>
-                                        {processing ? 'Saving…' : 'Save Changes'}
+                                        {processing && <Spinner />}
+                                        Save Changes
                                     </Button>
                             </div>
 							<div className="flex justify-center">
                                 <Button variant="outline" asChild>
                                     <Link href={AccountController.index['/accounts'].url()}>
-                                        ← Back to Accounts
+                                                                            <ArrowLeft className="size-4" />
+                                    Back to Accounts
                                     </Link>
                                 </Button>
 							</div>

@@ -4,13 +4,13 @@ import { useCurrentUrl } from '@/hooks/use-current-url';
 import { cn } from '@/lib/utils';
 
 export function AppBottomNav() {
-    const { isCurrentUrl } = useCurrentUrl();
+    const { isCurrentOrParentUrl } = useCurrentUrl();
 
     return (
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-3 md:hidden">
             <nav className="bg-sidebar text-sidebar-foreground border-sidebar-border pointer-events-auto mx-auto flex max-w-md items-center justify-around rounded-2xl border shadow-sm backdrop-blur supports-backdrop-filter:bg-sidebar/95">
                 {mainNavItems.map((item) => {
-                    const isActive = isCurrentUrl(item.href);
+                    const isActive = isCurrentOrParentUrl(item.href);
                     const Icon = item.icon;
 
                     return (

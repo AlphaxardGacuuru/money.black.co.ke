@@ -6,12 +6,16 @@ use App\Http\Resources\CategoryResource;
 use App\Http\Services\CategoryService;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class CategoryController extends Controller
 {
-    public function __construct(protected CategoryService $service)
+    public function __construct(protected CategoryService $service) {}
+
+    private function shouldReturnJson(Request $request): bool
     {
-        // 
+        return $request->expectsJson() && !$request->header('X-Inertia');
     }
 
     /**
@@ -19,12 +23,27 @@ class CategoryController extends Controller
      */
     public function index(Request $request)
     {
-        [$status, $message, $categories] = $this->service->index($request);
+        if ($this->shouldReturnJson($request)) {
+            $categories = $this->service->index($request);
 
-        return CategoryResource::collection($categories)->additional([
-            'status' => $status,
-            'message' => $message,
+            return CategoryResource::collection($categories);
+        }
+
+        $categories = Category::where('user_id', $request->user()->id)
+            ->orderBy('name')
+            ->get();
+
+        return Inertia::render('categories/index', [
+            'categories' => CategoryResource::collection($categories),
         ]);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create(): Response
+    {
+        return Inertia::render('categories/create');
     }
 
     /**
@@ -32,66 +51,93 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'icon' => 'required|string|max:255',
             'color' => 'required|string|max:255',
             'name' => 'required|string|max:255',
             'type' => 'required|string|in:expense,income',
-            'description' => 'nullable|string|max:255',
+            'total' => 'nullable|integer|min:0',
         ]);
 
-        [$status, $message, $category] = $this->service->store($request);
+        [$saved, $message, $category] = $this->service->store($request);
 
-        return (new CategoryResource($category))->additional([
-            'status' => $status,
-            'message' => $message,
-        ]);
+        if ($this->shouldReturnJson($request)) {
+            return (new CategoryResource($category))->additional([
+                'saved' => $saved,
+                'message' => $message,
+            ]);
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
+
+        return redirect('/categories');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(string $id)
     {
-        [$status, $message, $category] = $this->service->show($id);
+        $category = Category::where('user_id', auth()->id())->findOrFail($id);
 
-        return (new CategoryResource($category))->additional([
-            'status' => $status,
-            'message' => $message,
+        return new CategoryResource($category);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(string $id): Response
+    {
+        $category = Category::where('user_id', auth()->id())->findOrFail($id);
+
+        return Inertia::render('categories/[id]/edit', [
+            'category' => new CategoryResource($category),
         ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, string $id)
     {
-        $this->validate($request, [
+        $request->validate([
             'icon' => 'sometimes|string|max:255',
             'color' => 'sometimes|string|max:255',
             'name' => 'sometimes|string|max:255',
             'type' => 'sometimes|string|in:expense,income',
-            'description' => 'nullable|string|max:255',
+            'total' => 'nullable|integer|min:0',
         ]);
 
-        [$status, $message, $category] = $this->service->update($request, $id);
+        [$saved, $message, $category] = $this->service->update($request, $id);
 
-        return (new CategoryResource($category))->additional([
-            'status' => $status,
-            'message' => $message,
-        ]);
+        if ($this->shouldReturnJson($request)) {
+            return (new CategoryResource($category))->additional([
+                'saved' => $saved,
+                'message' => $message,
+            ]);
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
+
+        return redirect('/categories');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(Request $request, string $id)
     {
-        [$status, $message, $category] = $this->service->destroy($id);
+        [$deleted, $message] = $this->service->destroy($id);
 
-        return (new CategoryResource($category))->additional([
-            'status' => $status,
-            'message' => $message,
-        ]);
+        if ($this->shouldReturnJson($request)) {
+            return response()->json([
+                'deleted' => $deleted,
+                'message' => $message,
+            ]);
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
+
+        return redirect('/categories');
     }
 }
