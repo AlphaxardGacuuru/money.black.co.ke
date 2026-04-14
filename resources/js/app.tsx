@@ -5,6 +5,7 @@ import { initializeTheme } from '@/hooks/use-appearance';
 import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
 import SettingsLayout from '@/layouts/settings/layout';
+import { AppProvider } from "@/contexts/AppContext"
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -25,10 +26,12 @@ createInertiaApp({
     strictMode: true,
     withApp(app) {
         return (
+        <AppProvider>
             <TooltipProvider delayDuration={0}>
                 {app}
                 <Toaster />
             </TooltipProvider>
+        </AppProvider>
         );
     },
     progress: {

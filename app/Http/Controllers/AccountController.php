@@ -65,6 +65,8 @@ class AccountController extends Controller
             ]);
         }
 
+        Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
+
         return to_route('accounts.index');
     }
 
@@ -114,6 +116,8 @@ class AccountController extends Controller
             ]);
         }
 
+        Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
+
         return to_route('accounts.index');
     }
 
@@ -130,6 +134,8 @@ class AccountController extends Controller
                 'message' => $message,
             ]);
         }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
 
         return to_route('accounts.index');
     }

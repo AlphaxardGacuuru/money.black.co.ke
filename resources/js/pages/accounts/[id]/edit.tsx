@@ -4,6 +4,16 @@ import AccountController from '@/actions/App/Http/Controllers/AccountController'
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -46,14 +56,18 @@ function normalizeAccount(
 export default function EditAccount({ account }: EditAccountProps) {
     const accountData = normalizeAccount(account);
     const [isDefault, setIsDefault] = useState(accountData?.isDefault ?? false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const handleDelete = (): void => {
-        if (!confirm('Delete this account? This action cannot be undone.')) {
-            return;
-        }
-
+        setIsDeleting(true);
         router.delete(
             AccountController.destroy['/accounts/{account}'].url(accountData?.id ?? ''),
+            {
+                preserveScroll: true,
+                onSuccess: () => setIsDeleteDialogOpen(false),
+                onFinish: () => setIsDeleting(false),
+            },
         );
     };
 
@@ -191,13 +205,38 @@ export default function EditAccount({ account }: EditAccountProps) {
                             </div>
 
                             <div className="flex justify-between gap-3">
-                                    <Button
-                                        type="button"
-                                        variant="destructive"
-                                        onClick={handleDelete}
-                                    >
-                                        Delete Account
-                                    </Button>
+                                <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button type="button" variant="destructive">
+                                            Delete Account
+                                        </Button>
+                                    </DialogTrigger>
+
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>Delete this account?</DialogTitle>
+                                            <DialogDescription>
+                                                This action cannot be undone. All data linked to this account may become inaccessible.
+                                            </DialogDescription>
+                                        </DialogHeader>
+
+                                        <DialogFooter>
+                                            <DialogClose asChild>
+                                                <Button type="button" variant="secondary" disabled={isDeleting}>
+                                                    Cancel
+                                                </Button>
+                                            </DialogClose>
+                                            <Button
+                                                type="button"
+                                                variant="destructive"
+                                                onClick={handleDelete}
+                                                disabled={isDeleting}
+                                            >
+                                                {isDeleting ? 'Deleting…' : 'Yes, Delete Account'}
+                                            </Button>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
 
                                     <Button type="submit" disabled={processing}>
                                         {processing ? 'Saving…' : 'Save Changes'}

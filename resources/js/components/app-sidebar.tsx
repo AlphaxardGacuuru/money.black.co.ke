@@ -1,6 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, Wallet } from 'lucide-react';
-import AccountController from '@/actions/App/Http/Controllers/AccountController';
+import { BookOpen, FolderGit2, Wallet } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -17,15 +16,10 @@ import {
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
+export const mainNavItems: NavItem[] = [
     {
         title: 'Accounts',
-        href: AccountController.index['/accounts'].url(),
+        href: dashboard(),
         icon: Wallet,
     },
 ];
@@ -45,7 +39,7 @@ const footerNavItems: NavItem[] = [
 
 export function AppSidebar() {
     return (
-        <Sidebar collapsible="icon" variant="inset">
+        <Sidebar side="right" collapsible="icon" variant="inset">
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
