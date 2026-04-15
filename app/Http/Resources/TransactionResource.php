@@ -22,8 +22,22 @@ class TransactionResource extends JsonResource
             'amount' => $this->amount,
             'currency' => $this->currency,
             'notes' => $this->notes,
-            'transaction_date' => $this->transaction_date,
-            'created_at' => $this->created_at,
+            'transaction_date' => $this->transaction_date?->toIso8601String(),
+            'created_at' => $this->created_at?->toIso8601String(),
+            'account' => $this->whenLoaded('account', fn (): array => [
+                'id' => $this->account->id,
+                'name' => $this->account->name,
+                'currency' => $this->account->currency,
+                'icon' => $this->account->icon,
+                'color' => $this->account->color,
+            ]),
+            'category' => $this->whenLoaded('category', fn (): array => [
+                'id' => $this->category->id,
+                'name' => $this->category->name,
+                'type' => $this->category->type,
+                'icon' => $this->category->icon,
+                'color' => $this->category->color,
+            ]),
         ];
     }
 }

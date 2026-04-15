@@ -1,7 +1,8 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, Tags, Wallet } from 'lucide-react';
+import { ArrowLeftRight, BookOpen, FolderGit2, Tags, Wallet } from 'lucide-react';
 import AccountController from '@/actions/App/Http/Controllers/AccountController';
 import CategoryController from '@/actions/App/Http/Controllers/CategoryController';
+import TransactionController from '@/actions/App/Http/Controllers/TransactionController';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -29,6 +30,11 @@ export const mainNavItems: NavItem[] = [
         title: 'Categories',
         href: CategoryController.index['/categories'].url(),
         icon: Tags,
+    },
+    {
+        title: 'Transactions',
+        href: TransactionController.index.url(),
+        icon: ArrowLeftRight,
     },
 ];
 

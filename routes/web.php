@@ -15,7 +15,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('accounts', AccountController::class);
     Route::resource('categories', CategoryController::class);
-    Route::resource('transactions', TransactionController::class)->only(['store']);
+    Route::resource('transactions', TransactionController::class)->only(['index', 'store', 'update']);
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';
