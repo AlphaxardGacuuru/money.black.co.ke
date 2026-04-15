@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Resources\AccountResource;
 use App\Http\Services\AccountService;
 use App\Models\Account;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -16,7 +18,7 @@ class AccountController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request): AnonymousResourceCollection|Response
     {
         if ($request->expectsJson()) {
             $accounts = $this->service->index($request);
@@ -44,7 +46,7 @@ class AccountController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request): AccountResource|RedirectResponse
     {
         $request->validate([
             'icon' => 'required|string|max:255',
@@ -73,7 +75,7 @@ class AccountController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show($id): AccountResource
     {
         $account = Account::findOrFail($id);
 
@@ -95,7 +97,7 @@ class AccountController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $id): AccountResource|RedirectResponse
     {
         $request->validate([
             'icon' => 'sometimes|string|max:255',
@@ -124,9 +126,9 @@ class AccountController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, $id)
+    public function destroy(Request $request, $id): AccountResource|RedirectResponse
     {
-        [$deleted, $message, $account] = $this->service->destory($id);
+        [$deleted, $message, $account] = $this->service->destroy($id);
 
         if ($request->expectsJson()) {
             return (new AccountResource($account))->additional([

@@ -10,6 +10,8 @@ import type {
 	PaginatedAccounts,
 	PaginatedCategories,
 } from "@/components/categories/types"
+
+import { useInitials } from "@/hooks/use-initials"
 import { Button } from "@/components/ui/button"
 import {
 	Card,
@@ -114,24 +116,12 @@ function formatTransactionDate(transactionDate?: string | null): string {
 	})
 }
 
-function getInitials(name?: string | null): string {
-	if (!name) {
-		return "T"
-	}
-
-	return name
-		.split(" ")
-		.filter(Boolean)
-		.slice(0, 2)
-		.map((part) => part[0]?.toUpperCase() ?? "")
-		.join("")
-}
-
 export default function TransactionsIndex({
 	transactions,
 	accounts,
 	categories,
 }: TransactionsPageProps) {
+	const getInitials = useInitials()
 	const transactionList = getTransactions(transactions)
 	const accountList = getAccounts(accounts)
 	const categoryList = getCategories(categories)
@@ -181,7 +171,7 @@ export default function TransactionsIndex({
 										type="button"
 										onClick={() => handleEditTransaction(transaction)}
 										className="block w-full text-left">
-										<Card className="overflow-hidden border-border/80 transition-colors hover:bg-accent/10 py-0">
+										<Card className="overflow-hidden border-border/80 py-0 transition-colors hover:bg-accent/10">
 											<CardContent className="flex flex-col gap-2 p-4 sm:flex-row sm:items-start sm:justify-between">
 												<div className="flex min-w-0 items-start justify-between gap-3">
 													<div className="flex gap-2">
@@ -204,7 +194,8 @@ export default function TransactionsIndex({
 																	<span className="text-xs font-semibold">
 																		{getInitials(
 																			transaction.category?.name ??
-																				transaction.account?.name
+																				transaction.account?.name ??
+																				""
 																		)}
 																	</span>
 																}

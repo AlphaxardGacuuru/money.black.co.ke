@@ -98,7 +98,6 @@ export default function CreateAccount() {
 										<SelectContent>
 											<SelectItem value="regular">Regular</SelectItem>
 											<SelectItem value="savings">Savings</SelectItem>
-											<SelectItem value="mobile">Mobile</SelectItem>
 										</SelectContent>
 									</Select>
 									<InputError message={errors.type} />

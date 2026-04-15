@@ -6,6 +6,7 @@ import CategoryController from "@/actions/App/Http/Controllers/CategoryControlle
 import TransactionController from "@/actions/App/Http/Controllers/TransactionController"
 import InputError from "@/components/input-error"
 import LucideIconDisplay from "@/components/lucide-icon-display"
+import { useInitials } from "@/hooks/use-initials"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -107,15 +108,6 @@ function getTransactionAccount(
 	return getDefaultAccount(accounts)
 }
 
-function getInitials(name: string): string {
-	return name
-		.split(" ")
-		.filter(Boolean)
-		.slice(0, 2)
-		.map((part) => part[0]?.toUpperCase() ?? "")
-		.join("")
-}
-
 function formatDisplayDate(dateStr: string): string {
 	const d = new Date(dateStr + "T00:00:00")
 
@@ -153,6 +145,7 @@ export default function AddTransactionSheet({
 	redirectTo = "/categories",
 	transaction = null,
 }: AddTransactionSheetProps) {
+	const getInitials = useInitials()
 	const [selectedAccount, setSelectedAccount] = useState<Account | null>(
 		getTransactionAccount(accounts, transaction)
 	)

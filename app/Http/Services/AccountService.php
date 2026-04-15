@@ -3,13 +3,15 @@
 namespace App\Http\Services;
 
 use App\Models\Account;
+use Illuminate\Database\Eloquent\Builder;
+use Symfony\Component\HttpFoundation\Request;
 
 class AccountService extends Service
 {
     /*
      * Get All Accounts
      */
-    public function index($request)
+    public function index(Request $request): Account
     {
         if ($request->filled('idAndName')) {
             $accountQuery = Account::select('id', 'name');
@@ -21,7 +23,7 @@ class AccountService extends Service
             return $accounts;
         }
 
-        $query = new Account;
+        $query = Account::query();
 
         $query = $this->search($query, $request);
 
@@ -35,7 +37,7 @@ class AccountService extends Service
     /*
     * Store Account
     */
-    public function store($request)
+    public function store(Request $request): array
     {
         $account = new Account;
         $account->user_id = auth()->id();
@@ -54,7 +56,7 @@ class AccountService extends Service
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(int $id): Account
     {
         return Account::findOrFail($id);
     }
@@ -62,7 +64,7 @@ class AccountService extends Service
     /**
      * Update the specified resource in storage.
      */
-    public function update($request, $id)
+    public function update(Request $request, int $id): array
     {
         $account = Account::findOrFail($id);
         $account->icon = $request->input('icon', $account->icon);
@@ -90,7 +92,7 @@ class AccountService extends Service
     /*
      * Soft Delete Service
      */
-    public function destory($id)
+    public function destroy(int $id): array
     {
         $account = Account::findOrFail($id);
 
@@ -102,24 +104,24 @@ class AccountService extends Service
     /*
      * Search
      */
-    public function search($query, $request)
+    public function search(Builder $query, Request $request): Builder
     {
         $userId = $request->input('userId');
 
         if ($request->filled('userId')) {
-            $query = $query->where('user_id', $userId);
+            $query->where('user_id', $userId);
         }
 
         $name = $request->input('name');
 
         if ($request->filled('name')) {
-            $query = $query->where('name', 'LIKE', '%'.$name.'%');
+            $query->where('name', 'LIKE', '%'.$name.'%');
         }
 
         $type = $request->input('type');
 
         if ($request->filled('type')) {
-            $query = $query->where('type', $type);
+            $query->where('type', $type);
         }
 
         return $query;

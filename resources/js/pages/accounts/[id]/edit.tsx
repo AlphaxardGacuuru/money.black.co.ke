@@ -40,33 +40,19 @@ type Account = {
 };
 
 type EditAccountProps = {
-    account?: Account | { data?: Account };
+    account?: { data: Account };
 };
 
-function normalizeAccount(
-    account?: Account | { data?: Account },
-): Account | null {
-    if (!account) {
-        return null;
-    }
-
-    if ('data' in account) {
-        return (account as { data?: Account }).data ?? null;
-    }
-
-    return account as Account;
-}
-
 export default function EditAccount({ account }: EditAccountProps) {
-    const accountData = normalizeAccount(account);
-    const [isDefault, setIsDefault] = useState(accountData?.isDefault ?? false);
+    console.info('Loaded account data:', account);
+    const [isDefault, setIsDefault] = useState(account?.data?.isDefault ?? false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
     const handleDelete = (): void => {
         setIsDeleting(true);
         router.delete(
-            AccountController.destroy['/accounts/{account}'].url(accountData?.id ?? ''),
+            AccountController.destroy['/accounts/{account}'].url(account?.data?.id ?? ''),
             {
                 preserveScroll: true,
                 onSuccess: () => setIsDeleteDialogOpen(false),
@@ -75,7 +61,7 @@ export default function EditAccount({ account }: EditAccountProps) {
         );
     };
 
-    if (!accountData?.id) {
+    if (!account?.data?.id) {
         return (
             <div className="p-4">
                 <Heading
@@ -88,17 +74,17 @@ export default function EditAccount({ account }: EditAccountProps) {
 
     return (
         <>
-            <Head title={`Edit ${accountData.name}`} />
+            <Head title={`Edit ${account?.data.name}`} />
 
             <div className="flex flex-1 flex-col gap-6 p-4">
                 <Heading
-                    title={`Edit ${accountData.name}`}
+                    title={`Edit ${account?.data.name}`}
                     description="Update your account details."
                 />
 
                 <Form
                     {...AccountController.update['/accounts/{account}'].form(
-                        accountData.id,
+                        account?.data.id,
                     )}
                     options={{ preserveScroll: true }}
                     className="space-y-6"
@@ -112,7 +98,7 @@ export default function EditAccount({ account }: EditAccountProps) {
                                         id="icon"
                                         name="icon"
                                         required
-                                        defaultValue={accountData.icon}
+                                        defaultValue={account?.data.icon}
                                         placeholder="Select account icon"
                                     />
                                     <InputError message={errors.icon} />
@@ -124,7 +110,7 @@ export default function EditAccount({ account }: EditAccountProps) {
                                         id="color"
                                         type="color"
                                         name="color"
-                                        defaultValue={accountData.color}
+                                        defaultValue={account?.data.color}
                                         required
                                     />
                                     <InputError message={errors.color} />
@@ -137,7 +123,7 @@ export default function EditAccount({ account }: EditAccountProps) {
                                     id="name"
                                     name="name"
                                     required
-                                    defaultValue={accountData.name}
+                                    defaultValue={account?.data.name}
                                     placeholder="e.g., Equity Bank, M-Pesa"
                                 />
                                 <InputError message={errors.name} />
@@ -146,7 +132,7 @@ export default function EditAccount({ account }: EditAccountProps) {
                             <div className="grid gap-6 sm:grid-cols-2">
                                 <div className="grid gap-2">
                                     <Label>Currency</Label>
-                                    <Select name="currency" defaultValue={accountData.currency ?? 'KES'}>
+                                    <Select name="currency" defaultValue={account?.data.currency ?? 'KES'}>
                                         <SelectTrigger className="w-full">
                                             <SelectValue />
                                         </SelectTrigger>
@@ -163,7 +149,7 @@ export default function EditAccount({ account }: EditAccountProps) {
                                     <Select
                                         name="type"
                                         defaultValue={
-                                            accountData.type ?? undefined
+                                            account?.data.type ?? undefined
                                         }
                                     >
                                         <SelectTrigger className="w-full">
@@ -172,7 +158,6 @@ export default function EditAccount({ account }: EditAccountProps) {
                                         <SelectContent>
                                             <SelectItem value="regular">Regular</SelectItem>
                                             <SelectItem value="savings">Savings</SelectItem>
-                                            <SelectItem value="mobile">Mobile</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <InputError message={errors.type} />
@@ -187,7 +172,7 @@ export default function EditAccount({ account }: EditAccountProps) {
                                     rows={3}
                                     placeholder="Optional details about this account..."
                                     defaultValue={
-                                        accountData.description ?? undefined
+                                        account?.data.description ?? undefined
                                     }
                                     className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 flex w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:ring-[3px]"
                                 />

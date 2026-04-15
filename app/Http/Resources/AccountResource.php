@@ -24,7 +24,10 @@ class AccountResource extends JsonResource
             'description' => $this->description,
             'currency' => $this->currency,
             'isDefault' => $this->is_default,
-            'balance' => $this->balance,
+            'balance' => [
+                'amount' => $this->balance,
+                'formatted' => number_format($this->balance, 2),
+            ],
             'created_at' => $this->created_at,
         ];
     }
