@@ -16,7 +16,7 @@ class AccountResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'user_id' => $this->user_id,
+            'userId' => $this->user_id,
             'icon' => $this->icon,
             'color' => $this->color,
             'name' => $this->name,
@@ -28,7 +28,7 @@ class AccountResource extends JsonResource
                 'amount' => $this->balance,
                 'formatted' => number_format($this->balance, 2),
             ],
-            'created_at' => $this->created_at,
+            'createdAt' => $this->created_at,
         ];
     }
 }

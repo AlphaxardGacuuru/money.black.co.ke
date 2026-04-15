@@ -26,17 +26,21 @@ export default function CreateAccount() {
 			<Head title="Create Account" />
 
 			<div className="flex flex-1 flex-col gap-6 p-4">
+				{/* Page Header Section Start */}
 				<Heading
 					title="Create Account"
 					description="Add a new account to track your finances."
 				/>
+				{/* Page Header Section End */}
 
+				{/* Account Form Section Start */}
 				<Form
 					{...AccountController.store["/accounts"].form()}
 					options={{ preserveScroll: true }}
 					className="space-y-6">
 					{({ processing, errors }) => (
 						<>
+							{/* Visual Identity Fields Section Start */}
 							<div className="grid gap-6 sm:grid-cols-2">
 								<div className="grid gap-2">
 									<Label htmlFor="icon">Icon</Label>
@@ -61,7 +65,9 @@ export default function CreateAccount() {
 									<InputError message={errors.color} />
 								</div>
 							</div>
+							{/* Visual Identity Fields Section End */}
 
+							{/* Account Details Section Start */}
 							<div className="grid gap-2">
 								<Label htmlFor="name">Name</Label>
 								<Input
@@ -72,7 +78,9 @@ export default function CreateAccount() {
 								/>
 								<InputError message={errors.name} />
 							</div>
+							{/* Account Details Section End */}
 
+							{/* Account Classification Section Start */}
 							<div className="grid gap-6 sm:grid-cols-2">
 								<div className="grid gap-2">
 									<Label>Currency</Label>
@@ -103,7 +111,9 @@ export default function CreateAccount() {
 									<InputError message={errors.type} />
 								</div>
 							</div>
+							{/* Account Classification Section End */}
 
+							{/* Description Section Start */}
 							<div className="grid gap-2">
 								<Label htmlFor="description">Description</Label>
 								<textarea
@@ -115,7 +125,9 @@ export default function CreateAccount() {
 								/>
 								<InputError message={errors.description} />
 							</div>
+							{/* Description Section End */}
 
+							{/* Default Toggle Section Start */}
 							<div className="flex items-center gap-3">
 								<input
 									type="hidden"
@@ -133,7 +145,9 @@ export default function CreateAccount() {
 									Set as Default Account
 								</Label>
 							</div>
+							{/* Default Toggle Section End */}
 
+							{/* Form Actions Section Start */}
 							<div className="flex justify-between">
 								<Button
 									variant="outline"
@@ -151,9 +165,11 @@ export default function CreateAccount() {
 									Create Account
 								</Button>
 							</div>
+							{/* Form Actions Section End */}
 						</>
 					)}
 				</Form>
+				{/* Account Form Section End */}
 			</div>
 		</>
 	)

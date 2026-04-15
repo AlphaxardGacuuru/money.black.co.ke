@@ -5,110 +5,190 @@ namespace App\Http\Services;
 use App\Models\Account;
 use App\Models\Category;
 use App\Models\Transaction;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class TransactionService extends Service
 {
-	public function store($request)
-	{
-		return DB::transaction(function () use ($request) {
-			$category = Category::where('user_id', auth()->id())
-				->findOrFail($request->category_id);
+    public function index(Request $request): array
+    {
+        $query = Transaction::query()
+            ->with([
+                'account:id,name,currency,icon,color',
+                'category:id,name,type,icon,color',
+            ])
+            ->where('user_id', $request->user()->id);
 
-			$account = Account::where('user_id', auth()->id())
-				->findOrFail($request->account_id);
+        $query = $this->search($query, $request);
 
-			$transaction = new Transaction;
-			$transaction->user_id = auth()->id();
-			$transaction->category_id = $category->id;
-			$transaction->account_id = $account->id;
-			$transaction->amount = (int) $request->amount;
-			$transaction->currency = $account->currency ?? 'KES';
-			$transaction->notes = $request->input('notes');
-			$transaction->transaction_date = $request->transaction_date;
-			$saved = $transaction->save();
+        $transactions = $query
+            ->orderBy('transaction_date', 'DESC')
+            ->get();
 
-			$this->applyTransactionImpact($category, $account, $transaction->amount);
-			$category->save();
-			$account->save();
+        $accounts = Account::where('user_id', $request->user()->id)
+            ->orderBy('name')
+            ->get();
 
-			return [$saved, 'Transaction Added Successfully', $transaction];
-		});
-	}
+        $categories = Category::where('user_id', $request->user()->id)
+            ->orderBy('name')
+            ->get();
 
-	public function update($request, string $id)
-	{
-		return DB::transaction(function () use ($request, $id) {
-			$transaction = Transaction::where('user_id', auth()->id())
-				->findOrFail($id);
+        return [
+            true,
+            $transactions->count().' Transactions Retrieved Successfully',
+            $transactions,
+            $accounts,
+            $categories,
+        ];
+    }
 
-			$currentCategory = Category::where('user_id', auth()->id())
-				->findOrFail($transaction->category_id);
-			$currentAccount = Account::where('user_id', auth()->id())
-				->findOrFail($transaction->account_id);
+    public function store(Request $request): array
+    {
+        return DB::transaction(function () use ($request) {
 
-			$nextCategory = (string) $currentCategory->id === (string) $request->category_id
-				? $currentCategory
-				: Category::where('user_id', auth()->id())->findOrFail($request->category_id);
-			$nextAccount = (string) $currentAccount->id === (string) $request->account_id
-				? $currentAccount
-				: Account::where('user_id', auth()->id())->findOrFail($request->account_id);
+            $category = Category::where('user_id', auth()->id())
+                ->findOrFail($request->category_id);
 
-			$this->reverseTransactionImpact($currentCategory, $currentAccount, (int) $transaction->amount);
+            $account = Account::where('user_id', auth()->id())
+                ->findOrFail($request->account_id);
 
-			$transaction->category_id = $nextCategory->id;
-			$transaction->account_id = $nextAccount->id;
-			$transaction->amount = (int) $request->amount;
-			$transaction->currency = $nextAccount->currency ?? 'KES';
-			$transaction->notes = $request->input('notes');
-			$transaction->transaction_date = $request->transaction_date;
-			$saved = $transaction->save();
+            $transaction = new Transaction;
+            $transaction->user_id = auth()->id();
+            $transaction->category_id = $category->id;
+            $transaction->account_id = $account->id;
+            $transaction->amount = (int) $request->amount;
+            $transaction->currency = $account->currency ?? 'KES';
+            $transaction->notes = $request->input('notes');
+            $transaction->transaction_date = $request->transaction_date;
+            $saved = $transaction->save();
 
-			$this->applyTransactionImpact($nextCategory, $nextAccount, (int) $transaction->amount);
-			$this->persistAdjustedModels($currentCategory, $nextCategory, $currentAccount, $nextAccount);
+            $this->applyTransactionImpact($category, $account, $transaction->amount);
 
-			return [$saved, 'Transaction Updated Successfully', $transaction];
-		});
-	}
+            $category->save();
+            $account->save();
 
-	private function applyTransactionImpact(Category $category, Account $account, int $amount): void
-	{
-		$category->total += $amount;
+            return [$saved, 'Transaction Added Successfully', $transaction];
+        });
+    }
 
-		if ($category->type === 'expense') {
-			$account->balance -= $amount;
+    public function update(Request $request, string $id): array
+    {
+        return DB::transaction(function () use ($request, $id) {
 
-			return;
-		}
+            $transaction = Transaction::where('user_id', auth()->id())
+                ->findOrFail($id);
 
-		$account->balance += $amount;
-	}
+            $currentCategory = Category::where('user_id', auth()->id())
+                ->findOrFail($transaction->category_id);
 
-	private function reverseTransactionImpact(Category $category, Account $account, int $amount): void
-	{
-		$category->total -= $amount;
+            $currentAccount = Account::where('user_id', auth()->id())
+                ->findOrFail($transaction->account_id);
 
-		if ($category->type === 'expense') {
-			$account->balance += $amount;
+            $nextCategory = (string) $currentCategory->id === (string) $request->category_id
+                ? $currentCategory
+                : Category::where('user_id', auth()->id())->findOrFail($request->category_id);
 
-			return;
-		}
+            $nextAccount = (string) $currentAccount->id === (string) $request->account_id
+                ? $currentAccount
+                : Account::where('user_id', auth()->id())->findOrFail($request->account_id);
 
-		$account->balance -= $amount;
-	}
+            $this->reverseTransactionImpact($currentCategory, $currentAccount, (int) $transaction->amount);
 
-	private function persistAdjustedModels(
-		Category $currentCategory,
-		Category $nextCategory,
-		Account $currentAccount,
-		Account $nextAccount,
-	): void {
-		foreach ([$currentCategory->id => $currentCategory, $nextCategory->id => $nextCategory] as $category) {
-			$category->save();
-		}
+            $transaction->category_id = $nextCategory->id;
+            $transaction->account_id = $nextAccount->id;
+            $transaction->amount = (int) $request->amount;
+            $transaction->currency = $nextAccount->currency ?? 'KES';
+            $transaction->notes = $request->input('notes');
+            $transaction->transaction_date = $request->transaction_date;
+            $saved = $transaction->save();
 
-		foreach ([$currentAccount->id => $currentAccount, $nextAccount->id => $nextAccount] as $account) {
-			$account->save();
-		}
-	}
+            $this->applyTransactionImpact($nextCategory, $nextAccount, (int) $transaction->amount);
+
+            $this->persistAdjustedModels($currentCategory, $nextCategory, $currentAccount, $nextAccount);
+
+            return [$saved, 'Transaction Updated Successfully', $transaction];
+        });
+    }
+
+    public function destroy(string $id): array
+    {
+        return DB::transaction(function () use ($id) {
+
+            $transaction = Transaction::where('user_id', auth()->id())
+                ->findOrFail($id);
+
+            $category = Category::where('user_id', auth()->id())
+                ->findOrFail($transaction->category_id);
+				
+            $account = Account::where('user_id', auth()->id())
+                ->findOrFail($transaction->account_id);
+
+            $this->reverseTransactionImpact($category, $account, (int) $transaction->amount);
+
+            $deleted = $transaction->delete();
+            $category->save();
+            $account->save();
+
+            return [$deleted, 'Transaction Deleted Successfully', $transaction];
+        });
+    }
+
+    public function search(Builder $query, Request $request): Builder
+    {
+        $categoryId = $request->input('categoryId');
+
+        if ($request->filled('categoryId')) {
+            $query->where('category_id', $categoryId);
+        }
+
+        $accountId = $request->input('accountId');
+
+        if ($request->filled('accountId')) {
+            $query->where('account_id', $accountId);
+        }
+
+        return $query;
+    }
+
+    private function applyTransactionImpact(Category $category, Account $account, int $amount): void
+    {
+        $category->total += $amount;
+
+        if ($category->type === 'expense') {
+            $account->balance -= $amount;
+
+            return;
+        }
+
+        $account->balance += $amount;
+    }
+
+    private function reverseTransactionImpact(Category $category, Account $account, int $amount): void
+    {
+        $category->total -= $amount;
+
+        if ($category->type === 'expense') {
+            $account->balance += $amount;
+
+            return;
+        }
+
+        $account->balance -= $amount;
+    }
+
+    private function persistAdjustedModels(
+        Category $currentCategory,
+        Category $nextCategory,
+        Account $currentAccount,
+        Account $nextAccount,
+    ): void {
+        foreach ([$currentCategory->id => $currentCategory, $nextCategory->id => $nextCategory] as $category) {
+            $category->save();
+        }
+
+        foreach ([$currentAccount->id => $currentAccount, $nextAccount->id => $nextAccount] as $account) {
+            $account->save();
+        }
+    }
 }

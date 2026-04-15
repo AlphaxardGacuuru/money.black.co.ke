@@ -1,5 +1,5 @@
-import { Form, Link } from "@inertiajs/react"
-import { Calendar, Check, Shapes, Wallet } from "lucide-react"
+import { Form, Link, router } from "@inertiajs/react"
+import { Calendar, Check, Shapes, Trash2, Wallet } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import AccountController from "@/actions/App/Http/Controllers/AccountController"
 import CategoryController from "@/actions/App/Http/Controllers/CategoryController"
@@ -17,27 +17,16 @@ import {
 } from "@/components/ui/sheet"
 import { Spinner } from "@/components/ui/spinner"
 
-type Category = {
-	id: number | string
-	name: string
-	color?: string | null
-	icon?: string | null
-}
+import type { Account } from "@/types/account"
+import type { Category } from "@/types/category"
 
-type Account = {
-	id: number | string
-	name: string
-	icon?: string | null
-	color?: string | null
-	currency?: string | null
-	isDefault?: boolean
-}
+type SelectedCategory = Pick<Category, "id" | "name" | "icon" | "color">
 
 type AddTransactionSheetProps = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
-	selectedCategory: Category | null
-	onSelectedCategoryChange: (category: Category | null) => void
+	selectedCategory: SelectedCategory | null
+	onSelectedCategoryChange: (category: SelectedCategory | null) => void
 	categories: Category[]
 	accounts: Account[]
 	redirectTo?: string
@@ -45,9 +34,9 @@ type AddTransactionSheetProps = {
 		id: number | string
 		amount: number | string
 		notes?: string | null
-		transaction_date?: string | null
-		account_id: number | string
-		category_id: number | string
+		transactionDate?: string | null
+		accountId: number | string
+		categoryId: number | string
 	} | null
 }
 
@@ -68,11 +57,11 @@ function getDefaultTransactionDate(): string {
 function getTransactionDateValue(
 	transaction?: AddTransactionSheetProps["transaction"]
 ): string {
-	if (!transaction?.transaction_date) {
+	if (!transaction?.transactionDate) {
 		return getDefaultTransactionDate()
 	}
 
-	return transaction.transaction_date.slice(0, 10)
+	return transaction.transactionDate.slice(0, 10)
 }
 
 function getTransactionAmountValue(
@@ -97,7 +86,7 @@ function getTransactionAccount(
 ): Account | null {
 	if (transaction) {
 		const matchedAccount = accounts.find(
-			(account) => String(account.id) === String(transaction.account_id)
+			(account) => String(account.id) === String(transaction.accountId)
 		)
 
 		if (matchedAccount) {
@@ -145,6 +134,7 @@ export default function AddTransactionSheet({
 	redirectTo = "/categories",
 	transaction = null,
 }: AddTransactionSheetProps) {
+	// State Section Start
 	const getInitials = useInitials()
 	const [selectedAccount, setSelectedAccount] = useState<Account | null>(
 		getTransactionAccount(accounts, transaction)
@@ -157,8 +147,11 @@ export default function AddTransactionSheet({
 	const [transactionDate, setTransactionDate] = useState(
 		getTransactionDateValue(transaction)
 	)
+	const [isDeleting, setIsDeleting] = useState(false)
 	const dateInputRef = useRef<HTMLInputElement>(null)
+	// State Section End
 
+	// Synchronization Effect Section Start
 	useEffect(() => {
 		if (!open) {
 			return
@@ -169,8 +162,40 @@ export default function AddTransactionSheet({
 		setIsAccountPickerOpen(false)
 		setCalcDisplay(getTransactionAmountValue(transaction))
 		setTransactionDate(getTransactionDateValue(transaction))
+		setIsDeleting(false)
 	}, [accounts, open, transaction])
+	// Synchronization Effect Section End
 
+	// Delete Transaction Section Start
+	function handleDeleteTransaction(): void {
+		if (!transaction?.id || isDeleting) {
+			return
+		}
+
+		setIsDeleting(true)
+
+		router.delete(
+			TransactionController.destroy["/transactions/{transaction}"].url(
+				transaction.id
+			),
+			{
+				data: { redirect_to: redirectTo },
+				preserveScroll: true,
+				onSuccess: () => {
+					onOpenChange(false)
+					onSelectedCategoryChange(null)
+					setCalcDisplay(getTransactionAmountValue(null))
+					setTransactionDate(getTransactionDateValue(null))
+				},
+				onFinish: () => {
+					setIsDeleting(false)
+				},
+			}
+		)
+	}
+	// Delete Transaction Section End
+
+	// Calculator Logic Section Start
 	function safeEval(expr: string): number {
 		const tokens = expr.match(/[\d]+|[+\-*/]/g) ?? []
 		let i = 0
@@ -207,7 +232,9 @@ export default function AddTransactionSheet({
 
 		return parseExpr()
 	}
+	// Calculator Logic Section End
 
+	// Calculator Input Handler Section Start
 	function handleCalcKey(key: string): void {
 		const operators = ["+", "-", "*", "/"]
 
@@ -235,7 +262,9 @@ export default function AddTransactionSheet({
 			return (prev || "") + key
 		})
 	}
+	// Calculator Input Handler Section End
 
+	// Derived Form State Section Start
 	const resolvedAmount = calcDisplay
 		? Math.max(0, Math.trunc(safeEval(calcDisplay)))
 		: 0
@@ -248,11 +277,14 @@ export default function AddTransactionSheet({
 				transaction.id
 			)
 		: TransactionController.store["/transactions"].form()
+	// Derived Form State Section End
 
 	return (
+		/* Sheet Container Section Start */
 		<Sheet
 			open={open}
 			onOpenChange={(nextOpen) => {
+				// Sheet Close Reset Section Start
 				onOpenChange(nextOpen)
 
 				if (!nextOpen) {
@@ -260,17 +292,22 @@ export default function AddTransactionSheet({
 					setIsAccountPickerOpen(false)
 					setCalcDisplay(getTransactionAmountValue(transaction))
 					setTransactionDate(getTransactionDateValue(transaction))
+					setIsDeleting(false)
 				}
+				// Sheet Close Reset Section End
 			}}>
 			<SheetContent
 				side="bottom"
 				className="max-h-[85vh] rounded-t-3xl [&>button]:top-1 [&>button]:right-0 [&>button]:left-auto [&>button]:size-11 [&>button>svg]:size-6">
+				{/* Sheet Header Section Start */}
 				<SheetHeader>
 					<SheetTitle>{sheetTitle}</SheetTitle>
 				</SheetHeader>
+				{/* Sheet Header Section End */}
 
 				{accounts.length > 0 ? (
 					categories.length > 0 ? (
+						/* Transaction Form Section Start */
 						<Form
 							{...formAction}
 							options={{ preserveScroll: true }}
@@ -284,6 +321,7 @@ export default function AddTransactionSheet({
 							className="grid gap-4 px-4 pb-4">
 							{({ processing, errors }) => (
 								<>
+									{/* Hidden Payload Section Start */}
 									<input
 										type="hidden"
 										name="category_id"
@@ -299,7 +337,9 @@ export default function AddTransactionSheet({
 										name="redirect_to"
 										value={redirectTo}
 									/>
+									{/* Hidden Payload Section End */}
 
+									{/* Account and Category Picker Section Start */}
 									<div className="">
 										<div className="flex items-center justify-between gap-1">
 											<button
@@ -453,9 +493,13 @@ export default function AddTransactionSheet({
 											</div>
 										) : null}
 									</div>
+									{/* Account and Category Picker Section End */}
+									{/* Account and Category Validation Section Start */}
 									<InputError message={errors.account_id} />
 									<InputError message={errors.category_id} />
+									{/* Account and Category Validation Section End */}
 
+									{/* Notes Section Start */}
 									<div className="grid gap-2">
 										<Input
 											id="notes"
@@ -465,7 +509,9 @@ export default function AddTransactionSheet({
 										/>
 										<InputError message={errors.notes} />
 									</div>
+									{/* Notes Section End */}
 
+									{/* Amount and Date Section Start */}
 									<div className="space-y-2">
 										<input
 											type="hidden"
@@ -484,6 +530,27 @@ export default function AddTransactionSheet({
 										<InputError message={errors.amount} />
 										<InputError message={errors.transaction_date} />
 
+										{transaction ? (
+											<Button
+												type="button"
+												variant="destructive"
+												onClick={handleDeleteTransaction}
+												disabled={processing || isDeleting}
+												className="w-full">
+												{isDeleting ? (
+													<>
+														<Spinner />
+														Deleting...
+													</>
+												) : (
+													<>
+														<Trash2 className="size-4" />
+														Delete Transaction
+													</>
+												)}
+											</Button>
+										) : null}
+
 										<div className="rounded-2xl border border-border/60 bg-muted/40 px-5 py-3 text-right">
 											<p className="mb-1 text-xs tracking-widest text-muted-foreground uppercase">
 												Amount
@@ -497,6 +564,7 @@ export default function AddTransactionSheet({
 										</div>
 
 										<div className="grid grid-cols-5 gap-2">
+											{/* Calculator Controls Section Start */}
 											<button
 												type="button"
 												onClick={() => handleCalcKey("/")}
@@ -592,12 +660,16 @@ export default function AddTransactionSheet({
 												className="col-span-2 flex h-14 items-center justify-center rounded-2xl bg-destructive/10 text-sm font-semibold text-destructive transition-all hover:bg-destructive/20 active:scale-[0.95]">
 												Cancel
 											</button>
+											{/* Calculator Controls Section End */}
 										</div>
 									</div>
+									{/* Amount and Date Section End */}
 								</>
 							)}
 						</Form>
 					) : (
+						/* Transaction Form Section End */
+						/* Missing Categories Section Start */
 						<div className="grid gap-4 px-4 pb-4">
 							<div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
 								Add a category before recording transactions.
@@ -611,8 +683,10 @@ export default function AddTransactionSheet({
 								</Button>
 							</div>
 						</div>
+						/* Missing Categories Section End */
 					)
 				) : (
+					/* Missing Accounts Section Start */
 					<div className="grid gap-4 px-4 pb-4">
 						<div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
 							Add an account before recording transactions.
@@ -626,8 +700,10 @@ export default function AddTransactionSheet({
 							</Button>
 						</div>
 					</div>
+					/* Missing Accounts Section End */
 				)}
 			</SheetContent>
 		</Sheet>
+		/* Sheet Container Section End */
 	)
 }

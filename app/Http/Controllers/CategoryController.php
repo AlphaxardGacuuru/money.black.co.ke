@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Resources\AccountResource;
 use App\Http\Resources\CategoryResource;
 use App\Http\Services\CategoryService;
-use App\Models\Account;
-use App\Models\Category;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -15,28 +15,19 @@ class CategoryController extends Controller
 {
     public function __construct(protected CategoryService $service) {}
 
-    private function shouldReturnJson(Request $request): bool
-    {
-        return $request->expectsJson() && ! $request->header('X-Inertia');
-    }
-
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request): AnonymousResourceCollection|Response
     {
+        [$status, $message, $categories, $accounts] = $this->service->index($request);
+
         if ($this->shouldReturnJson($request)) {
-            $categories = $this->service->index($request);
-
-            return CategoryResource::collection($categories);
+            return CategoryResource::collection($categories)->additional([
+                'status' => $status,
+                'message' => $message,
+            ]);
         }
-
-        $categories = Category::where('user_id', $request->user()->id)
-            ->orderBy('name')
-            ->get();
-        $accounts = Account::where('user_id', $request->user()->id)
-            ->orderBy('name')
-            ->get();
 
         return Inertia::render('categories/index', [
             'categories' => CategoryResource::collection($categories),
@@ -63,7 +54,7 @@ class CategoryController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request): CategoryResource|RedirectResponse
     {
         $request->validate([
             'icon' => 'required|string|max:255',
@@ -91,11 +82,14 @@ class CategoryController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $id): CategoryResource
     {
-        $category = Category::where('user_id', auth()->id())->findOrFail($id);
+        [$status, $message, $category] = $this->service->show($id);
 
-        return new CategoryResource($category);
+        return (new CategoryResource($category))->additional([
+            'status' => $status,
+            'message' => $message,
+        ]);
     }
 
     /**
@@ -103,7 +97,7 @@ class CategoryController extends Controller
      */
     public function edit(string $id): Response
     {
-        $category = Category::where('user_id', auth()->id())->findOrFail($id);
+        [$status, $message, $category] = $this->service->show($id);
 
         return Inertia::render('categories/[id]/edit', [
             'category' => new CategoryResource($category),
@@ -113,7 +107,7 @@ class CategoryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, string $id): CategoryResource|RedirectResponse
     {
         $request->validate([
             'icon' => 'sometimes|string|max:255',
@@ -141,12 +135,12 @@ class CategoryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, string $id)
+    public function destroy(Request $request, string $id): CategoryResource|RedirectResponse
     {
-        [$deleted, $message] = $this->service->destroy($id);
+        [$deleted, $message, $category] = $this->service->destroy($id);
 
         if ($this->shouldReturnJson($request)) {
-            return response()->json([
+            return (new CategoryResource($category))->additional([
                 'deleted' => $deleted,
                 'message' => $message,
             ]);

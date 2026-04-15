@@ -21,7 +21,7 @@ class AccountController extends Controller
     public function index(Request $request): AnonymousResourceCollection|Response
     {
         if ($request->expectsJson()) {
-            $accounts = $this->service->index($request);
+            [$status, $message, $accounts] = $this->service->index($request);
 
             return AccountResource::collection($accounts);
         }
@@ -75,29 +75,35 @@ class AccountController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id): AccountResource
+    public function show(string $id): AccountResource
     {
-        $account = Account::findOrFail($id);
+        [$status, $message, $account] = $this->service->show($id);
 
-        return new AccountResource($account);
+        return (new AccountResource($account))->additional([
+            'status' => $status,
+            'message' => $message,
+        ]);
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id): Response
+    public function edit(string $id): Response
     {
-        $account = Account::findOrFail($id);
+        [$status, $message, $account] = $this->service->show($id);
 
         return Inertia::render('accounts/[id]/edit', [
-            'account' => new AccountResource($account),
+            'account' => (new AccountResource($account))->additional([
+                'status' => $status,
+                'message' => $message,
+            ]),
         ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id): AccountResource|RedirectResponse
+    public function update(Request $request, string $id): AccountResource|RedirectResponse
     {
         $request->validate([
             'icon' => 'sometimes|string|max:255',
@@ -126,7 +132,7 @@ class AccountController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, $id): AccountResource|RedirectResponse
+    public function destroy(Request $request, string $id): AccountResource|RedirectResponse
     {
         [$deleted, $message, $account] = $this->service->destroy($id);
 

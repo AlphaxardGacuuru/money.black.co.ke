@@ -2,11 +2,14 @@
 
 namespace App\Http\Services;
 
+use App\Models\Account;
 use App\Models\Category;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 
 class CategoryService extends Service
 {
-    public function index($request)
+    public function index(Request $request): array
     {
         if ($request->filled('idAndName')) {
             return Category::where('user_id', $request->user()->id)
@@ -19,12 +22,16 @@ class CategoryService extends Service
 
         $query = $this->search($query, $request);
 
-        return $query
-            ->orderby('id', 'ASC')
-            ->paginate();
+        $categories = $query->orderBy('name')->get();
+
+        $accounts = Account::where('user_id', $request->user()->id)
+            ->orderBy('name')
+            ->get();
+
+        return [true, 'Categories Retrieved Successfully', $categories, $accounts];
     }
 
-    public function show($id)
+    public function show(string $id): array
     {
         $category = Category::find($id);
 
@@ -35,7 +42,7 @@ class CategoryService extends Service
         return [true, 'Category Retrieved Successfully', $category];
     }
 
-    public function store($request)
+    public function store(Request $request): array
     {
         $category = new Category;
         $category->user_id = auth()->id();
@@ -50,9 +57,9 @@ class CategoryService extends Service
         return [$saved, 'Category Created Successfully', $category];
     }
 
-    public function update($request, string $id)
+    public function update(Request $request, string $id): array
     {
-        $category = Category::where('user_id', auth()->id())->findOrFail($id);
+        $category = Category::findOrFail($id);
 
         $category->icon = $request->input('icon', $category->icon);
         $category->color = $request->input('color', $category->color);
@@ -65,17 +72,16 @@ class CategoryService extends Service
         return [$saved, 'Category Updated Successfully', $category];
     }
 
-    public function destroy(string $id)
+    public function destroy(string $id): array
     {
-        $category = Category::where('user_id', auth()->id())->findOrFail($id);
-        $name = $category->name;
+        $category = Category::findOrFail($id);
 
         $deleted = $category->delete();
 
-        return [$deleted, $name.' Deleted Successfully', $category];
+        return [$deleted, $category->name.' Deleted Successfully', $category];
     }
 
-    public function search($query, $request)
+    public function search(Builder $query, Request $request): Builder
     {
         $name = $request->input('name');
 

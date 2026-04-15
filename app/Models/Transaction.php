@@ -10,6 +10,15 @@ class Transaction extends Model
 {
     use HasUuids;
 
+    protected $casts = [
+        'transaction_date' => 'datetime',
+        'created_at' => 'datetime',
+    ];
+
+    /*
+    * Relationships
+    */
+
     public function account(): BelongsTo
     {
         return $this->belongsTo(Account::class);
@@ -18,12 +27,5 @@ class Transaction extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
-    }
-
-    protected function casts(): array
-    {
-        return [
-            'transaction_date' => 'datetime',
-        ];
     }
 }

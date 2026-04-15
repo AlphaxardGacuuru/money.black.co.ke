@@ -4,12 +4,9 @@ import { useState } from "react"
 import CategoryController from "@/actions/App/Http/Controllers/CategoryController"
 import AddTransactionSheet from "@/components/add-transaction-sheet"
 import LucideIconDisplay from "@/components/lucide-icon-display"
-import type {
-	Account,
-	Category,
-	PaginatedAccounts,
-	PaginatedCategories,
-} from "@/components/categories/types"
+import type { Category, CategoryPageProps } from "@/types/category"
+import type { AccountPageProps } from "@/types/account"
+import type { Transaction, TransactionPageProps } from "@/types/transaction"
 
 import { useInitials } from "@/hooks/use-initials"
 import { Button } from "@/components/ui/button"
@@ -21,116 +18,20 @@ import {
 } from "@/components/ui/card"
 import { PlaceholderPattern } from "@/components/ui/placeholder-pattern"
 
-type Transaction = {
-	id: number | string
-	account_id: number | string
-	category_id: number | string
-	amount: number | string
-	currency?: string | null
-	notes?: string | null
-	transaction_date?: string | null
-	created_at?: string | null
-	account?: Account | null
-	category?: Category | null
-}
-
-type PaginatedTransactions = {
-	data?: Transaction[]
-}
-
-type TransactionsPageProps = {
-	transactions?: Transaction[] | PaginatedTransactions
-	accounts?: Account[] | PaginatedAccounts
-	categories?: Category[] | PaginatedCategories
-}
-
-function getTransactions(
-	transactions?: Transaction[] | PaginatedTransactions
-): Transaction[] {
-	if (Array.isArray(transactions)) {
-		return transactions
-	}
-
-	return transactions?.data ?? []
-}
-
-function getAccounts(accounts?: Account[] | PaginatedAccounts): Account[] {
-	if (Array.isArray(accounts)) {
-		return accounts
-	}
-
-	return accounts?.data ?? []
-}
-
-function getCategories(
-	categories?: Category[] | PaginatedCategories
-): Category[] {
-	if (Array.isArray(categories)) {
-		return categories
-	}
-
-	return categories?.data ?? []
-}
-
-function formatAmount(transaction: Transaction): string {
-	const amount = Number(transaction.amount ?? 0)
-
-	if (Number.isNaN(amount)) {
-		return String(transaction.amount ?? 0)
-	}
-
-	const currency =
-		transaction.currency ?? transaction.account?.currency ?? "KES"
-
-	try {
-		return new Intl.NumberFormat(undefined, {
-			style: "currency",
-			currency,
-			minimumFractionDigits: 2,
-			maximumFractionDigits: 2,
-		}).format(amount)
-	} catch {
-		return `${currency} ${new Intl.NumberFormat(undefined, {
-			minimumFractionDigits: 2,
-			maximumFractionDigits: 2,
-		}).format(amount)}`
-	}
-}
-
-function formatTransactionDate(transactionDate?: string | null): string {
-	if (!transactionDate) {
-		return "Unknown date"
-	}
-
-	const parsedDate = new Date(transactionDate)
-
-	if (Number.isNaN(parsedDate.getTime())) {
-		return transactionDate
-	}
-
-	return parsedDate.toLocaleDateString(undefined, {
-		weekday: "short",
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-	})
-}
+type SheetCategory = Pick<Category, "id" | "name" | "icon" | "color">
 
 export default function TransactionsIndex({
 	transactions,
 	accounts,
 	categories,
-}: TransactionsPageProps) {
+}: TransactionPageProps & AccountPageProps & CategoryPageProps) {
 	const getInitials = useInitials()
-	const transactionList = getTransactions(transactions)
-	const accountList = getAccounts(accounts)
-	const categoryList = getCategories(categories)
+
 	const [isSheetOpen, setIsSheetOpen] = useState(false)
 	const [selectedTransaction, setSelectedTransaction] =
 		useState<Transaction | null>(null)
-	const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-		null
-	)
+	const [selectedCategory, setSelectedCategory] =
+		useState<SheetCategory | null>(null)
 
 	function handleCreateTransaction(): void {
 		setSelectedTransaction(null)
@@ -141,11 +42,14 @@ export default function TransactionsIndex({
 	function handleEditTransaction(transaction: Transaction): void {
 		setSelectedTransaction(transaction)
 		setSelectedCategory(
-			categoryList.find(
-				(category) => String(category.id) === String(transaction.category_id)
-			) ??
-				transaction.category ??
-				null
+			categories.data.find(
+				(category) => String(category.id) === String(transaction.categoryId)
+			) ?? {
+				id: transaction.categoryId,
+				name: transaction.categoryName,
+				icon: transaction.categoryIcon,
+				color: transaction.categoryColor,
+			}
 		)
 		setIsSheetOpen(true)
 	}
@@ -154,12 +58,15 @@ export default function TransactionsIndex({
 		<>
 			<Head title="Transactions" />
 
+			{/* Transactions Content Section Start */}
 			<div className="flex flex-1 justify-center p-2 sm:p-4">
-				<div className="w-full max-w-4xl space-y-3 pb-24 md:pb-8">
-					{transactionList.length > 0 ? (
-						<div className="space-y-3">
-							{transactionList.map((transaction) => {
-								const transactionType = transaction.category?.type ?? "expense"
+				<div className="w-full max-w-4xl space-y-1 pb-24 md:pb-8">
+					{transactions.data.length > 0 ? (
+						/* Transaction List Section Start */
+						<div className="space-y-2">
+							{transactions.data.map((transaction) => {
+								const transactionType = transaction.categoryType ?? "expense"
+
 								const amountTone =
 									transactionType === "income"
 										? "text-emerald-600 dark:text-emerald-400"
@@ -177,24 +84,24 @@ export default function TransactionsIndex({
 													<div className="flex gap-2">
 														{/* Icon Start */}
 														<div
-															className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-border/60 text-white shadow-sm"
+															className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-border/60 text-white shadow-sm"
 															style={{
 																backgroundColor:
-																	transaction.category?.color ??
-																	transaction.account?.color ??
+																	transaction.categoryColor ??
+																	transaction.accountColor ??
 																	"#0f172a",
 															}}>
 															<LucideIconDisplay
 																icon={
-																	transaction.category?.icon ??
-																	transaction.account?.icon
+																	transaction.categoryIcon ??
+																	transaction.accountIcon
 																}
-																className="size-4"
+																className="size-6"
 																fallback={
 																	<span className="text-xs font-semibold">
 																		{getInitials(
-																			transaction.category?.name ??
-																				transaction.account?.name ??
+																			transaction.categoryName ??
+																				transaction.accountName ??
 																				""
 																		)}
 																	</span>
@@ -208,24 +115,22 @@ export default function TransactionsIndex({
 															<div className="space-y-1">
 																<CardTitle className="text-base leading-tight">
 																	{transaction.notes?.trim() ||
-																		transaction.category?.name ||
+																		transaction.categoryName ||
 																		"Transaction"}
 																</CardTitle>
 																<CardDescription>
-																	{formatTransactionDate(
-																		transaction.transaction_date
-																	)}
+																	{transaction.transactionDateHuman}
 																</CardDescription>
 															</div>
 
 															<div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-																{transaction.account?.name
-																	? transaction.account.name
+																{transaction.accountName
+																	? transaction.accountName
 																	: null}
 
-																{transaction.category?.type ? (
+																{transaction.categoryType ? (
 																	<span className="capitalize">
-																		{transaction.category.type}
+																		{transaction.categoryType}
 																	</span>
 																) : null}
 															</div>
@@ -236,10 +141,9 @@ export default function TransactionsIndex({
 													{/* Amount Start */}
 													<p
 														className={`shrink-0 text-lg font-semibold tracking-tight ${amountTone}`}>
-														{transaction.category?.type === "income"
-															? "+"
-															: "-"}
-														{formatAmount(transaction)}
+														{transaction.categoryType === "income" ? "+" : "-"}{" "}
+														{transaction.currency}{" "}
+														{transaction.amount.formatted}
 													</p>
 													{/* Amount End */}
 												</div>
@@ -250,6 +154,8 @@ export default function TransactionsIndex({
 							})}
 						</div>
 					) : (
+						/* Transaction List Section End */
+						/* Empty State Section Start */
 						<div className="relative overflow-hidden rounded-2xl border border-dashed bg-card">
 							<PlaceholderPattern className="absolute inset-0 size-full stroke-muted-foreground/15" />
 							<div className="relative flex min-h-72 flex-col items-center justify-center gap-4 p-6 text-center">
@@ -271,8 +177,10 @@ export default function TransactionsIndex({
 								</Button>
 							</div>
 						</div>
+						/* Empty State Section End */
 					)}
 
+					{/* Transaction Sheet Section Start */}
 					<AddTransactionSheet
 						key={`${selectedTransaction?.id ?? "new"}-${isSheetOpen ? "open" : "closed"}`}
 						open={isSheetOpen}
@@ -286,23 +194,39 @@ export default function TransactionsIndex({
 						}}
 						selectedCategory={selectedCategory}
 						onSelectedCategoryChange={setSelectedCategory}
-						categories={categoryList}
-						accounts={accountList}
-						transaction={selectedTransaction}
+						categories={categories.data}
+						accounts={accounts.data}
+						transaction={
+							selectedTransaction
+								? {
+										id: selectedTransaction.id,
+										amount: selectedTransaction.amount.amount,
+										notes: selectedTransaction.notes,
+										transactionDate: selectedTransaction.transactionDateInput,
+										accountId: selectedTransaction.accountId,
+										categoryId: selectedTransaction.categoryId,
+									}
+								: null
+						}
 						redirectTo="/transactions"
 					/>
+					{/* Transaction Sheet Section End */}
 				</div>
 			</div>
+			{/* Transactions Content Section End */}
 
+			{/* Floating Add Action Section Start */}
 			<div className="fixed right-4 bottom-26 z-30 md:right-6 md:bottom-6">
 				<Button
 					type="button"
+					variant="secondary"
 					onClick={handleCreateTransaction}
 					className="h-14 w-14 rounded-full px-5 shadow-lg">
 					<Plus className="size-8" />
 					<span className="hidden sm:inline">Add transaction</span>
 				</Button>
 			</div>
+			{/* Floating Add Action Section End */}
 		</>
 	)
 }

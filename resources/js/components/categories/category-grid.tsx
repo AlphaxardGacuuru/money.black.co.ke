@@ -4,29 +4,12 @@ import { useState } from "react"
 import CategoryController from "@/actions/App/Http/Controllers/CategoryController"
 import AddTransactionSheet from "@/components/add-transaction-sheet"
 import LucideIconDisplay from "@/components/lucide-icon-display"
-import type { Account, Category } from "@/components/categories/types"
+import type { Category } from "@/types/category"
+import type { Account } from "@/types/account"
 import { useInitials } from "@/hooks/use-initials"
 import { Button } from "@/components/ui/button"
 
-function getNumericTotal(category: Category): number {
-	const total = Number(category.total ?? 0)
-
-	return Number.isNaN(total) ? 0 : total
-}
-
-function getCategoryType(type?: string | null): "expense" | "income" | "other" {
-	if (type === "expense" || type === "income") {
-		return type
-	}
-
-	return "other"
-}
-
-function formatInteger(value: number): string {
-	return new Intl.NumberFormat(undefined, {
-		maximumFractionDigits: 0,
-	}).format(value)
-}
+type SelectedCategory = Pick<Category, "id" | "name" | "icon" | "color">
 
 function resolveCardColor(
 	color: string | null | undefined,
@@ -54,69 +37,70 @@ type CategoryGridProps = {
 	accounts: Account[]
 }
 
-function getCategoryNumericTotal(value?: number | string | null): number {
-	const parsed = Number(value ?? 0)
-
-	return Number.isNaN(parsed) ? 0 : parsed
-}
-
 export default function CategoryGrid({
 	categories,
 	accounts,
 }: CategoryGridProps) {
+	// State Section Start
 	const getInitials = useInitials()
 	const [activeType, setActiveType] = useState<"expense" | "income">("expense")
 	const [interactionMode, setInteractionMode] = useState<"entry" | "edit">(
 		"entry"
 	)
-	const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-		null
-	)
+	const [selectedCategory, setSelectedCategory] =
+		useState<SelectedCategory | null>(null)
 	const [isEntrySheetOpen, setIsEntrySheetOpen] = useState(false)
+	// State Section End
 
+	// Derived Data Section Start
 	const sortedCategories = [...categories].sort(
 		(left, right) =>
-			getNumericTotal(right) - getNumericTotal(left) ||
+			(right.total?.amount ?? 0) - (left.total?.amount ?? 0) ||
 			left.name.localeCompare(right.name)
 	)
 	const visibleCategories = sortedCategories.filter(
-		(category) => getCategoryType(category.type) === activeType
+		(category) => category.type === activeType
 	)
 	const createCategoryUrl = CategoryController.create.url({
 		query: { type: activeType },
 	})
 
-	const expenseCategories = sortedCategories.filter(
-		(c) => getCategoryType(c.type) === "expense"
-	)
-	const incomeCategories = sortedCategories.filter(
-		(c) => getCategoryType(c.type) === "income"
-	)
+	const expenseCategories = sortedCategories.filter((c) => c.type === "expense")
+	const incomeCategories = sortedCategories.filter((c) => c.type === "income")
 	const expenseTotal = expenseCategories.reduce(
-		(sum, c) => sum + getCategoryNumericTotal(c.total),
+		(sum, c) => sum + (c.total?.amount ?? 0),
 		0
 	)
 	const incomeTotal = incomeCategories.reduce(
-		(sum, c) => sum + getCategoryNumericTotal(c.total),
+		(sum, c) => sum + (c.total?.amount ?? 0),
 		0
 	)
 	const barCategories = visibleCategories
 	const barTotal = barCategories.reduce(
-		(sum, c) => sum + getCategoryNumericTotal(c.total),
+		(sum, c) => sum + (c.total?.amount ?? 0),
 		0
 	)
+	// Derived Data Section End
 
+	// Event Handlers Section Start
 	const handleCategoryClick = (category: Category): void => {
 		if (interactionMode === "edit") {
 			return
 		}
 
-		setSelectedCategory(category)
+		setSelectedCategory({
+			id: category.id,
+			name: category.name,
+			icon: category.icon,
+			color: category.color,
+		})
 		setIsEntrySheetOpen(true)
 	}
+	// Event Handlers Section End
 
 	return (
 		<section className="rounded-2xl border bg-card p-4 shadow-xs sm:p-5">
+			{/* Header Controls Section Start */}
 			<div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 				<div>
 					<p className="text-sm font-semibold tracking-tight">Categories</p>
@@ -132,7 +116,7 @@ export default function CategoryGrid({
 						<button
 							type="button"
 							onClick={() => setActiveType("expense")}
-							className={`grow rounded-l-lg rounded-r px-3 py-1.5 text-xs font-semibold transition-colors ${
+							className={`grow rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
 								activeType === "expense"
 									? "bg-rose-500/15 text-rose-700 dark:text-rose-300"
 									: "text-muted-foreground hover:text-foreground"
@@ -143,7 +127,7 @@ export default function CategoryGrid({
 
 						<Button
 							type="button"
-							className="grow rounded"
+							className="grow rounded-lg"
 							variant={interactionMode === "edit" ? "default" : "outline"}
 							size="sm"
 							onClick={() =>
@@ -157,7 +141,7 @@ export default function CategoryGrid({
 						<button
 							type="button"
 							onClick={() => setActiveType("income")}
-							className={`grow rounded-l rounded-r-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+							className={`grow rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
 								activeType === "income"
 									? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
 									: "text-muted-foreground hover:text-foreground"
@@ -167,14 +151,16 @@ export default function CategoryGrid({
 					</div>
 				</div>
 			</div>
+			{/* Header Controls Section End */}
 
+			{/* Totals Bar Section Start */}
 			{barCategories.length > 0 ? (
 				<div className="mb-4 space-y-3">
 					<div className="flex h-5 w-full overflow-hidden rounded-full">
 						{barCategories.map((category, index) => {
 							const percent =
 								barTotal > 0
-									? (getCategoryNumericTotal(category.total) / barTotal) * 100
+									? ((category.total?.amount ?? 0) / barTotal) * 100
 									: 0
 
 							return (
@@ -195,26 +181,37 @@ export default function CategoryGrid({
 						<div className="flex items-center gap-1.5">
 							<span className="text-muted-foreground">Expenses</span>
 							<span className="font-semibold text-rose-600 dark:text-rose-400">
-								{formatInteger(expenseTotal)}
+								KES{" "}
+								{expenseTotal.toLocaleString(undefined, {
+									maximumFractionDigits: 0,
+								})}
 							</span>
 						</div>
 						<div className="flex items-center gap-1.5">
 							<span className="text-muted-foreground">Income</span>
 							<span className="font-semibold text-emerald-600 dark:text-emerald-400">
-								{formatInteger(incomeTotal)}
+								KES{" "}
+								{incomeTotal.toLocaleString(undefined, {
+									maximumFractionDigits: 0,
+								})}
 							</span>
 						</div>
 					</div>
 				</div>
 			) : null}
+			{/* Totals Bar Section End */}
 
+			{/* Category Cards Section Start */}
 			<div className="grid grid-cols-3 gap-2">
 				{visibleCategories.map((category, index) =>
 					interactionMode === "edit" ? (
 						<Link
 							key={category.id}
 							href={CategoryController.edit.url(category.id)}
-							className="group flex min-h-28 flex-col rounded-xl border border-border/70 bg-background p-3 text-center transition-colors hover:bg-accent/20">
+							className="group flex min-h-28 flex-col rounded-xl border bg-background p-3 text-center transition-colors hover:bg-accent/20"
+							style={{
+								borderColor: resolveCardColor(category.color, index),
+							}}>
 							<p className="truncate text-xs leading-tight font-medium">
 								{category.name}
 							</p>
@@ -239,7 +236,9 @@ export default function CategoryGrid({
 
 							<div className="text-center">
 								<p className="text-xs leading-none font-semibold">
-									{formatInteger(getNumericTotal(category))}
+									{(category.total?.amount ?? 0).toLocaleString(undefined, {
+										maximumFractionDigits: 0,
+									})}
 								</p>
 							</div>
 						</Link>
@@ -248,7 +247,10 @@ export default function CategoryGrid({
 							key={category.id}
 							type="button"
 							onClick={() => handleCategoryClick(category)}
-							className="group flex min-h-28 flex-col rounded-xl border border-border/70 bg-background p-3 text-center transition-colors hover:bg-accent/20">
+							className="group flex min-h-28 flex-col rounded-xl border bg-background p-3 text-center transition-colors hover:bg-accent/20"
+							style={{
+								borderColor: resolveCardColor(category.color, index),
+							}}>
 							<p className="truncate text-xs leading-tight font-medium">
 								{category.name}
 							</p>
@@ -273,7 +275,9 @@ export default function CategoryGrid({
 
 							<div className="text-center">
 								<p className="text-xs leading-none font-semibold">
-									{formatInteger(getNumericTotal(category))}
+									{(category.total?.amount ?? 0).toLocaleString(undefined, {
+										maximumFractionDigits: 0,
+									})}
 								</p>
 							</div>
 						</button>
@@ -302,13 +306,17 @@ export default function CategoryGrid({
 					</Link>
 				) : null}
 			</div>
+			{/* Category Cards Section End */}
 
+			{/* No Categories Section Start */}
 			{visibleCategories.length === 0 ? (
 				<div className="mt-3 rounded-xl border border-dashed border-border/70 px-3 py-4 text-center text-xs text-muted-foreground">
 					No {activeType} categories yet.
 				</div>
 			) : null}
+			{/* No Categories Section End */}
 
+			{/* Transaction Entry Sheet Section Start */}
 			<AddTransactionSheet
 				key={`${selectedCategory ? String(selectedCategory.id) : "none"}-${isEntrySheetOpen ? "open" : "closed"}`}
 				open={isEntrySheetOpen}
@@ -318,6 +326,7 @@ export default function CategoryGrid({
 				categories={visibleCategories}
 				accounts={accounts}
 			/>
+			{/* Transaction Entry Sheet Section End */}
 		</section>
 	)
 }

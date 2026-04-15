@@ -4,26 +4,26 @@ namespace App\Http\Services;
 
 use App\Models\Account;
 use Illuminate\Database\Eloquent\Builder;
-use Symfony\Component\HttpFoundation\Request;
+use Illuminate\Http\Request;
 
 class AccountService extends Service
 {
     /*
      * Get All Accounts
      */
-    public function index(Request $request): Account
+    public function index(Request $request): array
     {
         if ($request->filled('idAndName')) {
-            $accountQuery = Account::select('id', 'name');
+            $accountQuery = Account::where('user_id', auth()->id())->select('id', 'name');
 
             $accounts = $accountQuery
                 ->orderBy('id', 'DESC')
                 ->get();
 
-            return $accounts;
+            return [true, $accounts->total().' Accounts Retrieved Successfully', $accounts];
         }
 
-        $query = Account::query();
+        $query = Account::where('user_id', auth()->id());
 
         $query = $this->search($query, $request);
 
@@ -31,7 +31,7 @@ class AccountService extends Service
             ->orderby('id', 'ASC')
             ->paginate();
 
-        return $accounts;
+        return [true, $accounts->total().' Accounts Retrieved Successfully', $accounts];
     }
 
     /*
@@ -56,15 +56,21 @@ class AccountService extends Service
     /**
      * Display the specified resource.
      */
-    public function show(int $id): Account
+    public function show(string $id): array
     {
-        return Account::findOrFail($id);
+        $account = Account::find($id);
+
+        if (! $account) {
+            return [false, 'Account Not Found', null];
+        }
+
+        return [true, 'Account Retrieved Successfully', $account];
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, int $id): array
+    public function update(Request $request, string $id): array
     {
         $account = Account::findOrFail($id);
         $account->icon = $request->input('icon', $account->icon);
@@ -92,7 +98,7 @@ class AccountService extends Service
     /*
      * Soft Delete Service
      */
-    public function destroy(int $id): array
+    public function destroy(string $id): array
     {
         $account = Account::findOrFail($id);
 

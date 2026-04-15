@@ -6,20 +6,12 @@ use App\Http\Resources\AccountResource;
 use App\Http\Resources\CategoryResource;
 use App\Http\Resources\TransactionResource;
 use App\Http\Services\TransactionService;
-use App\Models\Account;
-use App\Models\Category;
-use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class TransactionController extends Controller
 {
     public function __construct(protected TransactionService $service) {}
-
-    private function shouldReturnJson(Request $request): bool
-    {
-        return $request->expectsJson() && ! $request->header('X-Inertia');
-    }
 
     private function redirectTo(Request $request, string $fallback): string
     {
@@ -33,26 +25,14 @@ class TransactionController extends Controller
      */
     public function index(Request $request)
     {
-        $transactions = Transaction::query()
-            ->where('user_id', $request->user()->id)
-            ->with([
-                'account:id,name,currency,icon,color',
-                'category:id,name,type,icon,color',
-            ])
-            ->orderByDesc('transaction_date')
-            ->orderByDesc('created_at')
-            ->get();
+        [$status, $message, $transactions, $accounts, $categories] = $this->service->index($request);
 
         if ($this->shouldReturnJson($request)) {
-            return TransactionResource::collection($transactions);
+            return TransactionResource::collection($transactions)->additionally([
+                'status' => $status,
+                'message' => $message,
+            ]);
         }
-
-        $accounts = Account::where('user_id', $request->user()->id)
-            ->orderBy('name')
-            ->get();
-        $categories = Category::where('user_id', $request->user()->id)
-            ->orderBy('name')
-            ->get();
 
         return Inertia::render('transactions/index', [
             'transactions' => TransactionResource::collection($transactions),
@@ -76,10 +56,6 @@ class TransactionController extends Controller
         ]);
 
         [$saved, $message, $transaction] = $this->service->store($request);
-        $transaction->loadMissing([
-            'account:id,name,currency,icon,color',
-            'category:id,name,type,icon,color',
-        ]);
 
         if ($this->shouldReturnJson($request)) {
             return (new TransactionResource($transaction))->additional([
@@ -96,7 +72,7 @@ class TransactionController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $transaction)
+    public function show(string $id)
     {
         //
     }
@@ -104,7 +80,7 @@ class TransactionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $transaction)
+    public function update(Request $request, string $id)
     {
         $request->validate([
             'category_id' => 'required|string|exists:categories,id',
@@ -115,7 +91,7 @@ class TransactionController extends Controller
             'redirect_to' => 'nullable|string|max:255',
         ]);
 
-        [$saved, $message, $updatedTransaction] = $this->service->update($request, $transaction);
+        [$saved, $message, $updatedTransaction] = $this->service->update($request, $id);
         $updatedTransaction->loadMissing([
             'account:id,name,currency,icon,color',
             'category:id,name,type,icon,color',
@@ -136,8 +112,19 @@ class TransactionController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $transaction)
+    public function destroy(Request $request, string $id)
     {
-        //
+        [$deleted, $message, $transaction] = $this->service->destroy($id);
+
+        if ($this->shouldReturnJson($request)) {
+            return (new TransactionResource($transaction))->additional([
+                'deleted' => $deleted,
+                'message' => $message,
+            ]);
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
+
+        return redirect($this->redirectTo($request, '/transactions'));
     }
 }

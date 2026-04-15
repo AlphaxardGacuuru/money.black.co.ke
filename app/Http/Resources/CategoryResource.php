@@ -16,14 +16,17 @@ class CategoryResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'user_id' => $this->user_id,
+            'userId' => $this->user_id,
             'icon' => $this->icon,
             'color' => $this->color,
             'name' => $this->name,
             'type' => $this->type,
             'currency' => $this->currency,
-            'total' => $this->total,
-            'created_at' => $this->created_at,
+            'total' => [
+                'amount' => $this->total,
+                'formatted' => number_format($this->total, 2),
+            ],
+            'createdAt' => $this->created_at,
         ];
     }
 }

@@ -2,10 +2,7 @@ import { Head } from "@inertiajs/react"
 import { CircleDollarSign, TrendingDown, TrendingUp } from "lucide-react"
 import { useMemo, useState } from "react"
 import Heading from "@/components/heading"
-import type {
-	Category,
-	PaginatedCategories,
-} from "@/components/categories/types"
+import type { Category, CategoryCollection } from "@/types/category"
 import { Badge } from "@/components/ui/badge"
 import { PlaceholderPattern } from "@/components/ui/placeholder-pattern"
 
@@ -16,7 +13,7 @@ type OverviewTotals = {
 }
 
 type OverviewPageProps = {
-	categories?: Category[] | PaginatedCategories
+	categories?: Category[] | CategoryCollection
 	totals?: OverviewTotals
 }
 
@@ -26,24 +23,8 @@ type CategoryWithCumulative = Category & {
 	cumulativePercent: number
 }
 
-function getCategories(
-	categories?: Category[] | PaginatedCategories
-): Category[] {
-	if (Array.isArray(categories)) {
-		return categories
-	}
-
-	return categories?.data ?? []
-}
-
-function getNumericAmount(value?: number | string | null): number {
-	const parsed = Number(value ?? 0)
-
-	return Number.isNaN(parsed) ? 0 : parsed
-}
-
 function formatAmount(value: number | string | null | undefined): string {
-	const amount = getNumericAmount(value)
+	const amount = Number(value ?? 0)
 
 	return new Intl.NumberFormat(undefined, {
 		minimumFractionDigits: 0,
@@ -56,14 +37,17 @@ export default function OverviewIndex({
 	totals,
 }: OverviewPageProps) {
 	const [activeType, setActiveType] = useState<"expense" | "income">("expense")
-	const categoryList = getCategories(categories)
+	const categoryList = useMemo(
+		() => (Array.isArray(categories) ? categories : (categories?.data ?? [])),
+		[categories]
+	)
 
 	const filteredCategories = useMemo(() => {
 		const sorted = [...categoryList]
 			.filter((category) => category.type === activeType)
 			.sort((left, right) => {
 				const totalDifference =
-					getNumericAmount(right.total) - getNumericAmount(left.total)
+					(right.total?.amount ?? 0) - (left.total?.amount ?? 0)
 
 				if (totalDifference !== 0) {
 					return totalDifference
@@ -72,10 +56,10 @@ export default function OverviewIndex({
 				return left.name.localeCompare(right.name)
 			})
 
-		const selectedTotal = getNumericAmount(totals?.[activeType])
+		const selectedTotal = Number(totals?.[activeType] ?? 0)
 
 		return sorted.reduce<CategoryWithCumulative[]>((rows, category) => {
-			const numericTotal = getNumericAmount(category.total)
+			const numericTotal = category.total?.amount ?? 0
 			const previousCumulativeTotal = rows.at(-1)?.cumulativeTotal ?? 0
 			const cumulativeTotal = previousCumulativeTotal + numericTotal
 
@@ -97,9 +81,9 @@ export default function OverviewIndex({
 		}, [])
 	}, [activeType, categoryList, totals])
 
-	const expenseTotal = getNumericAmount(totals?.expense)
-	const incomeTotal = getNumericAmount(totals?.income)
-	const netTotal = getNumericAmount(totals?.net)
+	const expenseTotal = Number(totals?.expense ?? 0)
+	const incomeTotal = Number(totals?.income ?? 0)
+	const netTotal = Number(totals?.net ?? 0)
 
 	return (
 		<>

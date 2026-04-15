@@ -1,6 +1,7 @@
 import { Head, Link } from "@inertiajs/react"
 import { ChevronRight, Plus, Star, Wallet } from "lucide-react"
 import AccountController from "@/actions/App/Http/Controllers/AccountController"
+import type { AccountPageProps } from "@/types/account"
 import Heading from "@/components/heading"
 import LucideIconDisplay from "@/components/lucide-icon-display"
 import { useInitials } from "@/hooks/use-initials"
@@ -15,26 +16,7 @@ import {
 } from "@/components/ui/card"
 import { PlaceholderPattern } from "@/components/ui/placeholder-pattern"
 
-type Account = {
-	id: number | string
-	name: string
-	color: string | null
-	icon: string | null
-	currency: string | null
-	balance: {
-		amount: number
-		formatted: string
-	}
-	type: string | null
-	description?: string | null
-	isDefault: boolean
-}
-
-type AccountsPageProps = {
-	accounts: { data: Account[] }
-}
-
-export default function AccountsIndex({ accounts }: AccountsPageProps) {
+export default function AccountsIndex({ accounts }: AccountPageProps) {
 	const getInitials = useInitials()
 
 	return (
@@ -42,6 +24,7 @@ export default function AccountsIndex({ accounts }: AccountsPageProps) {
 			<Head title="Accounts" />
 
 			<div className="flex flex-1 flex-col gap-6 p-4">
+				{/* Page Header Section Start */}
 				<div className="flex flex-col rounded-xl border bg-card p-6 shadow-sm sm:flex-row sm:items-start sm:justify-between">
 					<Heading
 						title="Accounts"
@@ -57,9 +40,12 @@ export default function AccountsIndex({ accounts }: AccountsPageProps) {
 						</Link>
 					</Button>
 				</div>
+				{/* Page Header Section End */}
 
+				{/* Accounts Content Section Start */}
 				<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
 					{accounts.data.length > 0 ? (
+						/* Account Cards Section Start */
 						accounts.data.map((account) => (
 							<Link
 								key={account.id}
@@ -125,7 +111,7 @@ export default function AccountsIndex({ accounts }: AccountsPageProps) {
 												Balance
 											</p>
 											<p className="mt-2 text-2xl font-semibold tracking-tight">
-												{account.currency ?? "KES"} {account.balance.formatted}
+												{account.currency ?? "KES"} {account.balance?.formatted}
 											</p>
 										</div>
 									</CardContent>
@@ -133,6 +119,8 @@ export default function AccountsIndex({ accounts }: AccountsPageProps) {
 							</Link>
 						))
 					) : (
+						/* Account Cards Section End */
+						/* Empty State Section Start */
 						<Card className="relative overflow-hidden border-dashed md:col-span-2 xl:col-span-3">
 							<PlaceholderPattern className="absolute inset-0 size-full stroke-muted-foreground/15" />
 							<CardContent className="relative flex min-h-72 flex-col items-center justify-center gap-4 text-center">
@@ -148,8 +136,10 @@ export default function AccountsIndex({ accounts }: AccountsPageProps) {
 								</div>
 							</CardContent>
 						</Card>
+						/* Empty State Section End */
 					)}
 				</div>
+				{/* Accounts Content Section End */}
 			</div>
 		</>
 	)

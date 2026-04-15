@@ -175,7 +175,9 @@ class TransactionTest extends TestCase
 				->where('transactions.data.0.id', $transaction->id)
 				->where('transactions.data.0.notes', 'April salary')
 				->where('transactions.data.0.account.name', 'Main Wallet')
+				->where('transactions.data.0.account.balance.formatted', '25,000.00')
 				->where('transactions.data.0.category.name', 'Salary'));
+		$this->assertSame('income', data_get($response->viewData('page'), 'props.transactions.data.0.category.type'));
 
 		$this->assertNotEquals($transaction->id, $otherTransaction->id);
 	}
@@ -259,5 +261,55 @@ class TransactionTest extends TestCase
 		$this->assertSame(2000, $updatedAccount->balance);
 		$this->assertSame(0, $originalCategory->total);
 		$this->assertSame(1500, $updatedCategory->total);
+	}
+
+	public function test_destroy_deletes_transaction_and_reverses_balances(): void
+	{
+		$user = User::factory()->create();
+		$this->actingAs($user);
+
+		$account = new Account;
+		$account->user_id = $user->id;
+		$account->icon = 'wallet';
+		$account->color = '#000000';
+		$account->name = 'Cash';
+		$account->currency = 'KES';
+		$account->balance = 700;
+		$account->save();
+
+		$category = new Category;
+		$category->user_id = $user->id;
+		$category->icon = 'utensils';
+		$category->color = '#000000';
+		$category->name = 'Food';
+		$category->type = 'expense';
+		$category->total = 300;
+		$category->save();
+
+		$transaction = new Transaction;
+		$transaction->user_id = $user->id;
+		$transaction->account_id = $account->id;
+		$transaction->category_id = $category->id;
+		$transaction->amount = 300;
+		$transaction->currency = 'KES';
+		$transaction->notes = 'Lunch';
+		$transaction->transaction_date = now()->toDateString();
+		$transaction->save();
+
+		$response = $this->delete(route('transactions.destroy', $transaction), [
+			'redirect_to' => '/transactions',
+		]);
+
+		$response->assertRedirect('/transactions')
+			->assertInertiaFlash('toast.type', 'success')
+			->assertInertiaFlash('toast.message', 'Transaction Deleted Successfully');
+
+		$this->assertDatabaseMissing('transactions', ['id' => $transaction->id]);
+
+		$account->refresh();
+		$category->refresh();
+
+		$this->assertSame(1000, $account->balance);
+		$this->assertSame(0, $category->total);
 	}
 }
