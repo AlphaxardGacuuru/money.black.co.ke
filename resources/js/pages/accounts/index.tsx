@@ -1,7 +1,8 @@
 import { Head, Link } from '@inertiajs/react';
-import { ChevronRight, Plus, Wallet } from 'lucide-react';
+import { ChevronRight, Plus, Star, Wallet } from 'lucide-react';
 import AccountController from '@/actions/App/Http/Controllers/AccountController';
 import Heading from '@/components/heading';
+import LucideIconDisplay from '@/components/lucide-icon-display';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -93,7 +94,7 @@ export default function AccountsIndex({ accounts }: AccountsPageProps) {
                                 href={AccountController.edit.url(account.id)}
                                 className="group block"
                             >
-                                <Card className="h-full border-border/80 transition-colors group-hover:border-primary/40 group-hover:bg-accent/20">
+                                <Card className={`h-full transition-colors group-hover:bg-accent/20 ${account.isDefault ? 'border-primary/60 border-2 group-hover:border-primary' : 'border-border/80 group-hover:border-primary/40'}`}>
                                     <CardHeader className="gap-4">
                                         <div className="flex items-start justify-between gap-4">
                                             <div className="flex items-center gap-4">
@@ -105,15 +106,21 @@ export default function AccountsIndex({ accounts }: AccountsPageProps) {
                                                             '#0f172a',
                                                     }}
                                                 >
-                                                    <span className="text-sm font-semibold">
-                                                        {getInitials(
-                                                            account.name,
-                                                        ) || 'A'}
-                                                    </span>
+                                                    <LucideIconDisplay
+                                                        icon={account.icon}
+                                                        className="size-5"
+                                                        fallback={
+                                                            <span className="text-sm font-semibold">
+                                                                {getInitials(
+                                                                    account.name,
+                                                                ) || 'A'}
+                                                            </span>
+                                                        }
+                                                    />
                                                 </div>
 
                                                 <div className="space-y-1">
-                                                    <CardTitle>
+                                                    <CardTitle className="flex items-center gap-2">
                                                         {account.name}
                                                     </CardTitle>
                                                     <CardDescription>
@@ -133,12 +140,15 @@ export default function AccountsIndex({ accounts }: AccountsPageProps) {
                                                 {account.currency ?? 'KES'}
                                             </Badge>
                                             {account.type ? (
-                                                <Badge variant="outline">
+                                                <Badge variant="outline" className="capitalize">
                                                     {account.type}
                                                 </Badge>
                                             ) : null}
                                             {account.isDefault ? (
-                                                <Badge>Default</Badge>
+                                                <Badge className="gap-1">
+                                                    <Star className="size-2.5 fill-current" />
+                                                    Default
+                                                </Badge>
                                             ) : null}
                                         </div>
 

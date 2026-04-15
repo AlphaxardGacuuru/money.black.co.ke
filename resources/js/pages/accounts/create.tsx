@@ -4,8 +4,10 @@ import { ArrowLeft } from "lucide-react"
 import AccountController from "@/actions/App/Http/Controllers/AccountController"
 import Heading from "@/components/heading"
 import InputError from "@/components/input-error"
+import LucideIconPicker from "@/components/lucide-icon-picker"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
 import {
@@ -38,11 +40,11 @@ export default function CreateAccount() {
 							<div className="grid gap-6 sm:grid-cols-2">
 								<div className="grid gap-2">
 									<Label htmlFor="icon">Icon</Label>
-									<Input
+									<LucideIconPicker
 										id="icon"
 										name="icon"
 										required
-										placeholder="e.g., 💳 or wallet"
+										placeholder="Select account icon"
 									/>
 									<InputError message={errors.icon} />
 								</div>
@@ -121,12 +123,10 @@ export default function CreateAccount() {
 									name="is_default"
 									value={isDefault ? "1" : "0"}
 								/>
-								<input
+								<Switch
 									id="is_default"
-									type="checkbox"
-									className="size-4 cursor-pointer rounded"
 									checked={isDefault}
-									onChange={(e) => setIsDefault(e.target.checked)}
+									onCheckedChange={setIsDefault}
 								/>
 								<Label
 									htmlFor="is_default"

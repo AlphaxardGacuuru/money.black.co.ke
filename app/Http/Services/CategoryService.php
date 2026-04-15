@@ -43,6 +43,7 @@ class CategoryService extends Service
         $category->color = $request->color;
         $category->name = $request->name;
         $category->type = $request->type;
+        $category->currency = $request->input('currency', 'KES');
         $category->total = $request->input('total', 0);
         $saved = $category->save();
 
@@ -57,6 +58,7 @@ class CategoryService extends Service
         $category->color = $request->input('color', $category->color);
         $category->name = $request->input('name', $category->name);
         $category->type = $request->input('type', $category->type);
+        $category->currency = $request->input('currency', $category->currency ?? 'KES');
         $category->total = $request->input('total', $category->total);
         $saved = $category->save();
 
@@ -70,7 +72,7 @@ class CategoryService extends Service
 
         $deleted = $category->delete();
 
-        return [$deleted, $name . ' Deleted Successfully', $category];
+        return [$deleted, $name.' Deleted Successfully', $category];
     }
 
     public function search($query, $request)
@@ -78,7 +80,7 @@ class CategoryService extends Service
         $name = $request->input('name');
 
         if ($request->filled('name')) {
-            $query = $query->where('name', 'LIKE', '%' . $name . '%');
+            $query = $query->where('name', 'LIKE', '%'.$name.'%');
         }
 
         return $query;

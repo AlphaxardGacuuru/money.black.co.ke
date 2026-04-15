@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\AccountResource;
 use App\Http\Resources\CategoryResource;
 use App\Http\Services\CategoryService;
+use App\Models\Account;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -15,7 +17,7 @@ class CategoryController extends Controller
 
     private function shouldReturnJson(Request $request): bool
     {
-        return $request->expectsJson() && !$request->header('X-Inertia');
+        return $request->expectsJson() && ! $request->header('X-Inertia');
     }
 
     /**
@@ -32,18 +34,30 @@ class CategoryController extends Controller
         $categories = Category::where('user_id', $request->user()->id)
             ->orderBy('name')
             ->get();
+        $accounts = Account::where('user_id', $request->user()->id)
+            ->orderBy('name')
+            ->get();
 
         return Inertia::render('categories/index', [
             'categories' => CategoryResource::collection($categories),
+            'accounts' => AccountResource::collection($accounts),
         ]);
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create(): Response
+    public function create(Request $request): Response
     {
-        return Inertia::render('categories/create');
+        $defaultType = $request->string('type')->toString();
+
+        if (! in_array($defaultType, ['expense', 'income'], true)) {
+            $defaultType = null;
+        }
+
+        return Inertia::render('categories/create', [
+            'defaultType' => $defaultType,
+        ]);
     }
 
     /**
@@ -56,6 +70,7 @@ class CategoryController extends Controller
             'color' => 'required|string|max:255',
             'name' => 'required|string|max:255',
             'type' => 'required|string|in:expense,income',
+            'currency' => 'nullable|string|max:10',
             'total' => 'nullable|integer|min:0',
         ]);
 
@@ -105,6 +120,7 @@ class CategoryController extends Controller
             'color' => 'sometimes|string|max:255',
             'name' => 'sometimes|string|max:255',
             'type' => 'sometimes|string|in:expense,income',
+            'currency' => 'sometimes|string|max:10',
             'total' => 'nullable|integer|min:0',
         ]);
 

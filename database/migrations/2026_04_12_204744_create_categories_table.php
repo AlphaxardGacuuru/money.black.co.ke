@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('color');
             $table->string('name');
             $table->string('type');
+            $table->integer('position')->default(0);
             $table->integer('total')->default(0);
             $table->timestamps();
 

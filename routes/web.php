@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -14,6 +15,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('accounts', AccountController::class);
     Route::resource('categories', CategoryController::class);
+    Route::resource('transactions', TransactionController::class)->only(['store']);
 });
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

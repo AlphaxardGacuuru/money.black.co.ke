@@ -16,7 +16,11 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 
-export default function CreateCategory() {
+type CreateCategoryProps = {
+    defaultType?: 'expense' | 'income' | null;
+};
+
+export default function CreateCategory({ defaultType }: CreateCategoryProps) {
     return (
         <>
             <Head title="Create Category" />
@@ -75,7 +79,7 @@ export default function CreateCategory() {
 
                             <div className="grid gap-2">
                                 <Label>Type</Label>
-                                <Select name="type">
+                                <Select name="type" defaultValue={defaultType ?? undefined}>
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Select type" />
                                     </SelectTrigger>
