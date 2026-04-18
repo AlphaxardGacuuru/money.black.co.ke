@@ -33,7 +33,7 @@ class TransactionService extends Service
 
         return [
             true,
-            $transactions->count().' Transactions Retrieved Successfully',
+            $transactions->count() . ' Transactions Retrieved Successfully',
             $transactions,
             $accounts,
             $categories,
@@ -69,12 +69,9 @@ class TransactionService extends Service
         });
     }
 
-    public function update(Request $request, string $id): array
+    public function update(Request $request, Transaction $transaction): array
     {
-        return DB::transaction(function () use ($request, $id) {
-
-            $transaction = Transaction::where('user_id', auth()->id())
-                ->findOrFail($id);
+        return DB::transaction(function () use ($request, $transaction) {
 
             $currentCategory = Category::where('user_id', auth()->id())
                 ->findOrFail($transaction->category_id);
@@ -112,12 +109,9 @@ class TransactionService extends Service
         });
     }
 
-    public function destroy(string $id): array
+    public function destroy(Transaction $transaction): array
     {
-        return DB::transaction(function () use ($id) {
-
-            $transaction = Transaction::where('user_id', auth()->id())
-                ->findOrFail($id);
+        return DB::transaction(function () use ($transaction) {
 
             $category = Category::where('user_id', auth()->id())
                 ->findOrFail($transaction->category_id);
@@ -137,16 +131,18 @@ class TransactionService extends Service
 
     public function search(Builder $query, Request $request): Builder
     {
-        $categoryId = $request->input('categoryId');
-
         if ($request->filled('categoryId')) {
-            $query->where('category_id', $categoryId);
+            $query->where('category_id', $request->input('categoryId'));
         }
 
-        $accountId = $request->input('accountId');
-
         if ($request->filled('accountId')) {
-            $query->where('account_id', $accountId);
+            $query->where('account_id', $request->input('accountId'));
+        }
+
+        $range = $this->resolveDateRange($request);
+
+        if ($range) {
+            $query->whereBetween('transaction_date', $range);
         }
 
         return $query;

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\TransactionResource;
 use App\Http\Services\TransactionService;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 
 class TransactionController extends Controller
@@ -48,7 +49,7 @@ class TransactionController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Transaction $transaction)
     {
         //
     }
@@ -56,7 +57,7 @@ class TransactionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Transaction $transaction)
     {
         $request->validate([
             'category_id' => 'required|string|exists:categories,id',
@@ -67,7 +68,7 @@ class TransactionController extends Controller
             'redirect_to' => 'nullable|string|max:255',
         ]);
 
-        [$saved, $message, $updatedTransaction] = $this->service->update($request, $id);
+        [$saved, $message, $updatedTransaction] = $this->service->update($request, $transaction);
 
         return (new TransactionResource($updatedTransaction))->additional([
             'saved' => $saved,
@@ -78,9 +79,9 @@ class TransactionController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, string $id)
+    public function destroy(Request $request, Transaction $transaction)
     {
-        [$deleted, $message, $transaction] = $this->service->destroy($id);
+        [$deleted, $message, $transaction] = $this->service->destroy($transaction);
 
         return (new TransactionResource($transaction))->additional([
             'deleted' => $deleted,

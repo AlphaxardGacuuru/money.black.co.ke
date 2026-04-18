@@ -1,6 +1,6 @@
 import type { AxiosError } from "axios"
 import { isCancel } from "axios"
-import { createContext, useContext, useState } from "react"
+import { createContext, useContext, useEffect, useState } from "react"
 import type { ChangeEvent } from "react"
 import type { Account } from "@/types/account"
 import type { Transaction } from "@/types/transaction"
@@ -30,6 +30,8 @@ const DEFAULT_DATE_FILTERS: DateFilterParams = {
 	startDate: "",
 	endDate: "",
 }
+
+const DATE_FILTERS_STORAGE_KEY = "dateFilters"
 
 const readJsonFromLocalStorage = <T,>(key: string, fallback: T): T => {
 	if (typeof window === "undefined") {
@@ -85,8 +87,12 @@ export const AppProvider = ({ children }: AppProviderProps) => {
 	const [loadingItems, setLoadingItems] = useState(0)
 	const [downloadLink, setDownloadLink] = useState<string | null>(null)
 	const [downloadLinkText, setDownloadLinkText] = useState("")
-	const [dateFilters, setDateFilters] =
-		useState<DateFilterParams>(DEFAULT_DATE_FILTERS)
+	const [dateFilters, setDateFilters] = useState<DateFilterParams>(() =>
+		readJsonFromLocalStorage<DateFilterParams>(
+			DATE_FILTERS_STORAGE_KEY,
+			DEFAULT_DATE_FILTERS
+		)
+	)
 
 	const getLocalStorage = <T,>(key: string, fallback: T): T => {
 		return readJsonFromLocalStorage<T>(key, fallback)
@@ -111,6 +117,15 @@ export const AppProvider = ({ children }: AppProviderProps) => {
 
 		window.localStorage.setItem(key, JSON.stringify(value))
 	}
+
+	useEffect(() => {
+		setLocalStorage(DATE_FILTERS_STORAGE_KEY, {
+			filter: dateFilters.filter ?? DEFAULT_DATE_FILTERS.filter,
+			date: dateFilters.date ?? DEFAULT_DATE_FILTERS.date,
+			startDate: dateFilters.startDate ?? DEFAULT_DATE_FILTERS.startDate,
+			endDate: dateFilters.endDate ?? DEFAULT_DATE_FILTERS.endDate,
+		})
+	}, [dateFilters])
 
 	const withLoading = (
 		endpoint: string,

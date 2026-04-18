@@ -1,20 +1,19 @@
 import { Head } from "@inertiajs/react"
 import { CircleDollarSign, TrendingDown, TrendingUp } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Heading from "@/components/heading"
-import type { Category, CategoryCollection } from "@/types/category"
+import DateFilterSheet from "@/components/categories/date-filter-sheet"
+import type { Category } from "@/types/category"
 import { Badge } from "@/components/ui/badge"
 import { PlaceholderPattern } from "@/components/ui/placeholder-pattern"
+import { useApp } from "@/contexts/AppContext"
+import { buildFilterQuery } from "@/lib/date-filter"
+import Axios from "@/lib/axios"
 
 type OverviewTotals = {
 	expense?: number | string
 	income?: number | string
 	net?: number | string
-}
-
-type OverviewPageProps = {
-	categories?: Category[] | CategoryCollection
-	totals?: OverviewTotals
 }
 
 type CategoryWithCumulative = Category & {
@@ -32,15 +31,21 @@ function formatAmount(value: number | string | null | undefined): string {
 	}).format(amount)
 }
 
-export default function OverviewIndex({
-	categories,
-	totals,
-}: OverviewPageProps) {
+export default function OverviewIndex() {
+	const { dateFilters } = useApp()
+	const [categories, setCategories] = useState<Category[]>([])
+	const [totals, setTotals] = useState<OverviewTotals>({})
 	const [activeType, setActiveType] = useState<"expense" | "income">("expense")
-	const categoryList = useMemo(
-		() => (Array.isArray(categories) ? categories : (categories?.data ?? [])),
-		[categories]
-	)
+
+	useEffect(() => {
+		const query = buildFilterQuery(dateFilters)
+		Axios.get(`/api/overview${query}`).then((response) => {
+			setCategories(response.data?.data ?? [])
+			setTotals(response.data?.totals ?? {})
+		})
+	}, [dateFilters])
+
+	const categoryList = useMemo(() => categories, [categories])
 
 	const filteredCategories = useMemo(() => {
 		const sorted = [...categoryList]
@@ -103,6 +108,11 @@ export default function OverviewIndex({
 						</div>
 					</div>
 					{/* Overview Header End */}
+
+					{/* Summary Cards Start */}
+					{/* Overview Header End */}
+
+					<DateFilterSheet />
 
 					{/* Summary Cards Start */}
 					<div className="grid grid-cols-3 gap-3">

@@ -1,12 +1,11 @@
 import { Head, Link } from "@inertiajs/react"
 import { ArrowUpRight, Plus, ReceiptText } from "lucide-react"
-import { useState } from "react"
-import CategoryController from "@/actions/App/Http/Controllers/CategoryController"
+import { useEffect, useState } from "react"
+import { buildFilterQuery } from "@/lib/date-filter"
 import AddTransactionSheet from "@/components/add-transaction-sheet"
 import LucideIconDisplay from "@/components/lucide-icon-display"
-import type { Category, CategoryPageProps } from "@/types/category"
-import type { AccountPageProps } from "@/types/account"
-import type { Transaction, TransactionPageProps } from "@/types/transaction"
+import type { Category } from "@/types/category"
+import type { Transaction } from "@/types/transaction"
 
 import { useInitials } from "@/hooks/use-initials"
 import { Button } from "@/components/ui/button"
@@ -17,14 +16,14 @@ import {
 	CardTitle,
 } from "@/components/ui/card"
 import { PlaceholderPattern } from "@/components/ui/placeholder-pattern"
+import { useApp } from "@/contexts/AppContext"
+import DateFilterSheet from "@/components/categories/date-filter-sheet"
 
 type SheetCategory = Pick<Category, "id" | "name" | "icon" | "color">
 
-export default function TransactionsIndex({
-	transactions,
-	accounts,
-	categories,
-}: TransactionPageProps & AccountPageProps & CategoryPageProps) {
+export default function TransactionsIndex() {
+	const props = useApp()
+
 	const getInitials = useInitials()
 
 	const [isSheetOpen, setIsSheetOpen] = useState(false)
@@ -32,6 +31,16 @@ export default function TransactionsIndex({
 		useState<Transaction | null>(null)
 	const [selectedCategory, setSelectedCategory] =
 		useState<SheetCategory | null>(null)
+
+	useEffect(() => {
+		props.get("categories", props.setCategories, "categories")
+		props.get("accounts", props.setAccounts, "accounts")
+	}, [])
+
+	useEffect(() => {
+		const query = buildFilterQuery(props.dateFilters)
+		props.get(`transactions${query}`, props.setTransactions, "transactions")
+	}, [props.dateFilters])
 
 	function handleCreateTransaction(): void {
 		setSelectedTransaction(null)
@@ -42,7 +51,7 @@ export default function TransactionsIndex({
 	function handleEditTransaction(transaction: Transaction): void {
 		setSelectedTransaction(transaction)
 		setSelectedCategory(
-			categories.data.find(
+			props.categories.find(
 				(category) => String(category.id) === String(transaction.categoryId)
 			) ?? {
 				id: transaction.categoryId,
@@ -61,10 +70,13 @@ export default function TransactionsIndex({
 			{/* Transactions Content Section Start */}
 			<div className="flex flex-1 justify-center p-2 sm:p-4">
 				<div className="w-full max-w-4xl space-y-1 pb-24 md:pb-8">
-					{transactions.data.length > 0 ? (
+					<div className="flex items-center justify-between">
+						<DateFilterSheet />
+					</div>
+					{props.transactions.length > 0 ? (
 						/* Transaction List Section Start */
-						<div className="space-y-2">
-							{transactions.data.map((transaction) => {
+						<div className="mt-4 space-y-2">
+							{props.transactions.map((transaction) => {
 								const transactionType = transaction.categoryType ?? "expense"
 
 								const amountTone =
@@ -84,7 +96,7 @@ export default function TransactionsIndex({
 													<div className="flex gap-2">
 														{/* Icon Start */}
 														<div
-															className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-border/60 text-white shadow-sm"
+															className="flex size-14 shrink-0 items-center justify-center rounded-4xl border border-border/60 text-white shadow-sm"
 															style={{
 																backgroundColor:
 																	transaction.categoryColor ??
@@ -96,7 +108,7 @@ export default function TransactionsIndex({
 																	transaction.categoryIcon ??
 																	transaction.accountIcon
 																}
-																className="size-6"
+																className="size-8"
 																fallback={
 																	<span className="text-xs font-semibold">
 																		{getInitials(
@@ -170,7 +182,7 @@ export default function TransactionsIndex({
 									</p>
 								</div>
 								<Button asChild>
-									<Link href={CategoryController.index["/categories"].url()}>
+									<Link href="/categories">
 										<ArrowUpRight className="size-4" />
 										Go to categories
 									</Link>
@@ -194,8 +206,8 @@ export default function TransactionsIndex({
 						}}
 						selectedCategory={selectedCategory}
 						onSelectedCategoryChange={setSelectedCategory}
-						categories={categories.data}
-						accounts={accounts.data}
+						categories={props.categories}
+						accounts={props.accounts}
 						transaction={
 							selectedTransaction
 								? {
@@ -222,7 +234,10 @@ export default function TransactionsIndex({
 					variant="secondary"
 					onClick={handleCreateTransaction}
 					className="h-14 w-14 rounded-full px-5 shadow-lg">
-					<Plus className="size-8" />
+					<Plus
+						className="size-8"
+						strokeWidth={1.3}
+					/>
 					<span className="hidden sm:inline">Add transaction</span>
 				</Button>
 			</div>

@@ -290,7 +290,7 @@ export function DatePicker({
 									<button
 										type="button"
 										className={cn(
-											"relative flex h-14 w-full rounded-lg border bg-white/10 backdrop-blur-xl px-4 pt-5 pb-1 text-left text-white font-light font-nunito text-base transition-all",
+											"relative flex h-14 w-full rounded-lg border px-4 pt-5 pb-1 text-left text-white font-light font-nunito text-base transition-all",
 											error
 												? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
 												: "border-white/20 focus:border-white/40 focus:ring-2 focus:ring-white/10",
@@ -315,8 +315,8 @@ export function DatePicker({
 										className={cn(
 											"absolute left-4 transition-all duration-200 pointer-events-none font-light font-nunito z-10",
 											isActiveWithFocus
-												? "top-1.5 text-xs text-white/60"
-												: "top-4 text-base text-white/40",
+												? "top-1.5 text-xs text-white"
+												: "top-4 text-base text-white",
 											error && isActiveWithFocus && "text-red-400"
 										)}>
 										{label}

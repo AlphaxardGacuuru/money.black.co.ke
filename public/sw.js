@@ -40,8 +40,29 @@ self.addEventListener("fetch", (event) => {
 		return
 	}
 
+	const url = new URL(event.request.url)
+	const isApiRequest =
+		url.origin === self.location.origin && url.pathname.startsWith("/api/")
+	const isStaticAssetRequest =
+		url.origin === self.location.origin &&
+		(ASSETS_TO_CACHE.includes(url.pathname) || url.pathname.startsWith("/build/"))
+
+	// Dynamic API requests should always hit the network.
+	if (isApiRequest) {
+		event.respondWith(fetch(event.request))
+
+		return
+	}
+
 	if (event.request.mode === "navigate") {
 		event.respondWith(fetch(event.request).catch(() => caches.match("/")))
+
+		return
+	}
+
+	// Non-static assets use network-first to avoid stale UI/data.
+	if (!isStaticAssetRequest) {
+		event.respondWith(fetch(event.request).catch(() => caches.match(event.request)))
 
 		return
 	}

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\CategoryResource;
 use App\Http\Services\CategoryService;
+use App\Models\Category;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -50,20 +51,18 @@ class CategoryController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id): CategoryResource
+    public function show(Category $category): CategoryResource
     {
-        [$status, $message, $category] = $this->service->show($id);
-
         return (new CategoryResource($category))->additional([
-            'status' => $status,
-            'message' => $message,
+            'status' => true,
+            'message' => 'Category Retrieved Successfully',
         ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id): CategoryResource|RedirectResponse
+    public function update(Request $request, Category $category): CategoryResource|RedirectResponse
     {
         $request->validate([
             'icon' => 'sometimes|string|max:255',
@@ -74,7 +73,7 @@ class CategoryController extends Controller
             'total' => 'nullable|integer|min:0',
         ]);
 
-        [$saved, $message, $category] = $this->service->update($request, $id);
+        [$saved, $message, $category] = $this->service->update($request, $category);
 
         return (new CategoryResource($category))->additional([
             'saved' => $saved,
@@ -85,9 +84,9 @@ class CategoryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, string $id): CategoryResource|RedirectResponse
+    public function destroy(Category $category): CategoryResource|RedirectResponse
     {
-        [$deleted, $message, $category] = $this->service->destroy($id);
+        [$deleted, $message, $category] = $this->service->destroy($category);
 
         return (new CategoryResource($category))->additional([
             'deleted' => $deleted,

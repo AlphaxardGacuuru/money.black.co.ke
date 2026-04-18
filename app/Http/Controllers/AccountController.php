@@ -63,7 +63,7 @@ class AccountController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id): AccountResource|RedirectResponse
+    public function update(Request $request, Account $account): AccountResource|RedirectResponse
     {
         $request->validate([
             'icon' => 'sometimes|string|max:255',
@@ -75,7 +75,7 @@ class AccountController extends Controller
             'isDefault' => 'nullable|boolean',
         ]);
 
-        [$saved, $message, $account] = $this->service->update($request, $id);
+        [$saved, $message, $account] = $this->service->update($request, $account);
 
         return (new AccountResource($account))->additional([
             'saved' => $saved,
@@ -86,9 +86,9 @@ class AccountController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, string $id): AccountResource|RedirectResponse
+    public function destroy(Account $account): AccountResource|RedirectResponse
     {
-        [$deleted, $message, $account] = $this->service->destroy($id);
+        [$deleted, $message, $account] = $this->service->destroy($account);
 
         return (new AccountResource($account))->additional([
             'deleted' => $deleted,

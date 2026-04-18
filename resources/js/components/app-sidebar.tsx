@@ -1,9 +1,8 @@
 import { Link } from "@inertiajs/react"
 import {
-	ArrowLeftRight,
+	ArrowUpDown,
 	BookOpen,
 	ChartColumnIncreasing,
-	FolderGit2,
 	Tags,
 	Wallet,
 } from "lucide-react"
@@ -38,7 +37,7 @@ export const mainNavItems: NavItem[] = [
 	{
 		title: "Transactions",
 		href: "/transactions",
-		icon: ArrowLeftRight,
+		icon: ArrowUpDown,
 	},
 	{
 		title: "Overview",
@@ -48,11 +47,6 @@ export const mainNavItems: NavItem[] = [
 ]
 
 const footerNavItems: NavItem[] = [
-	{
-		title: "Repository",
-		href: "https://github.com/laravel/react-starter-kit",
-		icon: FolderGit2,
-	},
 	{
 		title: "Documentation",
 		href: "https://laravel.com/docs/starter-kits#react",

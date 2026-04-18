@@ -3,30 +3,28 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\CategoryResource;
-use App\Models\Category;
+use App\Http\Services\CategoryService;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Inertia\Response;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class OverviewController extends Controller
 {
-    public function index(Request $request): Response
+    public function __construct(protected CategoryService $service) {}
+
+    public function index(Request $request): AnonymousResourceCollection
     {
-        $categories = Category::query()
-            ->where('user_id', $request->user()->id)
-            ->orderByDesc('total')
-            ->orderBy('name')
-            ->get();
+        [$status, $message, $categories] = $this->service->index($request);
+
+        $categories = $categories->sortByDesc(fn($cat) => $cat->computed_total ?? $cat->total);
 
         $expenseTotal = (int) $categories
             ->where('type', 'expense')
-            ->sum('total');
+            ->sum(fn($cat) => $cat->computed_total ?? $cat->total);
         $incomeTotal = (int) $categories
             ->where('type', 'income')
-            ->sum('total');
+            ->sum(fn($cat) => $cat->computed_total ?? $cat->total);
 
-        return Inertia::render('overview/index', [
-            'categories' => CategoryResource::collection($categories),
+        return CategoryResource::collection($categories->values())->additional([
             'totals' => [
                 'expense' => $expenseTotal,
                 'income' => $incomeTotal,

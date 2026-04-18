@@ -22,6 +22,7 @@ import { Spinner } from "@/components/ui/spinner"
 import type { Account } from "@/types/account"
 import type { Category } from "@/types/category"
 import { useApp } from "@/contexts/AppContext"
+import { toast } from "sonner"
 
 type SelectedCategory = Pick<Category, "id" | "name" | "icon" | "color">
 
@@ -57,7 +58,7 @@ function getDefaultAccount(accounts: Account[]): Account | null {
 
 	const explicitDefault = accounts.find((account) => account.isDefault === true)
 
-	return explicitDefault ?? accounts[0] ?? null
+	return explicitDefault ?? accounts[0]
 }
 
 function getDefaultTransactionDate(): string {
@@ -185,7 +186,7 @@ export default function AddTransactionSheet({
 
 		setIsDeleting(true)
 
-		Axios.delete(TransactionController.destroy.url(transaction.id), {
+		Axios.delete(TransactionController.destroy.url(String(transaction.id)), {
 			data: { redirect_to: redirectTo },
 		})
 			.then(() => {
@@ -229,12 +230,17 @@ export default function AddTransactionSheet({
 		}
 
 		const request = transaction?.id
-			? Axios.patch(TransactionController.update.url(transaction.id), payload)
+			? Axios.patch(
+					TransactionController.update.url(String(transaction.id)),
+					payload
+				)
 			: Axios.post(TransactionController.store.url(), payload)
 
 		request
-			.then(() => {
+			.then((response) => {
 				onSuccess()
+				toast.success(response.data.message)
+				props.get("categories", props.setCategories, "categories")
 			})
 			.catch((error: unknown) => {
 				const response = (
@@ -360,7 +366,7 @@ export default function AddTransactionSheet({
 			}}>
 			<SheetContent
 				side="bottom"
-				className="max-h-[85vh] rounded-t-3xl [&>button]:top-1 [&>button]:right-0 [&>button]:left-auto [&>button]:size-11 [&>button>svg]:size-6">
+				className="max-h-[85vh] rounded-t-3xl [&>button]:top-1 [&>button]:right-0 [&>button]:left-auto [&>button]:size-11 [&>button>svg]:size-6 gap-1">
 				{/* Sheet Header Section Start */}
 				<SheetHeader>
 					<SheetTitle>{sheetTitle}</SheetTitle>

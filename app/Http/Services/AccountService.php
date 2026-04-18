@@ -20,7 +20,7 @@ class AccountService extends Service
                 ->orderBy('id', 'DESC')
                 ->get();
 
-            return [true, $accounts->count() . ' Accounts Retrieved Successfully', $accounts];
+            return [true, $accounts->count().' Accounts Retrieved Successfully', $accounts];
         }
 
         $query = Account::where('user_id', auth()->id());
@@ -31,7 +31,7 @@ class AccountService extends Service
             ->orderby('id', 'ASC')
             ->get();
 
-        return [true, $accounts->count() . ' Accounts Retrieved Successfully', $accounts];
+        return [true, $accounts->count().' Accounts Retrieved Successfully', $accounts];
     }
 
     /*
@@ -70,25 +70,10 @@ class AccountService extends Service
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(string $id): array
-    {
-        $account = Account::find($id);
-
-        if (! $account) {
-            return [false, 'Account Not Found', null];
-        }
-
-        return [true, 'Account Retrieved Successfully', $account];
-    }
-
-    /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id): array
+    public function update(Request $request, Account $account): array
     {
-        $account = Account::findOrFail($id);
         $account->icon = $request->input('icon', $account->icon);
         $account->color = $request->input('color', $account->color);
         $account->name = $request->input('name', $account->name);
@@ -114,13 +99,11 @@ class AccountService extends Service
     /*
      * Soft Delete Service
      */
-    public function destroy(string $id): array
+    public function destroy(Account $account): array
     {
-        $account = Account::findOrFail($id);
-
         $deleted = $account->delete();
 
-        return [$deleted, $account->name . ' Deleted Successfully', $account];
+        return [$deleted, $account->name.' Deleted Successfully', $account];
     }
 
     /*
@@ -137,7 +120,7 @@ class AccountService extends Service
         $name = $request->input('name');
 
         if ($request->filled('name')) {
-            $query->where('name', 'LIKE', '%' . $name . '%');
+            $query->where('name', 'LIKE', '%'.$name.'%');
         }
 
         $type = $request->input('type');

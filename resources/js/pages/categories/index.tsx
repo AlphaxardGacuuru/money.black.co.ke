@@ -6,13 +6,19 @@ import DateFilterSheet from "@/components/categories/date-filter-sheet"
 import { useApp } from "@/contexts/AppContext"
 import { Button } from "@/components/ui/button"
 import { PlaceholderPattern } from "@/components/ui/placeholder-pattern"
+import { buildFilterQuery } from "@/lib/date-filter"
 
 export default function CategoriesIndex() {
 	const props = useApp()
 
 	useEffect(() => {
-		props.get("categories", props.setCategories, "categories")
+		props.get("accounts", props.setAccounts, "accounts")
 	}, [])
+
+	useEffect(() => {
+		const query = buildFilterQuery(props.dateFilters)
+		props.get(`categories${query}`, props.setCategories, "categories")
+	}, [props.dateFilters])
 
 	return (
 		<>

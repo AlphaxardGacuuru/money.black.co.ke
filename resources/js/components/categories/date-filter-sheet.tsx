@@ -1,10 +1,17 @@
-import { router } from "@inertiajs/react"
 import { format } from "date-fns"
 import {
+	Calendar1Icon,
+	CalendarArrowUpIcon,
+	CalendarCheckIcon,
+	CalendarClockIcon,
+	CalendarDaysIcon,
+	CalendarRangeIcon,
+	CalendarX2Icon,
 	ChevronDownIcon,
 	ChevronLeftIcon,
 	ChevronRightIcon,
 } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
 import { useState } from "react"
 import { DatePicker } from "@/components/ui/date-picker"
 import { Button } from "@/components/ui/button"
@@ -22,16 +29,17 @@ import type { DateFilterParams, DateFilterType } from "@/types/date-filter"
 type FilterOption = {
 	value: DateFilterType
 	label: string
+	icon: LucideIcon
 }
 
 const FILTER_OPTIONS: FilterOption[] = [
-	{ value: "all_time", label: "All Time" },
-	{ value: "today", label: "Today" },
-	{ value: "week", label: "Week" },
-	{ value: "month", label: "Month" },
-	{ value: "year", label: "Year" },
-	{ value: "date", label: "Date" },
-	{ value: "dateRange", label: "Date Range" },
+	{ value: "all_time", label: "All Time", icon: CalendarX2Icon },
+	{ value: "today", label: "Today", icon: CalendarCheckIcon },
+	{ value: "week", label: "Week", icon: CalendarDaysIcon },
+	{ value: "month", label: "Month", icon: CalendarClockIcon },
+	{ value: "year", label: "Year", icon: CalendarArrowUpIcon },
+	{ value: "date", label: "Date", icon: Calendar1Icon },
+	{ value: "dateRange", label: "Date Range", icon: CalendarRangeIcon },
 ]
 
 function parseDateInput(value?: string): Date | null {
@@ -133,42 +141,13 @@ export default function DateFilterSheet() {
 		filter: DateFilterType,
 		overrides: Partial<DateFilterParams> = {}
 	) {
-		const nextFilters = {
+		setDateFilters({
 			...filters,
 			filter,
 			date: overrides.date ?? date,
 			startDate: overrides.startDate ?? startDate,
 			endDate: overrides.endDate ?? endDate,
-		}
-		const params: Record<string, string> = { filter }
-
-		if (filter === "date") {
-			const resolved = overrides.date ?? date
-
-			if (resolved) {
-				params.date = resolved
-			}
-		}
-
-		if (filter === "dateRange") {
-			const resolvedStart = overrides.startDate ?? startDate
-			const resolvedEnd = overrides.endDate ?? endDate
-
-			if (resolvedStart) {
-				params.startDate = resolvedStart
-			}
-
-			if (resolvedEnd) {
-				params.endDate = resolvedEnd
-			}
-		}
-
-		setDateFilters(nextFilters)
-
-		router.get("/categories", params, {
-			preserveScroll: true,
 		})
-
 		setOpen(false)
 	}
 
@@ -191,37 +170,37 @@ export default function DateFilterSheet() {
 		<Sheet
 			open={open}
 			onOpenChange={setOpen}>
-			<SheetTrigger
-				asChild
-				className="w-full">
-				<div className="flex items-center justify-between gap-2 rounded-3xl border border-sidebar-border bg-sidebar p-1 text-sidebar-foreground backdrop-blur supports-backdrop-filter:bg-sidebar/95">
-					{/* Previous Start */}
-					<Button
-						variant="secondary"
-						size="sm"
-						className="rounded-3xl">
-						<ChevronLeftIcon />
-					</Button>
-					{/* Previous End */}
+			<div className="flex w-full items-center justify-between gap-2 rounded-3xl border border-sidebar-border bg-sidebar p-1 text-sidebar-foreground backdrop-blur supports-backdrop-filter:bg-sidebar/95">
+				{/* Previous Start */}
+				<Button
+					variant="secondary"
+					size="sm"
+					className="rounded-3xl">
+					<ChevronLeftIcon />
+				</Button>
+				{/* Previous End */}
+
+				<SheetTrigger asChild className="">
 					{/* Date Filter Start */}
 					<Button
 						variant={isActive ? "default" : "outline"}
 						size="sm"
-						className="rounded-3xl gap-1.5">
+						className="gap-1.5 rounded-3xl">
 						{getFilterLabel(filters)}
 						<ChevronDownIcon className="size-3.5 opacity-60" />
 					</Button>
 					{/* Date Filter End */}
-					{/* Next Start */}
-					<Button
-						variant="secondary"
-						size="sm"
-						className="rounded-3xl">
-						<ChevronRightIcon />
-					</Button>
-					{/* Next End */}
-				</div>
-			</SheetTrigger>
+				</SheetTrigger>
+				{/* Next Start */}
+				<Button
+					variant="secondary"
+					size="sm"
+					className="rounded-3xl">
+					<ChevronRightIcon />
+				</Button>
+				{/* Next End */}
+			</div>
+
 			<SheetContent
 				side="bottom"
 				className="rounded-t-3xl border-sidebar-border bg-sidebar text-sidebar-foreground backdrop-blur supports-backdrop-filter:bg-sidebar/95 [&>button]:top-1 [&>button]:right-0 [&>button]:left-auto [&>button]:size-11 [&>button>svg]:size-6">
@@ -229,19 +208,29 @@ export default function DateFilterSheet() {
 					<SheetTitle>Filter by Date</SheetTitle>
 				</SheetHeader>
 
-				<div className="flex flex-col gap-1 px-4 pb-6">
-					{FILTER_OPTIONS.map((option) => (
-						<button
-							key={option.value}
-							onClick={() => handleOptionClick(option.value)}
-							className={cn(
-								"flex w-full items-center rounded-lg px-4 py-3 text-left text-sm font-medium transition-colors hover:bg-muted",
-								selected === option.value && "bg-muted"
-							)}>
-							{option.label}
-						</button>
-					))}
+				<div className="grid grid-cols-2 gap-2 px-4">
+					{FILTER_OPTIONS.map((option) =>
+						(() => {
+							const Icon = option.icon
 
+							return (
+								<button
+									key={option.value}
+									onClick={() => handleOptionClick(option.value)}
+									className={cn(
+										"flex w-full flex-col items-center justify-center gap-1.5 rounded-lg border px-3 py-4 text-center text-sm font-medium transition-colors hover:bg-muted",
+										option.value === "all_time" && "col-span-2",
+										selected === option.value && "bg-muted"
+									)}>
+									<Icon className="size-5" />
+									{option.label}
+								</button>
+							)
+						})()
+					)}
+				</div>
+
+				<div className="px-4 pb-6">
 					{selected === "date" && (
 						<div className="mt-3 space-y-3 px-1">
 							<DatePicker

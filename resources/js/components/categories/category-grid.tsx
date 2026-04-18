@@ -108,18 +108,19 @@ export default function CategoryGrid({
 
 				<div className="flex flex-col gap-2 sm:items-end">
 					<div className="inline-flex justify-between gap-1 rounded-lg border bg-background p-1">
+						{/* Income Start */}
 						<button
 							type="button"
-							onClick={() => setActiveType("expense")}
+							onClick={() => setActiveType("income")}
 							className={`grow rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
-								activeType === "expense"
-									? "bg-rose-500/15 text-rose-700 dark:text-rose-300"
+								activeType === "income"
+									? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
 									: "text-muted-foreground hover:text-foreground"
 							}`}>
-							Expense
+							Income
 						</button>
+						{/* Income End */}
 						{/* Edit Mode Start */}
-
 						<Button
 							type="button"
 							className="grow rounded-lg"
@@ -133,16 +134,18 @@ export default function CategoryGrid({
 							<Pencil className="size-4" />
 						</Button>
 						{/* Edit Mode End */}
+						{/* Expense Start */}
 						<button
 							type="button"
-							onClick={() => setActiveType("income")}
+							onClick={() => setActiveType("expense")}
 							className={`grow rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
-								activeType === "income"
-									? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+								activeType === "expense"
+									? "bg-rose-500/15 text-rose-700 dark:text-rose-300"
 									: "text-muted-foreground hover:text-foreground"
 							}`}>
-							Income
+							Expense
 						</button>
+						{/* Expense End */}
 					</div>
 				</div>
 			</div>
@@ -173,15 +176,7 @@ export default function CategoryGrid({
 					</div>
 
 					<div className="flex items-center justify-between text-xs">
-						<div className="flex items-center gap-1.5">
-							<span className="text-muted-foreground">Expenses</span>
-							<span className="font-semibold text-rose-600 dark:text-rose-400">
-								KES{" "}
-								{expenseTotal.toLocaleString(undefined, {
-									maximumFractionDigits: 0,
-								})}
-							</span>
-						</div>
+						{/* Income Start */}
 						<div className="flex items-center gap-1.5">
 							<span className="text-muted-foreground">Income</span>
 							<span className="font-semibold text-emerald-600 dark:text-emerald-400">
@@ -191,13 +186,25 @@ export default function CategoryGrid({
 								})}
 							</span>
 						</div>
+						{/* Income End */}
+						{/* Expenses Start */}
+						<div className="flex items-center gap-1.5">
+							<span className="text-muted-foreground">Expenses</span>
+							<span className="font-semibold text-rose-600 dark:text-rose-400">
+								KES{" "}
+								{expenseTotal.toLocaleString(undefined, {
+									maximumFractionDigits: 0,
+								})}
+							</span>
+						</div>
+						{/* Expenses End */}
 					</div>
 				</div>
 			) : null}
 			{/* Totals Bar Section End */}
 
 			{/* Category Cards Section Start */}
-			<div className="grid grid-cols-3 gap-2">
+			<div className="grid grid-cols-4 gap-2">
 				{visibleCategories.map((category, index) =>
 					interactionMode === "edit" ? (
 						<Link
@@ -207,7 +214,7 @@ export default function CategoryGrid({
 							style={{
 								borderColor: resolveCardColor(category.color, index),
 							}}>
-							<p className="truncate text-xs leading-tight font-medium">
+							<p className="overflow-hidden text-clip whitespace-nowrap text-xs leading-tight font-medium">
 								{category.name}
 							</p>
 
@@ -230,10 +237,9 @@ export default function CategoryGrid({
 							</div>
 
 							<div className="text-center">
-								<p className="text-xs leading-none font-semibold">
-									{(category.total?.amount ?? 0).toLocaleString(undefined, {
-										maximumFractionDigits: 0,
-									})}
+								<p className="flex items-end justify-center text-[0.6em] font-thin">
+									<small className="me-1">KES</small>{" "}
+									{category.total?.formatted}
 								</p>
 							</div>
 						</Link>
@@ -246,7 +252,7 @@ export default function CategoryGrid({
 							style={{
 								borderColor: resolveCardColor(category.color, index),
 							}}>
-							<p className="truncate text-xs leading-tight font-medium">
+							<p className="overflow-hidden text-clip whitespace-nowrap text-xs leading-tight font-medium">
 								{category.name}
 							</p>
 
@@ -269,10 +275,9 @@ export default function CategoryGrid({
 							</div>
 
 							<div className="text-center">
-								<p className="text-xs leading-none font-semibold">
-									{(category.total?.amount ?? 0).toLocaleString(undefined, {
-										maximumFractionDigits: 0,
-									})}
+								<p className="flex items-end justify-center text-[0.6em] leading-none font-thin">
+									<small className="me-1">KES</small>{" "}
+									{category.total?.formatted}
 								</p>
 							</div>
 						</button>
@@ -283,7 +288,7 @@ export default function CategoryGrid({
 					<Link
 						href={`/categories/create?type=${activeType}`}
 						className="group flex min-h-28 flex-col rounded-xl border border-dashed border-border/70 bg-background p-3 text-center transition-colors hover:bg-accent/20">
-						<p className="truncate text-xs leading-tight font-medium">
+						<p className="overflow-hidden text-clip whitespace-nowrap text-xs leading-tight font-medium">
 							Add category
 						</p>
 

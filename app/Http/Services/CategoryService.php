@@ -19,28 +19,19 @@ class CategoryService extends Service
 
         $query = Category::where('user_id', $request->user()->id);
 
-        // $query = $this->search($query, $request);
+        $query = $this->search($query, $request);
 
         $categories = $query
-            ->orderBy('created_at')
+            ->orderBy('position', 'ASC')
             ->get();
 
         return [true, 'Categories Retrieved Successfully', $categories];
     }
 
-    public function show(string $id): array
-    {
-        $category = Category::find($id);
-
-        if (! $category) {
-            return [false, 'Category Not Found', null];
-        }
-
-        return [true, 'Category Retrieved Successfully', $category];
-    }
-
     public function store(Request $request): array
     {
+        $position = Category::where('user_id', auth()->user()->id)->count() + 1;
+
         $category = new Category;
         $category->user_id = auth()->id();
         $category->icon = $request->icon;
@@ -48,15 +39,15 @@ class CategoryService extends Service
         $category->name = $request->name;
         $category->type = $request->type;
         $category->currency = $request->input('currency', 'KES');
+        $category->position = $position;
         $category->total = $request->input('total', 0);
         $saved = $category->save();
 
         return [$saved, 'Category Created Successfully', $category];
     }
 
-    public function update(Request $request, string $id): array
+    public function update(Request $request, Category $category): array
     {
-        $category = Category::findOrFail($id);
         $category->icon = $request->input('icon', $category->icon);
         $category->color = $request->input('color', $category->color);
         $category->name = $request->input('name', $category->name);
@@ -68,13 +59,11 @@ class CategoryService extends Service
         return [$saved, 'Category Updated Successfully', $category];
     }
 
-    public function destroy(string $id): array
+    public function destroy(Category $category): array
     {
-        $category = Category::findOrFail($id);
-
         $deleted = $category->delete();
 
-        return [$deleted, $category->name.' Deleted Successfully', $category];
+        return [$deleted, $category->name . ' Deleted Successfully', $category];
     }
 
     public function search(Builder $query, Request $request): Builder
@@ -84,11 +73,13 @@ class CategoryService extends Service
         if ($dateRange !== null) {
             [$start, $end] = $dateRange;
 
-            $query->withSum([
-                'transactions as computed_total' => function (Builder $q) use ($start, $end) {
-                    $q->whereBetween('transaction_date', [$start, $end]);
-                },
-            ], 'amount');
+            // Eager load transactions within the date range and calculate the total amount for each category
+            $query
+                ->withSum([
+                    'transactions as computed_total' => function (Builder $query) use ($start, $end) {
+                        $query->whereBetween('transaction_date', [$start, $end]);
+                    },
+                ], 'amount');
         }
 
         return $query;
