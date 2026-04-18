@@ -8,8 +8,6 @@ use App\Models\Account;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Inertia\Inertia;
-use Inertia\Response;
 
 class AccountController extends Controller
 {
@@ -18,35 +16,20 @@ class AccountController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request): AnonymousResourceCollection|Response
+    public function index(Request $request): AnonymousResourceCollection
     {
-        if ($request->expectsJson()) {
-            [$status, $message, $accounts] = $this->service->index($request);
+        [$status, $message, $accounts] = $this->service->index($request);
 
-            return AccountResource::collection($accounts);
-        }
-
-        $accounts = Account::where('user_id', $request->user()->id)
-            ->orderBy('name')
-            ->get();
-
-        return Inertia::render('accounts/index', [
-            'accounts' => AccountResource::collection($accounts),
+        return AccountResource::collection($accounts)->additional([
+            'status' => $status,
+            'message' => $message,
         ]);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create(): Response
-    {
-        return Inertia::render('accounts/create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request): AccountResource|RedirectResponse
+    public function store(Request $request): AccountResource
     {
         $request->validate([
             'icon' => 'required|string|max:255',
@@ -55,48 +38,25 @@ class AccountController extends Controller
             'currency' => 'nullable|string|max:255',
             'type' => 'nullable|string|in:regular,savings,mobile',
             'description' => 'nullable|string|max:255',
-            'is_default' => 'nullable|boolean',
+            'isDefault' => 'nullable|boolean',
         ]);
 
         [$saved, $message, $account] = $this->service->store($request);
 
-        if ($request->expectsJson()) {
-            return (new AccountResource($account))->additional([
-                'saved' => $saved,
-                'message' => $message,
-            ]);
-        }
-
-        Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
-
-        return to_route('accounts.index');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id): AccountResource
-    {
-        [$status, $message, $account] = $this->service->show($id);
-
         return (new AccountResource($account))->additional([
-            'status' => $status,
+            'saved' => $saved,
             'message' => $message,
         ]);
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Display the specified resource.
      */
-    public function edit(string $id): Response
+    public function show(Account $account): AccountResource
     {
-        [$status, $message, $account] = $this->service->show($id);
-
-        return Inertia::render('accounts/[id]/edit', [
-            'account' => (new AccountResource($account))->additional([
-                'status' => $status,
-                'message' => $message,
-            ]),
+        return (new AccountResource($account))->additional([
+            'status' => true,
+            'message' => 'Account Retrieved Successfully',
         ]);
     }
 
@@ -112,21 +72,15 @@ class AccountController extends Controller
             'currency' => 'nullable|string|max:255',
             'type' => 'nullable|string|in:regular,savings,mobile',
             'description' => 'nullable|string|max:255',
-            'is_default' => 'nullable|boolean',
+            'isDefault' => 'nullable|boolean',
         ]);
 
         [$saved, $message, $account] = $this->service->update($request, $id);
 
-        if ($request->expectsJson()) {
-            return (new AccountResource($account))->additional([
-                'saved' => $saved,
-                'message' => $message,
-            ]);
-        }
-
-        Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
-
-        return to_route('accounts.index');
+        return (new AccountResource($account))->additional([
+            'saved' => $saved,
+            'message' => $message,
+        ]);
     }
 
     /**
@@ -136,15 +90,9 @@ class AccountController extends Controller
     {
         [$deleted, $message, $account] = $this->service->destroy($id);
 
-        if ($request->expectsJson()) {
-            return (new AccountResource($account))->additional([
-                'deleted' => $deleted,
-                'message' => $message,
-            ]);
-        }
-
-        Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
-
-        return to_route('accounts.index');
+        return (new AccountResource($account))->additional([
+            'deleted' => $deleted,
+            'message' => $message,
+        ]);
     }
 }

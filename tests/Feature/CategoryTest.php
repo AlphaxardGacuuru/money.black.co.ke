@@ -12,6 +12,20 @@ class CategoryTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_index_renders_categories_page_without_server_data_props(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $response = $this->get(route('categories.index'));
+
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('categories/index')
+            ->missing('categories')
+            ->missing('accounts')
+            ->missing('filters'));
+    }
+
     public function test_store_flashes_success_toast(): void
     {
         $user = User::factory()->create();
@@ -81,5 +95,17 @@ class CategoryTest extends TestCase
         $response->assertInertia(fn (Assert $page) => $page
             ->component('categories/create')
             ->where('defaultType', 'income'));
+    }
+
+    public function test_edit_receives_id_as_inertia_prop(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $response = $this->get(route('categories.edit', ['id' => '123']));
+
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('categories/[id]/edit')
+            ->where('id', '123'));
     }
 }

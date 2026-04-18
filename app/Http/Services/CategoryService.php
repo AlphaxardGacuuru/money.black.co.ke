@@ -2,7 +2,6 @@
 
 namespace App\Http\Services;
 
-use App\Models\Account;
 use App\Models\Category;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -20,15 +19,13 @@ class CategoryService extends Service
 
         $query = Category::where('user_id', $request->user()->id);
 
-        $query = $this->search($query, $request);
+        // $query = $this->search($query, $request);
 
-        $categories = $query->orderBy('name')->get();
-
-        $accounts = Account::where('user_id', $request->user()->id)
-            ->orderBy('name')
+        $categories = $query
+            ->orderBy('created_at')
             ->get();
 
-        return [true, 'Categories Retrieved Successfully', $categories, $accounts];
+        return [true, 'Categories Retrieved Successfully', $categories];
     }
 
     public function show(string $id): array
@@ -60,7 +57,6 @@ class CategoryService extends Service
     public function update(Request $request, string $id): array
     {
         $category = Category::findOrFail($id);
-
         $category->icon = $request->input('icon', $category->icon);
         $category->color = $request->input('color', $category->color);
         $category->name = $request->input('name', $category->name);
@@ -83,10 +79,16 @@ class CategoryService extends Service
 
     public function search(Builder $query, Request $request): Builder
     {
-        $name = $request->input('name');
+        $dateRange = $this->resolveDateRange($request);
 
-        if ($request->filled('name')) {
-            $query = $query->where('name', 'LIKE', '%'.$name.'%');
+        if ($dateRange !== null) {
+            [$start, $end] = $dateRange;
+
+            $query->withSum([
+                'transactions as computed_total' => function (Builder $q) use ($start, $end) {
+                    $q->whereBetween('transaction_date', [$start, $end]);
+                },
+            ], 'amount');
         }
 
         return $query;

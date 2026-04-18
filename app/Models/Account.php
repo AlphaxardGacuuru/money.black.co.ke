@@ -8,5 +8,15 @@ use Illuminate\Database\Eloquent\Model;
 class Account extends Model
 {
     use HasUuids;
-    //
+    
+    protected $fillable = [
+        'user_id',
+        'icon',
+        'color',
+        'name',
+        'currency',
+        'type',
+        'description',
+        'is_default',
+    ];
 }

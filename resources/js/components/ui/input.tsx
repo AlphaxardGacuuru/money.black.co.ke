@@ -1,21 +1,93 @@
 import * as React from "react"
-
+import { useState, forwardRef } from "react"
 import { cn } from "@/lib/utils"
+import { InputWrapper } from "./input-wrapper"
 
-function Input({ className, type, ...props }: React.ComponentProps<"input">) {
-  return (
-    <input
-      type={type}
-      data-slot="input"
-      className={cn(
-        "border-input file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-        "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-        "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-        className
-      )}
-      {...props}
-    />
-  )
+type InputProps = React.ComponentProps<"input"> & {
+	label?: string
+	error?: string | boolean
+	helperText?: string
 }
+
+const Input = forwardRef<HTMLInputElement, InputProps>(
+	({ className, type, label, error, helperText, ...props }, ref) => {
+		const [hasValue, setHasValue] = useState(false)
+
+		const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+			setHasValue(e.target.value !== "")
+			props.onChange?.(e)
+		}
+
+		const isActive =
+			hasValue ||
+			props.value !== undefined ||
+			props.defaultValue !== undefined
+
+		return (
+			<div className={cn("relative w-full", className)}>
+				<InputWrapper error={error}>
+					{({ focused, handleFocus, handleBlur }) => {
+						const isActiveWithFocus = focused || isActive
+
+						return (
+							<>
+								<input
+									type={type}
+									className={cn(
+										"relative flex h-14 w-full rounded-lg border bg-transparent px-4 pt-5 pb-1 text-white font-light font-nunito text-base transition-all",
+										type == "color" ? "pt-6" : null,
+										error
+											? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
+											: "border-white/20 focus:border-white/40 focus:ring-2 focus:ring-white/10",
+										"placeholder:text-transparent",
+										"focus:outline-none",
+										"disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-white/5"
+									)}
+									ref={ref}
+									onFocus={(e) => {
+										handleFocus(e)
+										props.onFocus?.(e as React.FocusEvent<HTMLInputElement>)
+									}}
+									onBlur={(e) => {
+										handleBlur(e)
+										setHasValue(e.target.value !== "")
+										props.onBlur?.(e as React.FocusEvent<HTMLInputElement>)
+									}}
+									onChange={handleChange}
+									placeholder={label || props.placeholder}
+									{...props}
+								/>
+								{label && (
+									<label
+										className={cn(
+											"absolute left-4 transition-all duration-200 pointer-events-none font-light font-nunito z-10",
+											isActiveWithFocus
+												? "top-1.5 text-xs text-white"
+												: "top-4 text-base text-white",
+											error && isActiveWithFocus && "text-red-400"
+										)}>
+										{label}
+									</label>
+								)}
+							</>
+						)
+					}}
+				</InputWrapper>
+
+				{(error || helperText) && (
+					<p
+						className={cn(
+							"mt-1.5 px-4 text-xs font-light font-nunito",
+							error ? "text-red-400" : "text-white/40"
+						)}>
+						{error || helperText}
+					</p>
+				)}
+			</div>
+		)
+	}
+)
+
+Input.displayName = "Input"
 
 export { Input }

@@ -1,7 +1,6 @@
 import { Link } from "@inertiajs/react"
 import { Pencil, Plus } from "lucide-react"
 import { useState } from "react"
-import CategoryController from "@/actions/App/Http/Controllers/CategoryController"
 import AddTransactionSheet from "@/components/add-transaction-sheet"
 import LucideIconDisplay from "@/components/lucide-icon-display"
 import type { Category } from "@/types/category"
@@ -61,9 +60,6 @@ export default function CategoryGrid({
 	const visibleCategories = sortedCategories.filter(
 		(category) => category.type === activeType
 	)
-	const createCategoryUrl = CategoryController.create.url({
-		query: { type: activeType },
-	})
 
 	const expenseCategories = sortedCategories.filter((c) => c.type === "expense")
 	const incomeCategories = sortedCategories.filter((c) => c.type === "income")
@@ -103,7 +99,6 @@ export default function CategoryGrid({
 			{/* Header Controls Section Start */}
 			<div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 				<div>
-					<p className="text-sm font-semibold tracking-tight">Categories</p>
 					<p className="text-xs text-muted-foreground">
 						{interactionMode === "entry"
 							? "Tap a category to add a transaction."
@@ -207,7 +202,7 @@ export default function CategoryGrid({
 					interactionMode === "edit" ? (
 						<Link
 							key={category.id}
-							href={CategoryController.edit.url(category.id)}
+							href={`/categories/${category.id}/edit`}
 							className="group flex min-h-28 flex-col rounded-xl border bg-background p-3 text-center transition-colors hover:bg-accent/20"
 							style={{
 								borderColor: resolveCardColor(category.color, index),
@@ -286,7 +281,7 @@ export default function CategoryGrid({
 
 				{interactionMode === "edit" ? (
 					<Link
-						href={createCategoryUrl}
+						href={`/categories/create?type=${activeType}`}
 						className="group flex min-h-28 flex-col rounded-xl border border-dashed border-border/70 bg-background p-3 text-center transition-colors hover:bg-accent/20">
 						<p className="truncate text-xs leading-tight font-medium">
 							Add category

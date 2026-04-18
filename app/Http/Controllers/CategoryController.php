@@ -2,14 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\AccountResource;
 use App\Http\Resources\CategoryResource;
 use App\Http\Services\CategoryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Inertia\Inertia;
-use Inertia\Response;
 
 class CategoryController extends Controller
 {
@@ -18,36 +15,13 @@ class CategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request): AnonymousResourceCollection|Response
+    public function index(Request $request): AnonymousResourceCollection
     {
-        [$status, $message, $categories, $accounts] = $this->service->index($request);
+        [$status, $message, $categories] = $this->service->index($request);
 
-        if ($this->shouldReturnJson($request)) {
-            return CategoryResource::collection($categories)->additional([
-                'status' => $status,
-                'message' => $message,
-            ]);
-        }
-
-        return Inertia::render('categories/index', [
-            'categories' => CategoryResource::collection($categories),
-            'accounts' => AccountResource::collection($accounts),
-        ]);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create(Request $request): Response
-    {
-        $defaultType = $request->string('type')->toString();
-
-        if (! in_array($defaultType, ['expense', 'income'], true)) {
-            $defaultType = null;
-        }
-
-        return Inertia::render('categories/create', [
-            'defaultType' => $defaultType,
+        return CategoryResource::collection($categories)->additional([
+            'status' => $status,
+            'message' => $message,
         ]);
     }
 
@@ -67,16 +41,10 @@ class CategoryController extends Controller
 
         [$saved, $message, $category] = $this->service->store($request);
 
-        if ($this->shouldReturnJson($request)) {
-            return (new CategoryResource($category))->additional([
-                'saved' => $saved,
-                'message' => $message,
-            ]);
-        }
-
-        Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
-
-        return redirect('/categories');
+        return (new CategoryResource($category))->additional([
+            'saved' => $saved,
+            'message' => $message,
+        ]);
     }
 
     /**
@@ -89,18 +57,6 @@ class CategoryController extends Controller
         return (new CategoryResource($category))->additional([
             'status' => $status,
             'message' => $message,
-        ]);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id): Response
-    {
-        [$status, $message, $category] = $this->service->show($id);
-
-        return Inertia::render('categories/[id]/edit', [
-            'category' => new CategoryResource($category),
         ]);
     }
 
@@ -120,16 +76,10 @@ class CategoryController extends Controller
 
         [$saved, $message, $category] = $this->service->update($request, $id);
 
-        if ($this->shouldReturnJson($request)) {
-            return (new CategoryResource($category))->additional([
-                'saved' => $saved,
-                'message' => $message,
-            ]);
-        }
-
-        Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
-
-        return redirect('/categories');
+        return (new CategoryResource($category))->additional([
+            'saved' => $saved,
+            'message' => $message,
+        ]);
     }
 
     /**
@@ -139,15 +89,9 @@ class CategoryController extends Controller
     {
         [$deleted, $message, $category] = $this->service->destroy($id);
 
-        if ($this->shouldReturnJson($request)) {
-            return (new CategoryResource($category))->additional([
-                'deleted' => $deleted,
-                'message' => $message,
-            ]);
-        }
-
-        Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
-
-        return redirect('/categories');
+        return (new CategoryResource($category))->additional([
+            'deleted' => $deleted,
+            'message' => $message,
+        ]);
     }
 }

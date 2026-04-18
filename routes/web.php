@@ -2,9 +2,7 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Auth\SocialiteController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\OverviewController;
-use App\Http\Controllers\TransactionController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -21,11 +19,22 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [AccountController::class, 'index'])->name('dashboard');
-    Route::get('overview', [OverviewController::class, 'index'])->name('overview');
-
-    Route::resource('accounts', AccountController::class);
-    Route::resource('categories', CategoryController::class);
-    Route::resource('transactions', TransactionController::class)->only(['index', 'store', 'update', 'destroy']);
+    // Accounts
+    Route::inertia('accounts', 'accounts/index')->name('accounts.index');
+    Route::inertia('accounts/create', 'accounts/create')->name('accounts.create');
+    Route::inertia('accounts/{id}/edit', 'accounts/[id]/edit', [
+        'id' => fn(Request $request): string => (string) $request->route('id'),
+    ])->name('accounts.edit');
+    // Categories
+    Route::inertia('categories', 'categories/index')->name('categories.index');
+    Route::inertia('categories/create', 'categories/create')->name('categories.create');
+    Route::inertia('categories/{id}/edit', 'categories/[id]/edit', [
+        'id' => fn (Request $request): string => (string) $request->route('id'),
+    ])->name('categories.edit');
+    // Transactions
+    Route::inertia('transactions', 'transactions/index')->name('transactions.index');
+    // Overview
+    Route::inertia('overview', 'overview/index')->name('overview.index');
 });
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

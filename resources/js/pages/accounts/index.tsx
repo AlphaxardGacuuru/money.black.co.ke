@@ -1,7 +1,5 @@
 import { Head, Link } from "@inertiajs/react"
 import { ChevronRight, Plus, Star, Wallet } from "lucide-react"
-import AccountController from "@/actions/App/Http/Controllers/AccountController"
-import type { AccountPageProps } from "@/types/account"
 import Heading from "@/components/heading"
 import LucideIconDisplay from "@/components/lucide-icon-display"
 import { useInitials } from "@/hooks/use-initials"
@@ -15,9 +13,17 @@ import {
 	CardTitle,
 } from "@/components/ui/card"
 import { PlaceholderPattern } from "@/components/ui/placeholder-pattern"
+import { useApp } from "@/contexts/AppContext"
+import { useEffect } from "react"
 
-export default function AccountsIndex({ accounts }: AccountPageProps) {
+export default function AccountsIndex() {
+	const props = useApp()
+
 	const getInitials = useInitials()
+
+	useEffect(() => {
+		props.get("accounts", props.setAccounts, "accounts")
+	}, [])
 
 	return (
 		<>
@@ -34,7 +40,7 @@ export default function AccountsIndex({ accounts }: AccountPageProps) {
 					<Button
 						asChild
 						className="sm:self-start">
-						<Link href={AccountController.create.url()}>
+						<Link href="/accounts/create">
 							<Plus />
 							Create account
 						</Link>
@@ -44,12 +50,12 @@ export default function AccountsIndex({ accounts }: AccountPageProps) {
 
 				{/* Accounts Content Section Start */}
 				<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-					{accounts.data.length > 0 ? (
+					{props.accounts.length > 0 ? (
 						/* Account Cards Section Start */
-						accounts.data.map((account) => (
+						props.accounts.map((account) => (
 							<Link
 								key={account.id}
-								href={AccountController.edit.url(account.id)}
+								href={`/accounts/${account.id}/edit`}
 								className="group block">
 								<Card
 									className={`h-full transition-colors group-hover:bg-accent/20 ${account.isDefault ? "border-2 border-primary/60 group-hover:border-primary" : "border-border/80 group-hover:border-primary/40"}`}>

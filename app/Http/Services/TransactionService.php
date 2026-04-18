@@ -14,10 +14,7 @@ class TransactionService extends Service
     public function index(Request $request): array
     {
         $query = Transaction::query()
-            ->with([
-                'account:id,name,currency,icon,color',
-                'category:id,name,type,icon,color',
-            ])
+            ->with(['account', 'category'])
             ->where('user_id', $request->user()->id);
 
         $query = $this->search($query, $request);
@@ -95,6 +92,9 @@ class TransactionService extends Service
 
             $this->reverseTransactionImpact($currentCategory, $currentAccount, (int) $transaction->amount);
 
+            $currentCategory->save();
+            $currentAccount->save();
+
             $transaction->category_id = $nextCategory->id;
             $transaction->account_id = $nextAccount->id;
             $transaction->amount = (int) $request->amount;
@@ -105,7 +105,8 @@ class TransactionService extends Service
 
             $this->applyTransactionImpact($nextCategory, $nextAccount, (int) $transaction->amount);
 
-            $this->persistAdjustedModels($currentCategory, $nextCategory, $currentAccount, $nextAccount);
+            $nextCategory->save();
+            $nextAccount->save();
 
             return [$saved, 'Transaction Updated Successfully', $transaction];
         });
@@ -120,7 +121,7 @@ class TransactionService extends Service
 
             $category = Category::where('user_id', auth()->id())
                 ->findOrFail($transaction->category_id);
-				
+
             $account = Account::where('user_id', auth()->id())
                 ->findOrFail($transaction->account_id);
 
@@ -175,20 +176,5 @@ class TransactionService extends Service
         }
 
         $account->balance -= $amount;
-    }
-
-    private function persistAdjustedModels(
-        Category $currentCategory,
-        Category $nextCategory,
-        Account $currentAccount,
-        Account $nextAccount,
-    ): void {
-        foreach ([$currentCategory->id => $currentCategory, $nextCategory->id => $nextCategory] as $category) {
-            $category->save();
-        }
-
-        foreach ([$currentAccount->id => $currentAccount, $nextAccount->id => $nextAccount] as $account) {
-            $account->save();
-        }
     }
 }

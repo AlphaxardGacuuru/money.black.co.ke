@@ -23,8 +23,8 @@ class CategoryResource extends JsonResource
             'type' => $this->type,
             'currency' => $this->currency,
             'total' => [
-                'amount' => $this->total,
-                'formatted' => number_format($this->total, 2),
+                'amount' => $this->computed_total !== null ? $this->computed_total : $this->total,
+                'formatted' => number_format($this->computed_total !== null ? $this->computed_total : $this->total, 2),
             ],
             'createdAt' => $this->created_at,
         ];

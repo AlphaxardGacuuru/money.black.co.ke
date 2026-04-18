@@ -20,7 +20,7 @@ class AccountService extends Service
                 ->orderBy('id', 'DESC')
                 ->get();
 
-            return [true, $accounts->total().' Accounts Retrieved Successfully', $accounts];
+            return [true, $accounts->count() . ' Accounts Retrieved Successfully', $accounts];
         }
 
         $query = Account::where('user_id', auth()->id());
@@ -29,9 +29,9 @@ class AccountService extends Service
 
         $accounts = $query
             ->orderby('id', 'ASC')
-            ->paginate();
+            ->get();
 
-        return [true, $accounts->total().' Accounts Retrieved Successfully', $accounts];
+        return [true, $accounts->count() . ' Accounts Retrieved Successfully', $accounts];
     }
 
     /*
@@ -39,6 +39,22 @@ class AccountService extends Service
     */
     public function store(Request $request): array
     {
+        if ($request->input('isDefault')) {
+            // If the account is being set as default, unset the current default account for the user
+            Account::where('user_id', auth()->id())
+                ->where('is_default', true)
+                ->update(['is_default' => false]);
+        } else {
+            $defaultDoesntExist = Account::where('user_id', auth()->id())
+                ->where('is_default', true)
+                ->doesntExist();
+
+            // If no default account exists, set this account as default
+            if ($defaultDoesntExist) {
+                $request->merge(['isDefault' => true]);
+            }
+        }
+
         $account = new Account;
         $account->user_id = auth()->id();
         $account->icon = $request->icon;
@@ -47,7 +63,7 @@ class AccountService extends Service
         $account->currency = $request->currency;
         $account->type = $request->type;
         $account->description = $request->description;
-        $account->is_default = $request->is_default;
+        $account->is_default = $request->isDefault;
         $saved = $account->save();
 
         return [$saved, 'Account Created Successfully', $account];
@@ -80,16 +96,16 @@ class AccountService extends Service
         $account->type = $request->input('type', $account->type);
         $account->description = $request->input('description', $account->description);
 
-        if ($request->has('is_default')) {
+        if ($request->has('isDefault')) {
             // If the account is being set as default, unset the current default account for the user
-            if ($request->input('is_default')) {
+            if ($request->input('isDefault')) {
                 Account::where('user_id', $account->user_id)
                     ->where('is_default', true)
                     ->update(['is_default' => false]);
             }
         }
 
-        $account->is_default = $request->input('is_default', $account->is_default);
+        $account->is_default = $request->input('isDefault', $account->is_default);
         $saved = $account->save();
 
         return [$saved, 'Account Updated Successfully', $account];
@@ -104,7 +120,7 @@ class AccountService extends Service
 
         $deleted = $account->delete();
 
-        return [$deleted, $account->name.' Deleted Successfully', $account];
+        return [$deleted, $account->name . ' Deleted Successfully', $account];
     }
 
     /*
@@ -121,7 +137,7 @@ class AccountService extends Service
         $name = $request->input('name');
 
         if ($request->filled('name')) {
-            $query->where('name', 'LIKE', '%'.$name.'%');
+            $query->where('name', 'LIKE', '%' . $name . '%');
         }
 
         $type = $request->input('type');

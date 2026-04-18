@@ -2,42 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\AccountResource;
-use App\Http\Resources\CategoryResource;
 use App\Http\Resources\TransactionResource;
 use App\Http\Services\TransactionService;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 
 class TransactionController extends Controller
 {
     public function __construct(protected TransactionService $service) {}
-
-    private function redirectTo(Request $request, string $fallback): string
-    {
-        $redirectTo = $request->string('redirect_to')->toString();
-
-        return str_starts_with($redirectTo, '/') ? $redirectTo : $fallback;
-    }
 
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        [$status, $message, $transactions, $accounts, $categories] = $this->service->index($request);
+        [$status, $message, $transactions] = $this->service->index($request);
 
-        if ($this->shouldReturnJson($request)) {
-            return TransactionResource::collection($transactions)->additionally([
-                'status' => $status,
-                'message' => $message,
-            ]);
-        }
-
-        return Inertia::render('transactions/index', [
-            'transactions' => TransactionResource::collection($transactions),
-            'accounts' => AccountResource::collection($accounts),
-            'categories' => CategoryResource::collection($categories),
+        return TransactionResource::collection($transactions)->additional([
+            'status' => $status,
+            'message' => $message,
         ]);
     }
 
@@ -57,16 +39,10 @@ class TransactionController extends Controller
 
         [$saved, $message, $transaction] = $this->service->store($request);
 
-        if ($this->shouldReturnJson($request)) {
-            return (new TransactionResource($transaction))->additional([
-                'saved' => $saved,
-                'message' => $message,
-            ]);
-        }
-
-        Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
-
-        return redirect($this->redirectTo($request, '/categories'));
+        return (new TransactionResource($transaction))->additional([
+            'saved' => $saved,
+            'message' => $message,
+        ]);
     }
 
     /**
@@ -92,21 +68,11 @@ class TransactionController extends Controller
         ]);
 
         [$saved, $message, $updatedTransaction] = $this->service->update($request, $id);
-        $updatedTransaction->loadMissing([
-            'account:id,name,currency,icon,color',
-            'category:id,name,type,icon,color',
+
+        return (new TransactionResource($updatedTransaction))->additional([
+            'saved' => $saved,
+            'message' => $message,
         ]);
-
-        if ($this->shouldReturnJson($request)) {
-            return (new TransactionResource($updatedTransaction))->additional([
-                'saved' => $saved,
-                'message' => $message,
-            ]);
-        }
-
-        Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
-
-        return redirect($this->redirectTo($request, '/transactions'));
     }
 
     /**
@@ -116,15 +82,9 @@ class TransactionController extends Controller
     {
         [$deleted, $message, $transaction] = $this->service->destroy($id);
 
-        if ($this->shouldReturnJson($request)) {
-            return (new TransactionResource($transaction))->additional([
-                'deleted' => $deleted,
-                'message' => $message,
-            ]);
-        }
-
-        Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
-
-        return redirect($this->redirectTo($request, '/transactions'));
+        return (new TransactionResource($transaction))->additional([
+            'deleted' => $deleted,
+            'message' => $message,
+        ]);
     }
 }

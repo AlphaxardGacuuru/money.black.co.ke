@@ -1,17 +1,19 @@
 import { Head, Link } from "@inertiajs/react"
 import { Plus, Tags } from "lucide-react"
-import CategoryController from "@/actions/App/Http/Controllers/CategoryController"
+import { useEffect } from "react"
 import CategoryGrid from "@/components/categories/category-grid"
-import type { CategoryPageProps } from "@/types/category"
-import type { AccountPageProps } from "@/types/account"
+import DateFilterSheet from "@/components/categories/date-filter-sheet"
+import { useApp } from "@/contexts/AppContext"
 import { Button } from "@/components/ui/button"
 import { PlaceholderPattern } from "@/components/ui/placeholder-pattern"
 
-export default function CategoriesIndex({
-	categories,
-	accounts,
-}: CategoryPageProps & AccountPageProps) {
-	
+export default function CategoriesIndex() {
+	const props = useApp()
+
+	useEffect(() => {
+		props.get("categories", props.setCategories, "categories")
+	}, [])
+
 	return (
 		<>
 			<Head title="Categories" />
@@ -19,11 +21,14 @@ export default function CategoriesIndex({
 			{/* Categories Content Section Start */}
 			<div className="flex flex-1 justify-center p-3 sm:p-4">
 				<div className="w-full max-w-3xl space-y-4">
-					{categories.data.length > 0 ? (
+					<div className="flex items-center justify-between">
+						<DateFilterSheet />
+					</div>
+					{props.categories.length > 0 ? (
 						/* Category Grid Section Start */
 						<CategoryGrid
-							categories={categories.data}
-							accounts={accounts.data}
+							categories={props.categories}
+							accounts={props.accounts}
 						/>
 					) : (
 						/* Category Grid Section End */
@@ -42,10 +47,7 @@ export default function CategoriesIndex({
 									</p>
 								</div>
 								<Button asChild>
-									<Link
-										href={CategoryController.create.url({
-											query: { type: "expense" },
-										})}>
+									<Link href={`/categories/create?type=expense`}>
 										<Plus className="size-4" />
 										Create category
 									</Link>

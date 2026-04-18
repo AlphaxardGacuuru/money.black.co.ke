@@ -7,10 +7,6 @@ import {
 	Tags,
 	Wallet,
 } from "lucide-react"
-import AccountController from "@/actions/App/Http/Controllers/AccountController"
-import CategoryController from "@/actions/App/Http/Controllers/CategoryController"
-import OverviewController from "@/actions/App/Http/Controllers/OverviewController"
-import TransactionController from "@/actions/App/Http/Controllers/TransactionController"
 import AppLogo from "@/components/app-logo"
 import { NavFooter } from "@/components/nav-footer"
 import { NavMain } from "@/components/nav-main"
@@ -31,22 +27,22 @@ import type { NavItem } from "@/types"
 export const mainNavItems: NavItem[] = [
 	{
 		title: "Accounts",
-		href: AccountController.index["/accounts"].url(),
+		href: "/accounts",
 		icon: Wallet,
 	},
 	{
 		title: "Categories",
-		href: CategoryController.index["/categories"].url(),
+		href: "/categories",
 		icon: Tags,
 	},
 	{
 		title: "Transactions",
-		href: TransactionController.index.url(),
+		href: "/transactions",
 		icon: ArrowLeftRight,
 	},
 	{
 		title: "Overview",
-		href: OverviewController.index.url(),
+		href: "/overview",
 		icon: ChartColumnIncreasing,
 	},
 ]
