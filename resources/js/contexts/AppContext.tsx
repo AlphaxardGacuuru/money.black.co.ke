@@ -6,7 +6,13 @@ import type { Account } from "@/types/account"
 import type { Transaction } from "@/types/transaction"
 import type { Category } from "@/types/category"
 import type { DateFilterParams } from "@/types/date-filter"
+import type { Overview } from "@/types/overview"
 import Axios from "@/lib/axios"
+import {
+	readJsonFromLocalStorage,
+	readStringFromLocalStorage,
+	setLocalStorage,
+} from "@/lib/localStorage"
 import type {
 	AppContextValue,
 	AppProviderProps,
@@ -32,23 +38,13 @@ const DEFAULT_DATE_FILTERS: DateFilterParams = {
 }
 
 const DATE_FILTERS_STORAGE_KEY = "dateFilters"
-
-const readJsonFromLocalStorage = <T,>(key: string, fallback: T): T => {
-	if (typeof window === "undefined") {
-		return fallback
-	}
-
-	try {
-		const value = window.localStorage.getItem(key)
-
-		if (!value) {
-			return fallback
-		}
-
-		return JSON.parse(value) as T
-	} catch {
-		return fallback
-	}
+const DEFAULT_OVERVIEW: Overview = {
+	categories: [],
+	totals: {
+		expense: 0,
+		income: 0,
+		net: 0,
+	},
 }
 
 const AppContext = createContext<AppContextValue | undefined>(undefined)
@@ -79,9 +75,18 @@ export const AppProvider = ({ children }: AppProviderProps) => {
 
 		return "left-open"
 	})
-	const [accounts, setAccounts] = useState<Account[]>([])
-	const [categories, setCategories] = useState<Category[]>([])
-	const [transactions, setTransactions] = useState<Transaction[]>([])
+	const [accounts, setAccounts] = useState<Account[]>(
+		readJsonFromLocalStorage<Account[]>("accounts", [])
+	)
+	const [categories, setCategories] = useState<Category[]>(
+		readJsonFromLocalStorage<Category[]>("categories", [])
+	)
+	const [transactions, setTransactions] = useState<Transaction[]>(
+		readJsonFromLocalStorage<Transaction[]>("transactions", [])
+	)
+	const [overview, setOverview] = useState<Overview>(() =>
+		readJsonFromLocalStorage<Overview>("overview", DEFAULT_OVERVIEW)
+	)
 
 	const [page, setPage] = useState<PageState>({ name: "/", path: [] })
 	const [loadingItems, setLoadingItems] = useState(0)
@@ -99,23 +104,11 @@ export const AppProvider = ({ children }: AppProviderProps) => {
 	}
 
 	const getNormalLocalStorage = (key: string): string | null => {
-		if (typeof window === "undefined") {
-			return null
-		}
-
-		return window.localStorage.getItem(key)
+		return readStringFromLocalStorage(key)
 	}
 
 	const getLocalStorageAuth = (key = "auth"): AuthState => {
 		return getLocalStorage<AuthState>(key, DEFAULT_AUTH)
-	}
-
-	const setLocalStorage = (key: string, value: unknown): void => {
-		if (typeof window === "undefined") {
-			return
-		}
-
-		window.localStorage.setItem(key, JSON.stringify(value))
 	}
 
 	useEffect(() => {
@@ -126,6 +119,10 @@ export const AppProvider = ({ children }: AppProviderProps) => {
 			endDate: dateFilters.endDate ?? DEFAULT_DATE_FILTERS.endDate,
 		})
 	}, [dateFilters])
+
+	useEffect(() => {
+		setLocalStorage("overview", overview)
+	}, [overview])
 
 	const withLoading = (
 		endpoint: string,
@@ -270,6 +267,8 @@ export const AppProvider = ({ children }: AppProviderProps) => {
 		setCategories,
 		transactions,
 		setTransactions,
+		overview,
+		setOverview,
 		page,
 		setPage,
 		loadingItems,

@@ -4,25 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\CategoryResource;
 use App\Http\Services\CategoryService;
+use App\Http\Services\OverviewService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class OverviewController extends Controller
 {
-    public function __construct(protected CategoryService $service) {}
+    public function __construct(protected OverviewService $service) {}
 
     public function index(Request $request): AnonymousResourceCollection
     {
-        [$status, $message, $categories] = $this->service->index($request);
+        [$status, $message, $categories] = (new CategoryService)->index($request);
 
-        $categories = $categories->sortByDesc(fn($cat) => $cat->computed_total ?? $cat->total);
-
-        $expenseTotal = (int) $categories
-            ->where('type', 'expense')
-            ->sum(fn($cat) => $cat->computed_total ?? $cat->total);
-        $incomeTotal = (int) $categories
-            ->where('type', 'income')
-            ->sum(fn($cat) => $cat->computed_total ?? $cat->total);
+        [
+            $categories,
+            $expenseTotal,
+            $incomeTotal,
+        ] = $this->service->index($categories);
 
         return CategoryResource::collection($categories->values())->additional([
             'totals' => [

@@ -1,43 +1,33 @@
-// Function for checking local storage
-export const getLocalStorage = (state, string = "array") => {
-	if (typeof window !== "undefined" && localStorage.getItem(state)) {
-		return JSON.parse(localStorage.getItem(state))
-	} else if (string == "string") {
-		return ""
-	} else {
-		return []
+export function readJsonFromLocalStorage<T>(key: string, fallback: T): T {
+	if (typeof window === "undefined") {
+		return fallback
 	}
-}
 
-// Function for checking non array local storage
-export const getNormalLocalStorage = (state) => {
-	if (typeof window !== "undefined" && localStorage.getItem(state)) {
-		return localStorage.getItem(state)
-	} else {
-		return ""
-	}
-}
+	try {
+		const value = window.localStorage.getItem(key)
 
-// Function for checking local storage auth
-export const getLocalStorageAuth = (state) => {
-	if (typeof window !== "undefined" && localStorage.getItem(state)) {
-		return JSON.parse(localStorage.getItem(state))
-	} else {
-		return {
-			id: 0,
-			name: "Guest",
-			username: "@guest",
-			avatar: "/storage/avatars/male-avatar.png",
-			accountType: "normal",
-			propertyIds: [],
-			assignedPropertyIds: [],
-			subscriptionByPropertyIds: [],
-			permissions: [],
+		if (!value) {
+			return fallback
 		}
+
+		return JSON.parse(value) as T
+	} catch {
+		return fallback
 	}
 }
 
-// Function to set local storage
-export const setLocalStorage = (state, data) => {
-	localStorage.setItem(state, JSON.stringify(data))
+export function readStringFromLocalStorage(key: string): string | null {
+	if (typeof window === "undefined") {
+		return null
+	}
+
+	return window.localStorage.getItem(key)
+}
+
+export function setLocalStorage(key: string, value: unknown): void {
+	if (typeof window === "undefined") {
+		return
+	}
+
+	window.localStorage.setItem(key, JSON.stringify(value))
 }

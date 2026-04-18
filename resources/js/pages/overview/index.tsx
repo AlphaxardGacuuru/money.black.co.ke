@@ -4,17 +4,12 @@ import { useEffect, useMemo, useState } from "react"
 import Heading from "@/components/heading"
 import DateFilterSheet from "@/components/categories/date-filter-sheet"
 import type { Category } from "@/types/category"
+import type { OverviewTotals } from "@/types/overview"
 import { Badge } from "@/components/ui/badge"
 import { PlaceholderPattern } from "@/components/ui/placeholder-pattern"
 import { useApp } from "@/contexts/AppContext"
 import { buildFilterQuery } from "@/lib/date-filter"
 import Axios from "@/lib/axios"
-
-type OverviewTotals = {
-	expense?: number | string
-	income?: number | string
-	net?: number | string
-}
 
 type CategoryWithCumulative = Category & {
 	numericTotal: number
@@ -32,20 +27,29 @@ function formatAmount(value: number | string | null | undefined): string {
 }
 
 export default function OverviewIndex() {
-	const { dateFilters } = useApp()
-	const [categories, setCategories] = useState<Category[]>([])
-	const [totals, setTotals] = useState<OverviewTotals>({})
+	const props = useApp()
 	const [activeType, setActiveType] = useState<"expense" | "income">("expense")
 
 	useEffect(() => {
-		const query = buildFilterQuery(dateFilters)
-		Axios.get(`/api/overview${query}`).then((response) => {
-			setCategories(response.data?.data ?? [])
-			setTotals(response.data?.totals ?? {})
-		})
-	}, [dateFilters])
+		const query = buildFilterQuery(props.dateFilters)
 
-	const categoryList = useMemo(() => categories, [categories])
+		Axios.get(`/api/overview${query}`).then((response) => {
+			props.setOverview({
+				categories: response.data?.data ?? [],
+				totals: response.data?.totals ?? {
+					expense: 0,
+					income: 0,
+					net: 0,
+				},
+			})
+		})
+	}, [props.dateFilters, props.setOverview])
+
+	const categoryList = useMemo(
+		() => props.overview.categories ?? [],
+		[props.overview.categories]
+	)
+	const totals: OverviewTotals = props.overview.totals ?? {}
 
 	const filteredCategories = useMemo(() => {
 		const sorted = [...categoryList]

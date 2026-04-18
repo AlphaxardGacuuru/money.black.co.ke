@@ -13,7 +13,14 @@ export function buildFilterQuery(filters: DateFilterParams): string {
 		params.set("filter", filter)
 	}
 
-	if (filter === "date" && filters.date) {
+	if (
+		(filter === "today" ||
+			filter === "week" ||
+			filter === "month" ||
+			filter === "year" ||
+			filter === "date") &&
+		filters.date
+	) {
 		params.set("date", filters.date)
 	}
 

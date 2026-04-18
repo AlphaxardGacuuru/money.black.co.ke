@@ -1,4 +1,11 @@
-import { format } from "date-fns"
+import {
+	addDays,
+	addMonths,
+	addYears,
+	differenceInCalendarDays,
+	format,
+	startOfWeek,
+} from "date-fns"
 import {
 	Calendar1Icon,
 	CalendarArrowUpIcon,
@@ -56,32 +63,35 @@ function parseDateInput(value?: string): Date | null {
 	return new Date(year, month - 1, day)
 }
 
+function formatDateInput(value: Date): string {
+	return format(value, "yyyy-MM-dd")
+}
+
 function getFilterDateDetail(filters: DateFilterParams): string | null {
 	const activeFilter = filters.filter ?? "all_time"
-	const now = new Date()
+	const referenceDate = parseDateInput(filters.date) ?? new Date()
 
 	switch (activeFilter) {
 		case "today":
-			return format(now, "EEE, dd MMM yyyy")
+			return format(referenceDate, "EEE, dd MMM yyyy")
 		case "week": {
-			const start = new Date(now)
-			const dayOffset = (start.getDay() + 6) % 7
-			start.setDate(start.getDate() - dayOffset)
-
+			const start = startOfWeek(referenceDate, { weekStartsOn: 1 })
 			const end = new Date(start)
 			end.setDate(start.getDate() + 6)
 
 			return `${format(start, "EEE, dd")} - ${format(end, "EEE, dd MMM yyyy")}`
 		}
 		case "month": {
-			const start = new Date(now.getFullYear(), now.getMonth(), 1)
-			// const end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+			const start = new Date(
+				referenceDate.getFullYear(),
+				referenceDate.getMonth(),
+				1
+			)
 
 			return `${format(start, "MMM yyyy")}`
 		}
 		case "year": {
-			const start = new Date(now.getFullYear(), 0, 1)
-			// const end = new Date(now.getFullYear(), 11, 31)
+			const start = new Date(referenceDate.getFullYear(), 0, 1)
 
 			return `${format(start, "yyyy")}`
 		}
@@ -164,6 +174,47 @@ export default function DateFilterSheet() {
 		}))
 	}
 
+	function handleShift(direction: -1 | 1) {
+		if (selected === "all_time") {
+			return
+		}
+
+		if (selected === "dateRange") {
+			const currentStart = parseDateInput(startDate) ?? new Date()
+			const currentEnd = parseDateInput(endDate) ?? currentStart
+			const spanDays = Math.max(
+				1,
+				differenceInCalendarDays(currentEnd, currentStart) + 1
+			)
+			const offset = direction * spanDays
+			const nextStart = addDays(currentStart, offset)
+			const nextEnd = addDays(currentEnd, offset)
+
+			setDateFilters({
+				...filters,
+				startDate: formatDateInput(nextStart),
+				endDate: formatDateInput(nextEnd),
+			})
+
+			return
+		}
+
+		const currentReferenceDate = parseDateInput(date) ?? new Date()
+		const nextDate =
+			selected === "week"
+				? addDays(currentReferenceDate, direction * 7)
+				: selected === "month"
+					? addMonths(currentReferenceDate, direction)
+					: selected === "year"
+						? addYears(currentReferenceDate, direction)
+						: addDays(currentReferenceDate, direction)
+
+		setDateFilters({
+			...filters,
+			date: formatDateInput(nextDate),
+		})
+	}
+
 	const isActive = selected !== "all_time" && selected !== "today"
 
 	return (
@@ -175,12 +226,16 @@ export default function DateFilterSheet() {
 				<Button
 					variant="secondary"
 					size="sm"
+					onClick={() => handleShift(-1)}
+					disabled={selected === "all_time"}
 					className="rounded-3xl">
 					<ChevronLeftIcon />
 				</Button>
 				{/* Previous End */}
 
-				<SheetTrigger asChild className="">
+				<SheetTrigger
+					asChild
+					className="">
 					{/* Date Filter Start */}
 					<Button
 						variant={isActive ? "default" : "outline"}
@@ -195,6 +250,8 @@ export default function DateFilterSheet() {
 				<Button
 					variant="secondary"
 					size="sm"
+					onClick={() => handleShift(1)}
+					disabled={selected === "all_time"}
 					className="rounded-3xl">
 					<ChevronRightIcon />
 				</Button>

@@ -3,6 +3,7 @@ import type { ChangeEvent, Dispatch, ReactNode, SetStateAction } from "react"
 import type { Account } from "@/types/account"
 import type { Category } from "@/types/category"
 import type { DateFilterParams } from "@/types/date-filter"
+import type { Overview } from "@/types/overview"
 import type { Transaction } from "@/types/transaction"
 
 export type AuthState = {
@@ -61,6 +62,8 @@ export type AppContextValue = {
 	setCategories: Dispatch<SetStateAction<Category[]>>
 	transactions: Transaction[]
 	setTransactions: Dispatch<SetStateAction<Transaction[]>>
+	overview: Overview
+	setOverview: Dispatch<SetStateAction<Overview>>
 	page: PageState
 	setPage: Dispatch<SetStateAction<PageState>>
 	loadingItems: number

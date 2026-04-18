@@ -168,7 +168,7 @@ export default function TransactionsIndex() {
 					) : (
 						/* Transaction List Section End */
 						/* Empty State Section Start */
-						<div className="relative overflow-hidden rounded-2xl border border-dashed bg-card">
+						<div className="relative overflow-hidden rounded-2xl border border-dashed bg-card mt-4">
 							<PlaceholderPattern className="absolute inset-0 size-full stroke-muted-foreground/15" />
 							<div className="relative flex min-h-72 flex-col items-center justify-center gap-4 p-6 text-center">
 								<div className="flex size-14 items-center justify-center rounded-full border bg-background shadow-sm">
