@@ -139,6 +139,14 @@ class TransactionService extends Service
             $query->where('account_id', $request->input('accountId'));
         }
 
+        if ($request->filled('notes')) {
+            $query->where('notes', 'like', '%' . $request->input('notes') . '%');
+        }
+
+        if ($request->filled('amount')) {
+            $query->where('amount', (int) $request->input('amount'));
+        }
+
         $range = $this->resolveDateRange($request);
 
         if ($range) {

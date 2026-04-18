@@ -221,7 +221,7 @@ export default function DateFilterSheet() {
 		<Sheet
 			open={open}
 			onOpenChange={setOpen}>
-			<div className="flex w-full items-center justify-between gap-2 rounded-3xl border border-sidebar-border bg-sidebar p-1 text-sidebar-foreground backdrop-blur supports-backdrop-filter:bg-sidebar/95">
+			<div className="flex w-full items-center justify-between gap-2 p-1 text-sidebar-foreground">
 				{/* Previous Start */}
 				<Button
 					variant="secondary"
@@ -235,7 +235,7 @@ export default function DateFilterSheet() {
 
 				<SheetTrigger
 					asChild
-					className="">
+					className="w-full">
 					{/* Date Filter Start */}
 					<Button
 						variant={isActive ? "default" : "outline"}

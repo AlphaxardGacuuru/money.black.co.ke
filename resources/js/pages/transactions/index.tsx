@@ -18,8 +18,32 @@ import {
 import { PlaceholderPattern } from "@/components/ui/placeholder-pattern"
 import { useApp } from "@/contexts/AppContext"
 import DateFilterSheet from "@/components/categories/date-filter-sheet"
+import TransactionFilterSheet from "@/components/transactions/transaction-filter-sheet"
+import type { TransactionFilters } from "@/components/transactions/transaction-filter-sheet"
 
 type SheetCategory = Pick<Category, "id" | "name" | "icon" | "color">
+
+function buildTransactionFilterQuery(filters: TransactionFilters): string {
+	const params = new URLSearchParams()
+
+	if (filters.accountId) {
+		params.set("accountId", filters.accountId)
+	}
+
+	if (filters.categoryId) {
+		params.set("categoryId", filters.categoryId)
+	}
+
+	if (filters.notes) {
+		params.set("notes", filters.notes)
+	}
+
+	if (filters.amount) {
+		params.set("amount", filters.amount)
+	}
+
+	return params.toString()
+}
 
 export default function TransactionsIndex() {
 	const props = useApp()
@@ -31,6 +55,7 @@ export default function TransactionsIndex() {
 		useState<Transaction | null>(null)
 	const [selectedCategory, setSelectedCategory] =
 		useState<SheetCategory | null>(null)
+	const [txFilters, setTxFilters] = useState<TransactionFilters>({})
 
 	useEffect(() => {
 		props.get("categories", props.setCategories, "categories")
@@ -38,9 +63,16 @@ export default function TransactionsIndex() {
 	}, [])
 
 	useEffect(() => {
-		const query = buildFilterQuery(props.dateFilters)
-		props.get(`transactions${query}`, props.setTransactions, "transactions")
-	}, [props.dateFilters])
+		const dateQuery = buildFilterQuery(props.dateFilters)
+		const txQuery = buildTransactionFilterQuery(txFilters)
+		const separator = dateQuery ? "&" : "?"
+		const combined = dateQuery
+			? `${dateQuery}${separator}${txQuery}`
+			: txQuery
+				? `?${txQuery}`
+				: ""
+		props.get(`transactions${combined}`, props.setTransactions, "transactions")
+	}, [props.dateFilters, txFilters])
 
 	function handleCreateTransaction(): void {
 		setSelectedTransaction(null)
@@ -70,8 +102,14 @@ export default function TransactionsIndex() {
 			{/* Transactions Content Section Start */}
 			<div className="flex flex-1 justify-center p-2 sm:p-4">
 				<div className="w-full max-w-4xl space-y-1 pb-24 md:pb-8">
-					<div className="flex items-center justify-between">
+					<div className="flex flex-col items-center justify-between gap-2">
 						<DateFilterSheet />
+						<TransactionFilterSheet
+							filters={txFilters}
+							accounts={props.accounts}
+							categories={props.categories}
+							onApply={setTxFilters}
+						/>
 					</div>
 					{props.transactions.length > 0 ? (
 						/* Transaction List Section Start */
