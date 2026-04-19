@@ -175,7 +175,14 @@ export default function TransactionsIndex() {
 																{transaction.categoryName}
 															</CardTitle>
 															<CardDescription>
-																<div className="text-white">
+																<div
+																	className="text-white"
+																	style={{
+																		color:
+																			transaction.categoryColor ??
+																			transaction.accountColor ??
+																			"#0f172a",
+																	}}>
 																	{transaction.notes?.trim()}
 																</div>
 																<div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">

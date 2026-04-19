@@ -34,6 +34,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('transactions', 'transactions/index')->name('transactions.index');
     // Overview
     Route::inertia('overview', 'overview/index')->name('overview.index');
+    // Imports
+    Route::inertia('imports/one-money', 'imports/one-money/index')->name('imports.one-money');
 });
 
 require __DIR__.'/settings.php';
