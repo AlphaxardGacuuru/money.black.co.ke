@@ -249,6 +249,91 @@ class TransactionTest extends TestCase
 		);
 	}
 
+	public function test_index_can_filter_transactions_by_category_and_date_range(): void
+	{
+		$user = User::factory()->create();
+		$this->actingAs($user);
+
+		$account = new Account;
+		$account->user_id = $user->id;
+		$account->icon = 'wallet';
+		$account->color = '#123456';
+		$account->name = 'Main Wallet';
+		$account->currency = 'KES';
+		$account->balance = 50000;
+		$account->save();
+
+		$foodCategory = new Category;
+		$foodCategory->user_id = $user->id;
+		$foodCategory->icon = 'utensils';
+		$foodCategory->color = '#111111';
+		$foodCategory->name = 'Food';
+		$foodCategory->type = 'expense';
+		$foodCategory->total = 1500;
+		$foodCategory->save();
+
+		$salaryCategory = new Category;
+		$salaryCategory->user_id = $user->id;
+		$salaryCategory->icon = 'briefcase';
+		$salaryCategory->color = '#654321';
+		$salaryCategory->name = 'Salary';
+		$salaryCategory->type = 'income';
+		$salaryCategory->total = 25000;
+		$salaryCategory->save();
+
+		$matchingTransaction = new Transaction;
+		$matchingTransaction->user_id = $user->id;
+		$matchingTransaction->account_id = $account->id;
+		$matchingTransaction->category_id = $foodCategory->id;
+		$matchingTransaction->amount = 1200;
+		$matchingTransaction->currency = 'KES';
+		$matchingTransaction->notes = 'Lunch';
+		$matchingTransaction->transaction_date = now()->subDay();
+		$matchingTransaction->save();
+
+		$outsideDateRangeTransaction = new Transaction;
+		$outsideDateRangeTransaction->user_id = $user->id;
+		$outsideDateRangeTransaction->account_id = $account->id;
+		$outsideDateRangeTransaction->category_id = $foodCategory->id;
+		$outsideDateRangeTransaction->amount = 300;
+		$outsideDateRangeTransaction->currency = 'KES';
+		$outsideDateRangeTransaction->notes = 'Snacks';
+		$outsideDateRangeTransaction->transaction_date = now()->subMonths(2);
+		$outsideDateRangeTransaction->save();
+
+		$otherCategoryTransaction = new Transaction;
+		$otherCategoryTransaction->user_id = $user->id;
+		$otherCategoryTransaction->account_id = $account->id;
+		$otherCategoryTransaction->category_id = $salaryCategory->id;
+		$otherCategoryTransaction->amount = 25000;
+		$otherCategoryTransaction->currency = 'KES';
+		$otherCategoryTransaction->notes = 'April salary';
+		$otherCategoryTransaction->transaction_date = now()->subDay();
+		$otherCategoryTransaction->save();
+
+		$response = $this->get(route('transactions.index', [
+			'categoryId' => $foodCategory->id,
+			'filter' => 'month',
+			'date' => now()->toDateString(),
+		]));
+
+		$response->assertOk()
+			->assertInertia(fn(Assert $page) => $page
+				->component('transactions/index')
+				->has('transactions.data', 1)
+				->where('transactions.data.0.id', $matchingTransaction->id)
+				->where('transactions.data.0.notes', 'Lunch'));
+
+		$this->assertNotEquals(
+			$outsideDateRangeTransaction->id,
+			data_get($response->viewData('page'), 'props.transactions.data.0.id')
+		);
+		$this->assertNotEquals(
+			$otherCategoryTransaction->id,
+			data_get($response->viewData('page'), 'props.transactions.data.0.id')
+		);
+	}
+
 	public function test_update_rebalances_accounts_and_categories(): void
 	{
 		$user = User::factory()->create();

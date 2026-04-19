@@ -5,8 +5,16 @@ import Heading from "@/components/heading"
 import DateFilterSheet from "@/components/categories/date-filter-sheet"
 import type { Category } from "@/types/category"
 import type { OverviewTotals } from "@/types/overview"
+import type { Transaction } from "@/types/transaction"
 import { Badge } from "@/components/ui/badge"
 import { PlaceholderPattern } from "@/components/ui/placeholder-pattern"
+import {
+	Sheet,
+	SheetContent,
+	SheetDescription,
+	SheetHeader,
+	SheetTitle,
+} from "@/components/ui/sheet"
 import { useApp } from "@/contexts/AppContext"
 import { buildFilterQuery } from "@/lib/date-filter"
 import Axios from "@/lib/axios"
@@ -29,6 +37,14 @@ function formatAmount(value: number | string | null | undefined): string {
 export default function OverviewIndex() {
 	const props = useApp()
 	const [activeType, setActiveType] = useState<"expense" | "income">("expense")
+	const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+		null
+	)
+	const [categoryTransactions, setCategoryTransactions] = useState<
+		Transaction[]
+	>([])
+	const [isTransactionsSheetOpen, setIsTransactionsSheetOpen] = useState(false)
+	const [isTransactionsLoading, setIsTransactionsLoading] = useState(false)
 
 	useEffect(() => {
 		const query = buildFilterQuery(props.dateFilters)
@@ -44,6 +60,40 @@ export default function OverviewIndex() {
 			})
 		})
 	}, [props.dateFilters, props.setOverview])
+
+	useEffect(() => {
+		if (!isTransactionsSheetOpen || !selectedCategory) {
+			return
+		}
+
+		const controller = new AbortController()
+		const dateQuery = buildFilterQuery(props.dateFilters)
+		const params = new URLSearchParams(dateQuery.replace(/^\?/, ""))
+		params.set("categoryId", String(selectedCategory.id))
+
+		setIsTransactionsLoading(true)
+
+		Axios.get(`/api/transactions?${params.toString()}`, {
+			signal: controller.signal,
+		})
+			.then((response) => {
+				setCategoryTransactions(response.data?.data ?? [])
+			})
+			.catch((error: unknown) => {
+				if ((error as { name?: string }).name === "CanceledError") {
+					return
+				}
+
+				setCategoryTransactions([])
+			})
+			.finally(() => {
+				setIsTransactionsLoading(false)
+			})
+
+		return () => {
+			controller.abort()
+		}
+	}, [isTransactionsSheetOpen, props.dateFilters, selectedCategory])
 
 	const categoryList = useMemo(
 		() => props.overview.categories ?? [],
@@ -93,6 +143,11 @@ export default function OverviewIndex() {
 	const expenseTotal = Number(totals?.expense ?? 0)
 	const incomeTotal = Number(totals?.income ?? 0)
 	const netTotal = Number(totals?.net ?? 0)
+
+	function handleCategoryClick(category: Category): void {
+		setSelectedCategory(category)
+		setIsTransactionsSheetOpen(true)
+	}
 
 	return (
 		<>
@@ -204,9 +259,11 @@ export default function OverviewIndex() {
 								{/* Category Totals List Start */}
 								<div className="space-y-3">
 									{filteredCategories.map((category) => (
-										<div
+										<button
 											key={String(category.id)}
-											className="rounded-xl border border-border/70 bg-background p-3 sm:p-4">
+											type="button"
+											onClick={() => handleCategoryClick(category)}
+											className="w-full rounded-xl border border-border/70 bg-background p-3 text-left transition-colors hover:bg-accent/10 sm:p-4">
 											{/* Category Total Item Start */}
 											{/* Category Total Item Header Start */}
 											<div className="flex items-center justify-between gap-3">
@@ -248,7 +305,7 @@ export default function OverviewIndex() {
 											</div>
 											{/* Category Progress End */}
 											{/* Category Total Item End */}
-										</div>
+										</button>
 									))}
 								</div>
 								{/* Category Totals List End */}
@@ -273,6 +330,91 @@ export default function OverviewIndex() {
 						)}
 					</section>
 					{/* Cumulative Totals Section End */}
+
+					<Sheet
+						open={isTransactionsSheetOpen}
+						onOpenChange={(open) => {
+							setIsTransactionsSheetOpen(open)
+
+							if (!open) {
+								setSelectedCategory(null)
+								setCategoryTransactions([])
+							}
+						}}>
+						<SheetContent
+							side="bottom"
+							className="max-h-[85vh] rounded-t-3xl">
+							<SheetHeader>
+								<SheetTitle>
+									{selectedCategory?.name ?? "Category"} transactions
+								</SheetTitle>
+								<SheetDescription>
+									Transactions for this category using the current overview date
+									filter.
+								</SheetDescription>
+							</SheetHeader>
+
+							<div className="space-y-3 overflow-y-auto px-4 pb-6">
+								{isTransactionsLoading ? (
+									<div className="space-y-3">
+										{Array.from({ length: 3 }).map((_, index) => (
+											<div
+												key={index}
+												className="rounded-xl border border-border/70 bg-background p-4">
+												<div className="h-4 w-1/3 rounded bg-muted" />
+												<div className="mt-3 h-3 w-2/3 rounded bg-muted" />
+											</div>
+										))}
+									</div>
+								) : categoryTransactions.length > 0 ? (
+									categoryTransactions.map((transaction) => (
+										<div
+											key={String(transaction.id)}
+											className="rounded-xl border border-border/70 bg-background p-4">
+											<div className="flex items-start justify-between gap-3">
+												<div className="min-w-0 space-y-1">
+													<p className="truncate text-sm font-medium">
+														{transaction.notes?.trim() ||
+															transaction.categoryName}
+													</p>
+													<p className="text-xs text-muted-foreground">
+														{transaction.transactionDateHuman}
+													</p>
+													<div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+														<span>{transaction.accountName}</span>
+														<Badge
+															variant="outline"
+															className="capitalize">
+															{transaction.categoryType}
+														</Badge>
+													</div>
+												</div>
+												<p
+													className={`shrink-0 text-sm font-semibold ${
+														transaction.categoryType === "income"
+															? "text-emerald-600 dark:text-emerald-400"
+															: "text-rose-600 dark:text-rose-400"
+													}`}>
+													{transaction.categoryType === "income" ? "+" : "-"}{" "}
+													{transaction.currency} {transaction.amount.formatted}
+												</p>
+											</div>
+										</div>
+									))
+								) : (
+									<div className="rounded-xl border border-dashed border-border/70 bg-background p-6 text-center">
+										<p className="text-sm font-medium">
+											No transactions for this category
+										</p>
+										<p className="mt-1 text-sm text-muted-foreground">
+											The current overview filters did not match any
+											transactions.
+										</p>
+									</div>
+								)}
+							</div>
+						</SheetContent>
+					</Sheet>
 				</div>
 			</div>
 		</>
