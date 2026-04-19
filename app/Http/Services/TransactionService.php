@@ -33,7 +33,7 @@ class TransactionService extends Service
 
         return [
             true,
-            $transactions->count() . ' Transactions Retrieved Successfully',
+            $transactions->count().' Transactions Retrieved Successfully',
             $transactions,
             $accounts,
             $categories,
@@ -140,7 +140,7 @@ class TransactionService extends Service
         }
 
         if ($request->filled('notes')) {
-            $query->where('notes', 'like', '%' . $request->input('notes') . '%');
+            $query->where('notes', 'like', '%'.$request->input('notes').'%');
         }
 
         if ($request->filled('amount')) {

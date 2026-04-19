@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Auth\SocialiteController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -18,12 +17,12 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', [AccountController::class, 'index'])->name('dashboard');
+    Route::inertia('dashboard', 'accounts/index')->name('dashboard');
     // Accounts
     Route::inertia('accounts', 'accounts/index')->name('accounts.index');
     Route::inertia('accounts/create', 'accounts/create')->name('accounts.create');
     Route::inertia('accounts/{id}/edit', 'accounts/[id]/edit', [
-        'id' => fn(Request $request): string => (string) $request->route('id'),
+        'id' => fn (Request $request): string => (string) $request->route('id'),
     ])->name('accounts.edit');
     // Categories
     Route::inertia('categories', 'categories/index')->name('categories.index');

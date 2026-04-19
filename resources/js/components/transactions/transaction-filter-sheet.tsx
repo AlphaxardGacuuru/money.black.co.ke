@@ -62,16 +62,13 @@ export default function TransactionFilterSheet({
 		<Sheet
 			open={open}
 			onOpenChange={handleOpenChange}>
-			<SheetTrigger
-				asChild
-				className="w-full">
+			<SheetTrigger asChild>
 				<Button
-					className="w-50 rounded-3xl"
-					variant="outline">
+					variant="secondary"
+					className="h-14 w-14 rounded-full px-5 shadow-lg">
 					<FilterIcon className="size-4" />
-					<span>Filter</span>
 					{activeCount > 0 && (
-						<span className="flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">
+						<span className="flex size-5 items-center justify-center p-2 rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">
 							{activeCount}
 						</span>
 					)}
@@ -124,18 +121,6 @@ export default function TransactionFilterSheet({
 							</SelectItem>
 						))}
 					</SelectField>
-
-					{/* Notes */}
-					<Input
-						label="Notes"
-						value={local.notes}
-						onChange={(e) =>
-							setLocal((prev) => ({
-								...prev,
-								notes: e.target.value || undefined,
-							}))
-						}
-					/>
 
 					{/* Amount */}
 					<Input

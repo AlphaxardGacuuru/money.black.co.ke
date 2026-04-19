@@ -1,5 +1,5 @@
 import { Head, Link } from "@inertiajs/react"
-import { ArrowUpRight, Plus, ReceiptText } from "lucide-react"
+import { ArrowUpLeft, Plus, ArrowUpDown } from "lucide-react"
 import { useEffect, useState } from "react"
 import { buildFilterQuery } from "@/lib/date-filter"
 import AddTransactionSheet from "@/components/add-transaction-sheet"
@@ -15,6 +15,7 @@ import {
 	CardDescription,
 	CardTitle,
 } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { PlaceholderPattern } from "@/components/ui/placeholder-pattern"
 import { useApp } from "@/contexts/AppContext"
 import DateFilterSheet from "@/components/categories/date-filter-sheet"
@@ -104,16 +105,24 @@ export default function TransactionsIndex() {
 				<div className="w-full max-w-4xl space-y-1 pb-24 md:pb-8">
 					<div className="flex flex-col items-center justify-between gap-2">
 						<DateFilterSheet />
-						<TransactionFilterSheet
-							filters={txFilters}
-							accounts={props.accounts}
-							categories={props.categories}
-							onApply={setTxFilters}
-						/>
+						<div className="mb-4 flex w-full items-center justify-end gap-2">
+							<Input
+								label="Search by notes"
+								placeholder="Search notes..."
+								className="rounded-3xl"
+								value={txFilters.notes}
+								onChange={(event) =>
+									setTxFilters((prev) => ({
+										...prev,
+										notes: event.target.value || undefined,
+									}))
+								}
+							/>
+						</div>
 					</div>
 					{props.transactions.length > 0 ? (
 						/* Transaction List Section Start */
-						<div className="mt-4 space-y-2">
+						<div className="space-y-2">
 							{props.transactions.map((transaction) => {
 								const transactionType = transaction.categoryType ?? "expense"
 
@@ -161,41 +170,47 @@ export default function TransactionsIndex() {
 														{/* Icon End */}
 
 														{/* Data Start */}
-														<div className="min-w-0 flex-1">
-															<div className="space-y-1">
-																<CardTitle className="text-base leading-tight">
-																	{transaction.notes?.trim() ||
-																		transaction.categoryName ||
-																		"Transaction"}
-																</CardTitle>
-																<CardDescription>
-																	{transaction.transactionDateHuman}
-																</CardDescription>
-															</div>
+														<div className="flex min-w-0 flex-1 flex-col justify-between space-y-1">
+															<CardTitle className="text-base leading-tight">
+																{transaction.categoryName}
+															</CardTitle>
+															<CardDescription>
+																<div className="text-white">
+																	{transaction.notes?.trim()}
+																</div>
+																<div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+																	{transaction.accountName
+																		? transaction.accountName
+																		: null}
 
-															<div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-																{transaction.accountName
-																	? transaction.accountName
-																	: null}
-
-																{transaction.categoryType ? (
-																	<span className="capitalize">
-																		{transaction.categoryType}
-																	</span>
-																) : null}
-															</div>
+																	{transaction.categoryType ? (
+																		<span className="capitalize">
+																			{transaction.categoryType}
+																		</span>
+																	) : null}
+																</div>
+															</CardDescription>
 														</div>
 														{/* Data End */}
 													</div>
 
 													{/* Amount Start */}
-													<p
-														className={`shrink-0 text-lg font-semibold tracking-tight ${amountTone}`}>
-														{transaction.categoryType === "income" ? "+" : "-"}{" "}
-														{transaction.currency}{" "}
-														{transaction.amount.formatted}
-													</p>
-													{/* Amount End */}
+													<div className="flex flex-col items-end">
+														<p
+															className={`shrink-0 text-lg font-semibold tracking-tight ${amountTone}`}>
+															{transaction.categoryType === "income"
+																? "+"
+																: "-"}{" "}
+															{transaction.currency}{" "}
+															{transaction.amount.formatted}
+														</p>
+														{/* Amount End */}
+														{/* Date Start */}
+														<small className="shrink-0 text-xs text-muted-foreground">
+															{transaction.transactionDateHuman}
+														</small>
+														{/* Date End */}
+													</div>
 												</div>
 											</CardContent>
 										</Card>
@@ -206,11 +221,11 @@ export default function TransactionsIndex() {
 					) : (
 						/* Transaction List Section End */
 						/* Empty State Section Start */
-						<div className="relative overflow-hidden rounded-2xl border border-dashed bg-card mt-4">
+						<div className="relative overflow-hidden rounded-2xl border border-dashed bg-card">
 							<PlaceholderPattern className="absolute inset-0 size-full stroke-muted-foreground/15" />
 							<div className="relative flex min-h-72 flex-col items-center justify-center gap-4 p-6 text-center">
 								<div className="flex size-14 items-center justify-center rounded-full border bg-background shadow-sm">
-									<ReceiptText className="size-6 text-muted-foreground" />
+									<ArrowUpDown className="size-6 text-muted-foreground" />
 								</div>
 								<div className="space-y-2">
 									<h2 className="text-lg font-semibold">No transactions yet</h2>
@@ -221,7 +236,7 @@ export default function TransactionsIndex() {
 								</div>
 								<Button asChild>
 									<Link href="/categories">
-										<ArrowUpRight className="size-4" />
+										<ArrowUpLeft className="size-4" />
 										Go to categories
 									</Link>
 								</Button>
@@ -229,6 +244,36 @@ export default function TransactionsIndex() {
 						</div>
 						/* Empty State Section End */
 					)}
+
+					{/* Floating Section Start */}
+					<div className="fixed right-4 bottom-26 z-30 md:right-6 md:bottom-6">
+						{/* Filters Button Start */}
+						<div className="mb-2">
+							<TransactionFilterSheet
+								filters={txFilters}
+								accounts={props.accounts}
+								categories={props.categories}
+								onApply={setTxFilters}
+							/>
+						</div>
+						<div>
+							{/* Filters Button End */}
+							{/* Add Transaction Button Start */}
+							<Button
+								type="button"
+								variant="secondary"
+								onClick={handleCreateTransaction}
+								className="h-14 w-14 rounded-full px-5 shadow-lg">
+								<Plus
+									className="size-8"
+									strokeWidth={1.3}
+								/>
+								<span className="hidden sm:inline">Add transaction</span>
+							</Button>
+						</div>
+						{/* Add Transaction Button End */}
+					</div>
+					{/* Floating Section End */}
 
 					{/* Transaction Sheet Section Start */}
 					<AddTransactionSheet
@@ -264,22 +309,6 @@ export default function TransactionsIndex() {
 				</div>
 			</div>
 			{/* Transactions Content Section End */}
-
-			{/* Floating Add Action Section Start */}
-			<div className="fixed right-4 bottom-26 z-30 md:right-6 md:bottom-6">
-				<Button
-					type="button"
-					variant="secondary"
-					onClick={handleCreateTransaction}
-					className="h-14 w-14 rounded-full px-5 shadow-lg">
-					<Plus
-						className="size-8"
-						strokeWidth={1.3}
-					/>
-					<span className="hidden sm:inline">Add transaction</span>
-				</Button>
-			</div>
-			{/* Floating Add Action Section End */}
 		</>
 	)
 }

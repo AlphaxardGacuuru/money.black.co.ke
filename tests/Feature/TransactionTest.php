@@ -182,6 +182,73 @@ class TransactionTest extends TestCase
 		$this->assertNotEquals($transaction->id, $otherTransaction->id);
 	}
 
+	public function test_index_can_filter_transactions_by_notes(): void
+	{
+		$user = User::factory()->create();
+		$this->actingAs($user);
+
+		$account = new Account;
+		$account->user_id = $user->id;
+		$account->icon = 'wallet';
+		$account->color = '#123456';
+		$account->name = 'Main Wallet';
+		$account->currency = 'KES';
+		$account->balance = 50000;
+		$account->save();
+
+		$incomeCategory = new Category;
+		$incomeCategory->user_id = $user->id;
+		$incomeCategory->icon = 'briefcase';
+		$incomeCategory->color = '#654321';
+		$incomeCategory->name = 'Salary';
+		$incomeCategory->type = 'income';
+		$incomeCategory->total = 25000;
+		$incomeCategory->save();
+
+		$expenseCategory = new Category;
+		$expenseCategory->user_id = $user->id;
+		$expenseCategory->icon = 'utensils';
+		$expenseCategory->color = '#111111';
+		$expenseCategory->name = 'Food';
+		$expenseCategory->type = 'expense';
+		$expenseCategory->total = 800;
+		$expenseCategory->save();
+
+		$incomeTransaction = new Transaction;
+		$incomeTransaction->user_id = $user->id;
+		$incomeTransaction->account_id = $account->id;
+		$incomeTransaction->category_id = $incomeCategory->id;
+		$incomeTransaction->amount = 25000;
+		$incomeTransaction->currency = 'KES';
+		$incomeTransaction->notes = 'April salary';
+		$incomeTransaction->transaction_date = now()->subDay();
+		$incomeTransaction->save();
+
+		$expenseTransaction = new Transaction;
+		$expenseTransaction->user_id = $user->id;
+		$expenseTransaction->account_id = $account->id;
+		$expenseTransaction->category_id = $expenseCategory->id;
+		$expenseTransaction->amount = 800;
+		$expenseTransaction->currency = 'KES';
+		$expenseTransaction->notes = 'Lunch';
+		$expenseTransaction->transaction_date = now();
+		$expenseTransaction->save();
+
+		$response = $this->get(route('transactions.index', ['notes' => 'salary']));
+
+		$response->assertOk()
+			->assertInertia(fn(Assert $page) => $page
+				->component('transactions/index')
+				->has('transactions.data', 1)
+				->where('transactions.data.0.id', $incomeTransaction->id)
+				->where('transactions.data.0.notes', 'April salary'));
+
+		$this->assertNotEquals(
+			$expenseTransaction->id,
+			data_get($response->viewData('page'), 'props.transactions.data.0.id')
+		);
+	}
+
 	public function test_update_rebalances_accounts_and_categories(): void
 	{
 		$user = User::factory()->create();
