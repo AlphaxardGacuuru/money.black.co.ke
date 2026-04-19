@@ -61,7 +61,7 @@ class CategoryService extends Service
     {
         $deleted = $category->delete();
 
-        return [$deleted, $category->name.' Deleted Successfully', $category];
+        return [$deleted, $category->name . ' Deleted Successfully', $category];
     }
 
     public function search(Builder $query, Request $request): Builder
