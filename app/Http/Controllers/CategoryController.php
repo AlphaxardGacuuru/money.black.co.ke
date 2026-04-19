@@ -36,7 +36,6 @@ class CategoryController extends Controller
             'color' => 'required|string|max:255',
             'name' => 'required|string|max:255',
             'type' => 'required|string|in:expense,income',
-            'currency' => 'nullable|string|max:10',
             'total' => 'nullable|integer|min:0',
         ]);
 
@@ -69,7 +68,6 @@ class CategoryController extends Controller
             'color' => 'sometimes|string|max:255',
             'name' => 'sometimes|string|max:255',
             'type' => 'sometimes|string|in:expense,income',
-            'currency' => 'sometimes|string|max:10',
             'total' => 'nullable|integer|min:0',
         ]);
 

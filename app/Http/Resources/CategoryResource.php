@@ -15,7 +15,7 @@ class CategoryResource extends JsonResource
     public function toArray(Request $request): array
     {
         $attributes = $this->resource->getAttributes();
-        
+
         $hasComputedTotal = array_key_exists('computed_total', $attributes);
 
         $computedTotal = $hasComputedTotal
@@ -29,7 +29,6 @@ class CategoryResource extends JsonResource
             'color' => $this->color,
             'name' => $this->name,
             'type' => $this->type,
-            'currency' => $this->currency,
             'total' => [
                 'amount' => (int) $computedTotal,
                 'formatted' => number_format((int) $computedTotal, 2),

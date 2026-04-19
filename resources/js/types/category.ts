@@ -4,7 +4,6 @@ export type Category = {
 	color?: string | null
 	icon?: string | null
 	type?: string | null
-	currency: string | null
 	total: {
 		amount: number
 		formatted: string
