@@ -2,12 +2,14 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Http\Middleware\UsePersistentAuthSession;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as SocialiteUser;
 use Mockery;
+use Symfony\Component\HttpFoundation\Cookie;
 use Tests\TestCase;
 
 class GoogleAuthenticationTest extends TestCase
@@ -71,6 +73,20 @@ class GoogleAuthenticationTest extends TestCase
             'google_id' => 'google-user-123',
         ]);
 
+        $persistentCookie = $this->findCookie(
+            $response->headers->getCookies(),
+            UsePersistentAuthSession::COOKIE_NAME,
+        );
+        $sessionCookie = $this->findCookie(
+            $response->headers->getCookies(),
+            config('session.cookie'),
+        );
+
+        $this->assertNotNull($persistentCookie);
+        $this->assertGreaterThan(now()->addYear()->timestamp, $persistentCookie->getExpiresTime());
+        $this->assertNotNull($sessionCookie);
+        $this->assertGreaterThan(now()->addYear()->timestamp, $sessionCookie->getExpiresTime());
+
         $response->assertRedirect(route('dashboard', absolute: false))
             ->assertInertiaFlash('toast.type', 'success')
             ->assertInertiaFlash('toast.message', 'Signed in with Google successfully.');
@@ -105,5 +121,16 @@ class GoogleAuthenticationTest extends TestCase
         $this->assertNotNull($user->fresh()->email_verified_at);
 
         $response->assertRedirect(route('dashboard', absolute: false));
+    }
+
+    private function findCookie(array $cookies, string $name): ?Cookie
+    {
+        foreach ($cookies as $cookie) {
+            if ($cookie->getName() === $name) {
+                return $cookie;
+            }
+        }
+
+        return null;
     }
 }

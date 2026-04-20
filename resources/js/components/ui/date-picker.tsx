@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import {
 	CalendarIcon,
 	ChevronDownIcon,
@@ -11,14 +11,16 @@ import {
 import {
 	DayPicker,
 	getDefaultClassNames,
-	type DayPickerProps,
-	type DayButtonProps,
-	type ChevronProps,
-	type RootProps,
-	type WeekNumberProps,
+} from "react-day-picker"
+import type {
+	DayButtonProps,
+	DayPickerProps,
+	ChevronProps,
+	RootProps,
+	WeekNumberProps,
 } from "react-day-picker"
 import { format, parse, isValid } from "date-fns"
-import { type VariantProps } from "class-variance-authority"
+import type { VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -216,7 +218,9 @@ function CalendarDayButton({ className, day, modifiers, ...props }: DayButtonPro
 
 	const ref = useRef<HTMLButtonElement>(null)
 	useEffect(() => {
-		if (modifiers.focused) ref.current?.focus()
+		if (modifiers.focused) {
+			ref.current?.focus()
+		}
 	}, [modifiers.focused])
 
 	return (
@@ -246,16 +250,26 @@ function CalendarDayButton({ className, day, modifiers, ...props }: DayButtonPro
 
 // Parse date string to local Date object (avoids timezone issues)
 function parseLocalDate(dateStr: string | Date | null | undefined): Date | null {
-	if (!dateStr) return null
-	if (dateStr instanceof Date) return isValid(dateStr) ? dateStr : null
+	if (!dateStr) {
+		return null
+	}
+
+	if (dateStr instanceof Date) {
+		return isValid(dateStr) ? dateStr : null
+	}
+
 	// Try YYYY-MM-DD first, then ISO 8601
 	const date = parse(String(dateStr).slice(0, 10), "yyyy-MM-dd", new Date())
+
 	return isValid(date) ? date : null
 }
 
 // Format Date object to YYYY-MM-DD in local timezone
 export function formatLocalDate(date: Date | null | undefined): string {
-	if (!date || !isValid(date)) return ""
+	if (!date || !isValid(date)) {
+		return ""
+	}
+
 	return format(date, "yyyy-MM-dd")
 }
 
@@ -269,9 +283,34 @@ export function DatePicker({
 	...props
 }: DatePickerProps) {
 	const [open, setOpen] = useState(false)
+	const dateValue = useMemo(() => parseLocalDate(value), [value])
+	const [month, setMonth] = useState<Date>(dateValue ?? new Date())
 
-	// Convert string value to Date for internal use
-	const dateValue = typeof value === "string" ? parseLocalDate(value) : value
+	useEffect(() => {
+		if (!dateValue) {
+			return
+		}
+
+		setMonth((currentMonth) => {
+			const sameMonth =
+				currentMonth.getFullYear() === dateValue.getFullYear() &&
+				currentMonth.getMonth() === dateValue.getMonth()
+
+			return sameMonth ? currentMonth : dateValue
+		})
+	}, [dateValue])
+
+	function handleSelect(date: Date | undefined): void {
+		onChange?.(formatLocalDate(date))
+		setOpen(false)
+	}
+
+	function handleSelectToday(): void {
+		const today = new Date()
+		setMonth(today)
+		onChange?.(formatLocalDate(today))
+		setOpen(false)
+	}
 
 	const isActive = Boolean(value)
 
@@ -290,7 +329,7 @@ export function DatePicker({
 									<button
 										type="button"
 										className={cn(
-											"relative flex h-14 w-full rounded-lg border px-4 pt-5 pb-1 text-left text-white font-light font-nunito text-base transition-all",
+											"relative flex h-14 w-full rounded-lg border bg-white/10 px-4 pt-5 pb-1 text-left text-base font-light text-white backdrop-blur-xl transition-all",
 											error
 												? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
 												: "border-white/20 focus:border-white/40 focus:ring-2 focus:ring-white/10",
@@ -315,8 +354,8 @@ export function DatePicker({
 										className={cn(
 											"absolute left-4 transition-all duration-200 pointer-events-none font-light font-nunito z-10",
 											isActiveWithFocus
-												? "top-1.5 text-xs text-white"
-												: "top-4 text-base text-white",
+												? "top-1.5 text-xs text-white/60"
+												: "top-4 text-base text-white/40",
 											error && isActiveWithFocus && "text-red-400"
 										)}>
 										{label}
@@ -333,13 +372,21 @@ export function DatePicker({
 					<CalendarComponent
 						mode="single"
 						selected={dateValue ?? undefined}
-						defaultMonth={dateValue ?? undefined}
+						month={month}
+						onMonthChange={setMonth}
 						captionLayout="dropdown"
-						onSelect={(date: Date | undefined) => {
-							onChange?.(formatLocalDate(date))
-							setOpen(false)
-						}}
+						onSelect={handleSelect}
 					/>
+					<div className="border-t border-white/20 p-2">
+						<Button
+							type="button"
+							variant="ghost"
+							size="sm"
+							className="w-full justify-center text-white hover:bg-white/20"
+							onClick={handleSelectToday}>
+							Today
+						</Button>
+					</div>
 				</PopoverContent>
 			</Popover>
 

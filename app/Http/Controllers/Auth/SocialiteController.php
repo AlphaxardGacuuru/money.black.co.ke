@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\UsePersistentAuthSession;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -37,6 +38,7 @@ class SocialiteController extends Controller
 
         auth()->login($user, true);
         $request->session()->regenerate();
+        UsePersistentAuthSession::queuePersistentCookie();
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Signed in with Google successfully.']);
 

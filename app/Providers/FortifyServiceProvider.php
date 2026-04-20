@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Http\Middleware\UsePersistentAuthSession;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -11,6 +12,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Laravel\Fortify\Contracts\LoginResponse;
+use Laravel\Fortify\Contracts\LogoutResponse;
 use Laravel\Fortify\Contracts\RegisterResponse;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
@@ -26,11 +28,27 @@ class FortifyServiceProvider extends ServiceProvider
         {
             public function toResponse($request)
             {
+                if ($request->boolean('remember')) {
+                    UsePersistentAuthSession::queuePersistentCookie();
+                }
+
                 Inertia::flash('toast', ['type' => 'success', 'message' => 'Welcome back!']);
 
                 return $request->wantsJson()
                     ? response()->json(['two_factor' => false])
                     : redirect()->intended(config('fortify.home'));
+            }
+        });
+
+        $this->app->instance(LogoutResponse::class, new class implements LogoutResponse
+        {
+            public function toResponse($request)
+            {
+                UsePersistentAuthSession::queueForgetPersistentCookie();
+
+                return $request->wantsJson()
+                    ? response()->noContent()
+                    : redirect()->route('home');
             }
         });
 
