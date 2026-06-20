@@ -8,6 +8,7 @@ use App\Models\Account;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Inertia\Inertia;
 
 class AccountController extends Controller
 {
@@ -29,7 +30,7 @@ class AccountController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request): AccountResource
+    public function store(Request $request): AccountResource|RedirectResponse
     {
         $request->validate([
             'icon' => 'required|string|max:255',
@@ -42,6 +43,11 @@ class AccountController extends Controller
         ]);
 
         [$saved, $message, $account] = $this->service->store($request);
+
+        if (!$request->ajax()) {
+            Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
+            return redirect()->route('accounts.index');
+        }
 
         return (new AccountResource($account))->additional([
             'saved' => $saved,
@@ -77,6 +83,11 @@ class AccountController extends Controller
 
         [$saved, $message, $account] = $this->service->update($request, $account);
 
+        if (!$request->ajax()) {
+            Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
+            return redirect()->route('accounts.index');
+        }
+
         return (new AccountResource($account))->additional([
             'saved' => $saved,
             'message' => $message,
@@ -86,9 +97,14 @@ class AccountController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Account $account): AccountResource|RedirectResponse
+    public function destroy(Request $request, Account $account): AccountResource|RedirectResponse
     {
         [$deleted, $message, $account] = $this->service->destroy($account);
+
+        if (!$request->ajax()) {
+            Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
+            return redirect()->route('accounts.index');
+        }
 
         return (new AccountResource($account))->additional([
             'deleted' => $deleted,

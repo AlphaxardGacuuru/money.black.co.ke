@@ -8,10 +8,10 @@ use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'auth'])->group(function () {
-    Route::apiResource('accounts', AccountController::class)->names('api.accounts');
-    Route::apiResource('categories', CategoryController::class)->names('api.categories');
-    Route::apiResource('transactions', TransactionController::class)->names('api.transactions');
-    Route::apiResource('overview', OverviewController::class)->names('api.overview');
+    Route::apiResource('accounts', AccountController::class)->names(['index' => 'api.accounts.index']);
+    Route::apiResource('categories', CategoryController::class)->names(['index' => 'api.categories.index']);
+    Route::apiResource('transactions', TransactionController::class)->names(['index' => 'api.transactions.index']);
+    Route::apiResource('overview', OverviewController::class)->names(['index' => 'api.overview.index']);
     Route::post('imports/one-money', [OneMoneyImportController::class, 'store'])
         ->name('imports.one-money.store');
 });
