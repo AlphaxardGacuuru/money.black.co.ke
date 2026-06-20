@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountPageController;
 use App\Http\Controllers\Auth\SocialiteController;
 use App\Http\Controllers\CategoryPageController;
+use App\Http\Controllers\OverviewPageController;
 use App\Http\Controllers\TransactionPageController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -31,7 +32,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Transactions
     Route::get('transactions', [TransactionPageController::class, 'index'])->name('transactions.index');
     // Overview
-    Route::inertia('overview', 'overview/index')->name('overview.index');
+    Route::get('overview', [OverviewPageController::class, 'index'])->name('overview');
     // Imports
     Route::inertia('imports/one-money', 'imports/one-money/index')->name('imports.one-money');
 });
