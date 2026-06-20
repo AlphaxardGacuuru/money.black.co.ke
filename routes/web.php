@@ -1,7 +1,8 @@
 <?php
 
+use App\Http\Controllers\AccountPageController;
 use App\Http\Controllers\Auth\SocialiteController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\CategoryPageController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -21,15 +22,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Accounts
     Route::inertia('accounts', 'accounts/index')->name('accounts.index');
     Route::inertia('accounts/create', 'accounts/create')->name('accounts.create');
-    Route::inertia('accounts/{id}/edit', 'accounts/[id]/edit', [
-        'id' => fn (Request $request): string => (string) $request->route('id'),
-    ])->name('accounts.edit');
+    Route::get('accounts/{id}/edit', [AccountPageController::class, 'edit'])->name('accounts.edit');
     // Categories
     Route::inertia('categories', 'categories/index')->name('categories.index');
     Route::inertia('categories/create', 'categories/create')->name('categories.create');
-    Route::inertia('categories/{id}/edit', 'categories/[id]/edit', [
-        'id' => fn (Request $request): string => (string) $request->route('id'),
-    ])->name('categories.edit');
+    Route::get('categories/{id}/edit', [CategoryPageController::class, 'edit'])->name('categories.edit');
     // Transactions
     Route::inertia('transactions', 'transactions/index')->name('transactions.index');
     // Overview
