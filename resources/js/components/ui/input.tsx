@@ -24,7 +24,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 			props.defaultValue !== undefined
 
 		return (
-			<div className={cn("relative w-full", className)}>
+			<div className="relative w-full">
 				<InputWrapper error={error}>
 					{({ focused, handleFocus, handleBlur }) => {
 						const isActiveWithFocus = focused || isActive || type === "file"
@@ -41,7 +41,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 											: "border-white/20 focus:border-white/40 focus:ring-2 focus:ring-white/10",
 										"placeholder:text-transparent",
 										"focus:outline-none",
-										"disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-white/5"
+										"disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-white/5",
+										className
 									)}
 									ref={ref}
 									onFocus={(e) => {

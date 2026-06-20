@@ -1,37 +1,42 @@
-import { Eye, EyeOff } from 'lucide-react';
-import type { ComponentProps, Ref } from 'react';
-import { useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
+import { Eye, EyeOff } from "lucide-react"
+import type { ComponentProps, Ref } from "react"
+import { useState } from "react"
+import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils"
 
 export default function PasswordInput({
-    className,
-    ref,
-    ...props
-}: Omit<ComponentProps<'input'>, 'type'> & { ref?: Ref<HTMLInputElement> }) {
-    const [showPassword, setShowPassword] = useState(false);
+	className,
+	ref,
+	label,
+	...props
+}: Omit<ComponentProps<"input">, "type"> & { ref?: Ref<HTMLInputElement>; label?: string }) {
+	const [showPassword, setShowPassword] = useState(false)
 
-    return (
-        <div className="relative">
-            <Input
-                type={showPassword ? 'text' : 'password'}
-                className={cn('pr-10', className)}
-                ref={ref}
-                {...props}
-            />
-            <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-3 text-muted-foreground hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:outline-none"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-                tabIndex={-1}
-            >
-                {showPassword ? (
-                    <EyeOff className="size-4" />
-                ) : (
-                    <Eye className="size-4" />
-                )}
-            </button>
-        </div>
-    );
+	return (
+		<div className="relative w-full">
+			<Input
+				label={label ?? "Password"}
+				type={showPassword ? "text" : "password"}
+				className={cn("pr-12", className)}
+				ref={ref}
+				{...props}
+			/>
+			<button
+				type="button"
+				onClick={() => setShowPassword((prev) => !prev)}
+				className={cn(
+					"absolute top-1/2 right-3 z-10 flex -translate-y-1/2 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:outline-none",
+					(props.disabled ?? false) && "pointer-events-none opacity-50"
+				)}
+				aria-label={showPassword ? "Hide password" : "Show password"}
+				disabled={props.disabled}
+				tabIndex={-1}>
+				{showPassword ? (
+					<EyeOff className="size-4" />
+				) : (
+					<Eye className="size-4" />
+				)}
+			</button>
+		</div>
+	)
 }
