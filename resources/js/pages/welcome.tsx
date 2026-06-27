@@ -100,7 +100,7 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
 						</h1>
 
 						<p className="max-w-xl text-base text-muted-foreground sm:text-lg">
-							Money Black gives you instant visibility across accounts,
+							Black Money gives you instant visibility across accounts,
 							categories, and spending patterns so your next move is always
 							intentional.
 						</p>
