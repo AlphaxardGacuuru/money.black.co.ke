@@ -108,4 +108,26 @@ class CategoryTest extends TestCase
             ->component('categories/[id]/edit')
             ->where('id', '123'));
     }
+
+    public function test_show_returns_category_under_data_key(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $category = new Category;
+        $category->user_id = $user->id;
+        $category->icon = 'food';
+        $category->color = '#000000';
+        $category->name = 'Groceries';
+        $category->type = 'expense';
+        $category->save();
+
+        $response = $this->getJson(route('categories.show', $category));
+
+        $response->assertOk()
+            ->assertJsonPath('data.id', $category->id)
+            ->assertJsonPath('data.name', 'Groceries')
+            ->assertJsonPath('message', 'Category Retrieved Successfully')
+            ->assertJsonPath('status', true);
+    }
 }

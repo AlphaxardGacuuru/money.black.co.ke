@@ -3,6 +3,7 @@ import { ArrowLeft, Trash2 } from "lucide-react"
 import type { FormEvent } from "react"
 import { useEffect, useState } from "react"
 import CategoryController from "@/actions/App/Http/Controllers/CategoryController"
+import { show as showCategory } from "@/routes/categories"
 import Heading from "@/components/heading"
 import InputError from "@/components/input-error"
 import LucideIconPicker from "@/components/lucide-icon-picker"
@@ -43,14 +44,16 @@ export default function EditCategory({ id }: { id: string }) {
 	const [isDeleting, setIsDeleting] = useState(false)
 
 	useEffect(() => {
-		Axios.get(`api/categories/${id}`).then((response) => {
-			setCategory(response.data)
-			setIcon(response.data.icon)
-			setColor(response.data.color)
-			setName(response.data.name)
-			setType(response.data.type)
+		Axios.get(showCategory.url(id)).then((response) => {
+			const resolvedCategory = response.data.data
+
+			setCategory(resolvedCategory)
+			setIcon(resolvedCategory.icon)
+			setColor(resolvedCategory.color)
+			setName(resolvedCategory.name)
+			setType(resolvedCategory.type)
 		})
-	}, [])
+	}, [id])
 
 	const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
 		event.preventDefault()
