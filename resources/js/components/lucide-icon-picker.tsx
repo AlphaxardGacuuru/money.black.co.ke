@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { InputWrapper } from "@/components/ui/input-wrapper"
 import { cn } from "@/lib/utils"
 
+console.info(icons)
 const ICON_NAMES = Object.keys(icons).sort((left, right) =>
 	left.localeCompare(right)
 )

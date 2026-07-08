@@ -210,7 +210,7 @@ export default function CategoryGrid({
 						<Link
 							key={category.id}
 							href={`/categories/${category.id}/edit`}
-							className="group flex min-h-28 flex-col rounded-xl border bg-background p-3 text-center transition-colors hover:bg-accent/20"
+							className="group flex min-h-28 flex-col rounded-xl border-2 bg-background p-3 text-center transition-colors hover:bg-accent/20"
 							style={{
 								borderColor: resolveCardColor(category.color, index),
 							}}>
@@ -248,7 +248,7 @@ export default function CategoryGrid({
 							key={category.id}
 							type="button"
 							onClick={() => handleCategoryClick(category)}
-							className="group flex min-h-28 flex-col rounded-xl border bg-background p-3 text-center transition-colors hover:bg-accent/20"
+							className="group flex min-h-28 flex-col rounded-xl border-2 bg-background p-3 text-center transition-colors hover:bg-accent/20"
 							style={{
 								borderColor: resolveCardColor(category.color, index),
 							}}>

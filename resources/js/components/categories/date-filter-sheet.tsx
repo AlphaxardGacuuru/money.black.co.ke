@@ -19,7 +19,7 @@ import {
 	ChevronRightIcon,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { DatePicker } from "@/components/ui/date-picker"
 import { Button } from "@/components/ui/button"
 import { useApp } from "@/contexts/AppContext"
@@ -141,11 +141,14 @@ function getFilterLabel(filters: DateFilterParams): string {
 export default function DateFilterSheet() {
 	const { dateFilters, setDateFilters } = useApp()
 	const [open, setOpen] = useState(false)
+	const swipeStartXRef = useRef<number | null>(null)
+	const swipeStartYRef = useRef<number | null>(null)
 	const filters = dateFilters
 	const selected = filters.filter ?? "all_time"
 	const date = filters.date ?? ""
 	const startDate = filters.startDate ?? ""
 	const endDate = filters.endDate ?? ""
+	const swipeThreshold = 40
 
 	function applyFilter(
 		filter: DateFilterType,
@@ -215,13 +218,49 @@ export default function DateFilterSheet() {
 		})
 	}
 
+	function handleTouchStart(event: React.TouchEvent<HTMLDivElement>) {
+		const touch = event.touches[0]
+
+		swipeStartXRef.current = touch?.clientX ?? null
+		swipeStartYRef.current = touch?.clientY ?? null
+	}
+
+	function handleTouchEnd(event: React.TouchEvent<HTMLDivElement>) {
+		const startX = swipeStartXRef.current
+		const startY = swipeStartYRef.current
+		const touch = event.changedTouches[0]
+
+		swipeStartXRef.current = null
+		swipeStartYRef.current = null
+
+		if (!touch || startX === null || startY === null) {
+			return
+		}
+
+		const deltaX = touch.clientX - startX
+		const deltaY = touch.clientY - startY
+
+		if (Math.abs(deltaX) < swipeThreshold) {
+			return
+		}
+
+		if (Math.abs(deltaX) <= Math.abs(deltaY)) {
+			return
+		}
+
+		handleShift(deltaX < 0 ? 1 : -1)
+	}
+
 	const isActive = selected !== "all_time" && selected !== "today"
 
 	return (
 		<Sheet
 			open={open}
 			onOpenChange={setOpen}>
-			<div className="flex w-full items-center justify-between gap-2 p-1 text-sidebar-foreground">
+			<div
+				className="flex w-full items-center justify-between gap-2 p-1 text-sidebar-foreground"
+				onTouchStart={handleTouchStart}
+				onTouchEnd={handleTouchEnd}>
 				{/* Previous Start */}
 				<Button
 					variant="secondary"
