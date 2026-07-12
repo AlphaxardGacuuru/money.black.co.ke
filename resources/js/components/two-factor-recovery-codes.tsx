@@ -10,7 +10,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card"
 import axios from "@/lib/axios"
-import { regenerateRecoveryCodes } from '@/routes/two-factor'
+import { regenerate } from "@/routes/two-factor/recovery-codes"
 
 type Props = {
 	recoveryCodesList: string[]
@@ -32,7 +32,7 @@ export default function TwoFactorRecoveryCodes({
 	async function handleRegenerate() {
 		setRegenerating(true)
 		try {
-			const { action, method } = regenerateRecoveryCodes.form()
+			const { action, method } = regenerate.form()
 			await axios.request({ url: action, method })
 			await fetchRecoveryCodes()
 		} finally {

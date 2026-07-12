@@ -31,14 +31,14 @@ export default function AuthSimpleLayout({
 			{/* END: Page Backdrop Elements */}
 
 			<div className="w-full max-w-md">
-				<Card className="gap-0 border-white/55 bg-white/32 py-8 shadow-[inset_0_1px_0_rgba(255,255,255,0.55),0_20px_45px_-28px_rgba(15,23,42,0.45)] dark:border-white/20 dark:bg-slate-950/18">
+				<Card className="gap-0 border-white/55 bg-white/32 py-8 shadow-[inset_0_1px_0_rgba(255,255,255,0.55),0_20px_45px_-28px_rgba(15,23,42,0.45)] dark:border-white/20 dark:bg-slate-950/80">
 					<CardContent className="flex flex-col gap-8 px-7 sm:px-8">
 						<div className="flex flex-col items-center gap-4">
 							<Link
 								href={home().url}
 								variant="unstyled"
 								className="flex flex-col items-center gap-2 font-medium">
-								<AppLogoIcon className="w-58 fill-current text-primary dark:text-white" />
+								<AppLogoIcon className="w-58 fill-current text-primary dark:invert" />
 								<span className="sr-only">{title}</span>
 							</Link>
 
