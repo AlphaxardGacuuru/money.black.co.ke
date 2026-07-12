@@ -1,12 +1,13 @@
 import type { Category } from "@/types/category"
 
 export type OverviewTotals = {
-	expense?: number | string
-	income?: number | string
-	net?: number | string
+	expense?: number
+	income?: number
+	net?: number
+	[key: string]: number | undefined
 }
 
-export type Overview = {
+export type OverviewState = {
 	categories: Category[]
 	totals: OverviewTotals
 }

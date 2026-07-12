@@ -6,7 +6,6 @@ use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
-use Laravel\Fortify\Features;
 use Tests\TestCase;
 
 class PasswordResetTest extends TestCase
@@ -17,7 +16,7 @@ class PasswordResetTest extends TestCase
     {
         parent::setUp();
 
-        $this->skipUnlessFortifyHas(Features::resetPasswords());
+        $this->skipUnlessRouteExists('password.request');
     }
 
     public function test_reset_password_link_screen_can_be_rendered()

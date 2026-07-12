@@ -20,7 +20,6 @@ import {
 	SidebarMenuItem,
 	SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { dashboard } from "@/routes"
 import type { NavItem } from "@/types"
 
 export const mainNavItems: NavItem[] = [
@@ -43,7 +42,7 @@ export const mainNavItems: NavItem[] = [
 		title: "Overview",
 		href: "/overview",
 		icon: ChartColumnIncreasing,
-	}
+	},
 ]
 
 const footerNavItems: NavItem[] = [
@@ -62,15 +61,15 @@ export function AppSidebar() {
 			variant="inset">
 			<SidebarHeader>
 				<div className="flex items-center gap-2">
-					<SidebarMenu className="min-w-0 flex-1">
+					<SidebarMenu className="min-w-0 flex-1 items-center">
 						<SidebarMenuItem>
 							<SidebarMenuButton
 								size="lg"
 								asChild>
 								<Link
-									href={dashboard()}
+									href="/accounts"
 									prefetch>
-									<AppLogo />
+									<AppLogo iconClassName="h-28 w-28 dark:invert" />
 								</Link>
 							</SidebarMenuButton>
 						</SidebarMenuItem>

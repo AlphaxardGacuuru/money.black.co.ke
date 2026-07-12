@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input"
 import { InputWrapper } from "@/components/ui/input-wrapper"
 import { cn } from "@/lib/utils"
 
-console.info(icons)
 const ICON_NAMES = Object.keys(icons).sort((left, right) =>
 	left.localeCompare(right)
 )
@@ -154,7 +153,7 @@ export default function LucideIconPicker({
 										onFocus={handleFocus}
 										onBlur={handleBlur}
 										className={cn(
-											"font-nunito relative flex h-14 w-full items-center justify-between rounded-lg border bg-transparent px-4 pt-5 pb-1 text-left text-base font-light text-white transition-all focus:outline-none disabled:cursor-not-allowed disabled:bg-white/5 disabled:opacity-50",
+											"font-nunito relative flex h-14 w-full items-center justify-between rounded-4xl border bg-transparent px-4 pt-5 pb-1 text-left text-base font-light text-white transition-all focus:outline-none disabled:cursor-not-allowed disabled:bg-white/5 disabled:opacity-50",
 											error
 												? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
 												: "border-white/20 focus:border-white/40 focus:ring-2 focus:ring-white/10"

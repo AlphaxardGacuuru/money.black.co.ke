@@ -1,4 +1,6 @@
-import { Head, Link, router } from "@inertiajs/react"
+import { useNavigate } from "@tanstack/react-router"
+import { Link } from "@/components/ui/link"
+import { Head } from "@/lib/spa"
 import type { FormEvent } from "react"
 import { useState } from "react"
 import { ArrowLeft } from "lucide-react"
@@ -18,6 +20,7 @@ import { useApp } from "@/contexts/AppContext"
 
 export default function CreateAccount() {
 	const props = useApp()
+	const navigate = useNavigate()
 	const [icon, setIcon] = useState("")
 	const [color, setColor] = useState("#0f172a")
 	const [name, setName] = useState("")
@@ -51,7 +54,9 @@ export default function CreateAccount() {
 		})
 			.then((response) => {
 				toast.success(response.data.message)
-				setTimeout(() => router.visit("/accounts"), 500)
+				setTimeout(() => {
+					void navigate({ to: "/accounts" })
+				}, 500)
 			})
 			.catch((error: unknown) => {
 				const response = (
@@ -102,7 +107,6 @@ export default function CreateAccount() {
 							name="icon"
 							defaultValue={icon || undefined}
 							required
-							placeholder="Select account icon"
 							label="Icon"
 							onChange={setIcon}
 							error={errors.icon}
@@ -129,7 +133,6 @@ export default function CreateAccount() {
 						value={name}
 						onChange={(event) => setName(event.target.value)}
 						required
-						placeholder="e.g., Equity Bank, M-Pesa"
 						error={errors.name}
 					/>
 					{/* Account Details Section End */}
@@ -196,7 +199,10 @@ export default function CreateAccount() {
 						<Button
 							variant="outline"
 							asChild>
-							<Link href="/accounts">
+							<Link
+								href="/accounts"
+								variant="unstyled"
+								size="none">
 								<ArrowLeft className="size-4" />
 								Back to Accounts
 							</Link>

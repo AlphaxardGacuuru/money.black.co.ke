@@ -1,17 +1,11 @@
 import type { AxiosError } from "axios"
 import type { ChangeEvent, Dispatch, ReactNode, SetStateAction } from "react"
+import type { User } from "@/types"
 import type { Account } from "@/types/account"
 import type { Category } from "@/types/category"
-import type { DateFilterParams } from "@/types/date-filter"
-import type { Overview } from "@/types/overview"
+import type { OverviewState } from "@/types/overview"
 import type { Transaction } from "@/types/transaction"
-
-export type AuthState = {
-	id: number
-	name: string
-	username: string
-	avatar: string
-}
+import type { DateFilterParams } from "@/types/date-filter"
 
 export type FormError = {
 	field: string
@@ -50,8 +44,7 @@ export type AppContextValue = {
 	setFormErrors: Dispatch<SetStateAction<FormError[]>>
 	login: string | null
 	setLogin: Dispatch<SetStateAction<string | null>>
-	auth: AuthState
-	setAuth: Dispatch<SetStateAction<AuthState>>
+	auth: User | undefined
 	headerMenu: string | null
 	setHeaderMenu: Dispatch<SetStateAction<string | null>>
 	adminMenu: string
@@ -62,8 +55,10 @@ export type AppContextValue = {
 	setCategories: Dispatch<SetStateAction<Category[]>>
 	transactions: Transaction[]
 	setTransactions: Dispatch<SetStateAction<Transaction[]>>
-	overview: Overview
-	setOverview: Dispatch<SetStateAction<Overview>>
+	dateFilters: DateFilterParams
+	setDateFilters: Dispatch<SetStateAction<DateFilterParams>>
+	overview: OverviewState
+	setOverview: Dispatch<SetStateAction<OverviewState>>
 	page: PageState
 	setPage: Dispatch<SetStateAction<PageState>>
 	loadingItems: number
@@ -87,15 +82,12 @@ export type AppContextValue = {
 		controller?: RequestController
 	) => Promise<void>
 	getLocalStorage: <T>(key: string, fallback: T) => T
-	getNormalLocalStorage: (key: string) => string | null
-	getLocalStorageAuth: (key?: string) => AuthState
 	setLocalStorage: (key: string, value: unknown) => void
 	iterator: (key: number, list: PaginatedList) => number
 	getErrors: (err: AxiosError<ErrorResponse>, includeMessage?: boolean) => void
 	getFieldError: (value: unknown) => string | undefined
+	memberInitials: (name: string) => string
 	formatToCommas: (event: ChangeEvent<HTMLInputElement>) => string
-	dateFilters: DateFilterParams
-	setDateFilters: Dispatch<SetStateAction<DateFilterParams>>
 }
 
 export type AppProviderProps = {

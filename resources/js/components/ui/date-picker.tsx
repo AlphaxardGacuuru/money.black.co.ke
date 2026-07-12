@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useState, useEffect, useMemo, useRef } from "react"
+import { useState, useEffect, useRef } from "react"
 import {
 	CalendarIcon,
 	ChevronDownIcon,
@@ -13,8 +13,8 @@ import {
 	getDefaultClassNames,
 } from "react-day-picker"
 import type {
-	DayButtonProps,
 	DayPickerProps,
+	DayButtonProps,
 	ChevronProps,
 	RootProps,
 	WeekNumberProps,
@@ -104,25 +104,25 @@ function CalendarComponent({
 					defaultClassNames.dropdowns
 				),
 				dropdown_root: cn(
-					"relative border border-white/20 bg-white/10 backdrop-blur-xl shadow-xs rounded-md text-white overflow-hidden min-h-[35px] flex items-center min-w-[90px]",
+					"relative border border-neutral-300 bg-white shadow-xs rounded-md text-neutral-900 overflow-hidden min-h-[35px] flex items-center min-w-[90px] dark:border-white/20 dark:bg-white/10 dark:backdrop-blur-xl dark:text-white",
 					defaultClassNames.dropdown_root
 				),
 				dropdown: cn(
-					"absolute inset-0 w-full h-full cursor-pointer text-white bg-transparent appearance-none px-2 z-10 py-0 flex items-center",
-					"[&>option]:bg-gray-900 [&>option]:text-white",
+					"absolute inset-0 w-full h-full cursor-pointer text-neutral-900 bg-transparent appearance-none px-2 z-10 py-0 flex items-center dark:text-white",
+					"[&>option]:bg-white [&>option]:text-neutral-900 dark:[&>option]:bg-gray-900 dark:[&>option]:text-white",
 					defaultClassNames.dropdown
 				),
 				caption_label: cn(
-					"select-none font-medium text-white pointer-events-none",
+					"select-none font-medium text-neutral-900 dark:text-white pointer-events-none",
 					captionLayout === "label"
 						? "text-sm"
-						: "opacity-0 rounded-md pl-2 pr-1 flex items-center gap-1 text-sm h-8 [&>svg]:text-white/60 [&>svg]:size-3.5 [&>svg]:pointer-events-none",
+						: "opacity-0 rounded-md pl-2 pr-1 flex items-center gap-1 text-sm h-8 [&>svg]:text-neutral-500 dark:[&>svg]:text-white/60 [&>svg]:size-3.5 [&>svg]:pointer-events-none",
 					defaultClassNames.caption_label
 				),
 				table: "w-full border-collapse",
 				weekdays: cn("flex", defaultClassNames.weekdays),
 				weekday: cn(
-					"text-white/60 rounded-md flex-1 font-normal text-[0.8rem] select-none",
+					"text-neutral-500 dark:text-white/60 rounded-md flex-1 font-normal text-[0.8rem] select-none",
 					defaultClassNames.weekday
 				),
 				week: cn("flex w-full mt-2", defaultClassNames.week),
@@ -131,7 +131,7 @@ function CalendarComponent({
 					defaultClassNames.week_number_header
 				),
 				week_number: cn(
-					"text-[0.8rem] select-none text-white/60",
+					"text-[0.8rem] select-none text-neutral-500 dark:text-white/60",
 					defaultClassNames.week_number
 				),
 				day: cn(
@@ -142,20 +142,26 @@ function CalendarComponent({
 					defaultClassNames.day
 				),
 				range_start: cn(
-					"rounded-l-md bg-white/20",
+					"rounded-l-md bg-neutral-200 dark:bg-white/20",
 					defaultClassNames.range_start
 				),
 				range_middle: cn("rounded-none", defaultClassNames.range_middle),
-				range_end: cn("rounded-r-md bg-white/20", defaultClassNames.range_end),
+				range_end: cn(
+					"rounded-r-md bg-neutral-200 dark:bg-white/20",
+					defaultClassNames.range_end
+				),
 				today: cn(
-					"bg-white/20 text-white rounded-md data-[selected=true]:rounded-none",
+					"bg-neutral-200 text-neutral-900 dark:bg-white/20 dark:text-white rounded-md data-[selected=true]:rounded-none",
 					defaultClassNames.today
 				),
 				outside: cn(
-					"text-white/40 aria-selected:text-white/40",
+					"text-neutral-400 aria-selected:text-neutral-400 dark:text-white/40 dark:aria-selected:text-white/40",
 					defaultClassNames.outside
 				),
-				disabled: cn("text-white/30 opacity-50", defaultClassNames.disabled),
+				disabled: cn(
+					"text-neutral-300 dark:text-white/30 opacity-50",
+					defaultClassNames.disabled
+				),
 				hidden: cn("invisible", defaultClassNames.hidden),
 				...classNames,
 			}}
@@ -239,7 +245,7 @@ function CalendarDayButton({ className, day, modifiers, ...props }: DayButtonPro
 			data-range-end={modifiers.range_end}
 			data-range-middle={modifiers.range_middle}
 			className={cn(
-				"data-[selected-single=true]:bg-white/30 data-[selected-single=true]:text-white data-[range-middle=true]:bg-white/20 data-[range-middle=true]:text-white data-[range-start=true]:bg-white/30 data-[range-start=true]:text-white data-[range-end=true]:bg-white/30 data-[range-end=true]:text-white group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 hover:bg-white/20 hover:text-white flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] data-[range-end=true]:rounded-md data-[range-end=true]:rounded-r-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md data-[range-start=true]:rounded-l-md [&>span]:text-xs [&>span]:opacity-70",
+				"data-[selected-single=true]:bg-neutral-200 data-[selected-single=true]:text-neutral-900 dark:data-[selected-single=true]:bg-white/30 dark:data-[selected-single=true]:text-white data-[range-middle=true]:bg-neutral-100 data-[range-middle=true]:text-neutral-900 dark:data-[range-middle=true]:bg-white/20 dark:data-[range-middle=true]:text-white data-[range-start=true]:bg-neutral-200 data-[range-start=true]:text-neutral-900 dark:data-[range-start=true]:bg-white/30 dark:data-[range-start=true]:text-white data-[range-end=true]:bg-neutral-200 data-[range-end=true]:text-neutral-900 dark:data-[range-end=true]:bg-white/30 dark:data-[range-end=true]:text-white group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-white/20 dark:hover:text-white flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] data-[range-end=true]:rounded-md data-[range-end=true]:rounded-r-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md data-[range-start=true]:rounded-l-md [&>span]:text-xs [&>span]:opacity-70",
 				defaultClassNames.day,
 				className
 			)}
@@ -283,34 +289,9 @@ export function DatePicker({
 	...props
 }: DatePickerProps) {
 	const [open, setOpen] = useState(false)
-	const dateValue = useMemo(() => parseLocalDate(value), [value])
-	const [month, setMonth] = useState<Date>(dateValue ?? new Date())
 
-	useEffect(() => {
-		if (!dateValue) {
-			return
-		}
-
-		setMonth((currentMonth) => {
-			const sameMonth =
-				currentMonth.getFullYear() === dateValue.getFullYear() &&
-				currentMonth.getMonth() === dateValue.getMonth()
-
-			return sameMonth ? currentMonth : dateValue
-		})
-	}, [dateValue])
-
-	function handleSelect(date: Date | undefined): void {
-		onChange?.(formatLocalDate(date))
-		setOpen(false)
-	}
-
-	function handleSelectToday(): void {
-		const today = new Date()
-		setMonth(today)
-		onChange?.(formatLocalDate(today))
-		setOpen(false)
-	}
+	// Convert string value to Date for internal use
+	const dateValue = typeof value === "string" ? parseLocalDate(value) : value
 
 	const isActive = Boolean(value)
 
@@ -329,18 +310,21 @@ export function DatePicker({
 									<button
 										type="button"
 										className={cn(
-											"relative flex h-14 w-full rounded-lg border bg-white/10 px-4 pt-5 pb-1 text-left text-base font-light text-white backdrop-blur-xl transition-all",
+											"relative flex h-14 w-full rounded-lg border px-4 pt-5 pb-1 text-left text-neutral-900 dark:text-white font-light font-nunito text-base transition-all",
 											error
 												? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
-												: "border-white/20 focus:border-white/40 focus:ring-2 focus:ring-white/10",
+												: "border-neutral-300 focus:border-neutral-500 focus:ring-2 focus:ring-neutral-400/20 dark:border-white/20 dark:focus:border-white/40 dark:focus:ring-white/10",
 											"focus:outline-none",
-											"disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-white/5"
+											"disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-neutral-200/5 dark:disabled:bg-white/5"
 										)}
 										onFocus={handleFocus}
 										onBlur={handleBlur}
 										{...props}>
 										<span
-											className={cn("truncate", !value && "text-transparent")}>
+											className={cn(
+												"truncate",
+												!value && "text-neutral-500 dark:text-white/50"
+											)}>
 											{dateValue
 												? dateValue.toLocaleDateString("en-GB")
 												: label || "Select date"}
@@ -354,8 +338,8 @@ export function DatePicker({
 										className={cn(
 											"absolute left-4 transition-all duration-200 pointer-events-none font-light font-nunito z-10",
 											isActiveWithFocus
-												? "top-1.5 text-xs text-white/60"
-												: "top-4 text-base text-white/40",
+												? "top-1.5 text-xs text-neutral-700 dark:text-white"
+												: "top-4 text-base text-neutral-600 dark:text-white",
 											error && isActiveWithFocus && "text-red-400"
 										)}>
 										{label}
@@ -367,26 +351,18 @@ export function DatePicker({
 				</InputWrapper>
 
 				<PopoverContent
-					className="w-auto overflow-hidden p-0 bg-white/10 backdrop-blur-xl border border-white/20 text-white"
+					className="w-auto overflow-hidden p-0 bg-white border border-neutral-300 text-neutral-900 dark:bg-white/10 dark:backdrop-blur-xl dark:border-white/20 dark:text-white"
 					align="start">
 					<CalendarComponent
 						mode="single"
 						selected={dateValue ?? undefined}
-						month={month}
-						onMonthChange={setMonth}
+						defaultMonth={dateValue ?? undefined}
 						captionLayout="dropdown"
-						onSelect={handleSelect}
+						onSelect={(date: Date | undefined) => {
+							onChange?.(formatLocalDate(date))
+							setOpen(false)
+						}}
 					/>
-					<div className="border-t border-white/20 p-2">
-						<Button
-							type="button"
-							variant="ghost"
-							size="sm"
-							className="w-full justify-center text-white hover:bg-white/20"
-							onClick={handleSelectToday}>
-							Today
-						</Button>
-					</div>
 				</PopoverContent>
 			</Popover>
 
@@ -394,7 +370,7 @@ export function DatePicker({
 				<p
 					className={cn(
 						"mt-1.5 px-4 text-xs font-light font-nunito",
-						error ? "text-red-400" : "text-white/40"
+						error ? "text-red-400" : "text-neutral-500 dark:text-white/40"
 					)}>
 					{error || helperText}
 				</p>

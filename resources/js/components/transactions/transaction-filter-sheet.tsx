@@ -76,7 +76,7 @@ export default function TransactionFilterSheet({
 			</SheetTrigger>
 			<SheetContent
 				side="bottom"
-				className="rounded-t-3xl">
+				className="rounded-t-4xl">
 				<SheetHeader>
 					<SheetTitle>Filter Transactions</SheetTitle>
 				</SheetHeader>

@@ -1,5 +1,5 @@
-import { useHttp } from '@inertiajs/react';
 import { useCallback, useState } from 'react';
+import Axios from '@/lib/axios';
 import { qrCode, recoveryCodes, secretKey } from '@/routes/two-factor';
 
 export type UseTwoFactorAuthReturn = {
@@ -20,8 +20,6 @@ export type UseTwoFactorAuthReturn = {
 export const OTP_MAX_LENGTH = 6;
 
 export const useTwoFactorAuth = (): UseTwoFactorAuthReturn => {
-    const { submit } = useHttp();
-
     const [qrCodeSvg, setQrCodeSvg] = useState<string | null>(null);
     const [manualSetupKey, setManualSetupKey] = useState<string | null>(null);
     const [recoveryCodesList, setRecoveryCodesList] = useState<string[]>([]);
@@ -48,41 +46,46 @@ export const useTwoFactorAuth = (): UseTwoFactorAuthReturn => {
 
     const fetchQrCode = useCallback(async (): Promise<void> => {
         try {
-            const { svg } = (await submit(qrCode())) as {
-                svg: string;
-                url: string;
-            };
-
-            setQrCodeSvg(svg);
+            const route = qrCode();
+            const { data } = await Axios.request<{ svg: string; url: string }>({
+                url: route.url,
+                method: route.method,
+            });
+            setQrCodeSvg(data.svg);
         } catch {
             setErrors((prev) => [...prev, 'Failed to fetch QR code']);
             setQrCodeSvg(null);
         }
-    }, [submit]);
+    }, []);
 
     const fetchSetupKey = useCallback(async (): Promise<void> => {
         try {
-            const { secretKey: key } = (await submit(secretKey())) as {
-                secretKey: string;
-            };
-
-            setManualSetupKey(key);
+            const route = secretKey();
+            const { data } = await Axios.request<{ secretKey: string }>({
+                url: route.url,
+                method: route.method,
+            });
+            setManualSetupKey(data.secretKey);
         } catch {
             setErrors((prev) => [...prev, 'Failed to fetch a setup key']);
             setManualSetupKey(null);
         }
-    }, [submit]);
+    }, []);
 
     const fetchRecoveryCodes = useCallback(async (): Promise<void> => {
         try {
             setErrors([]);
-            const codes = (await submit(recoveryCodes())) as string[];
-            setRecoveryCodesList(codes);
+            const route = recoveryCodes();
+            const { data } = await Axios.request<string[]>({
+                url: route.url,
+                method: route.method,
+            });
+            setRecoveryCodesList(data);
         } catch {
             setErrors((prev) => [...prev, 'Failed to fetch recovery codes']);
             setRecoveryCodesList([]);
         }
-    }, [submit]);
+    }, []);
 
     const fetchSetupData = useCallback(async (): Promise<void> => {
         try {

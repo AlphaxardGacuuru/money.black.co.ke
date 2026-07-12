@@ -1,4 +1,4 @@
-import { Link } from "@inertiajs/react"
+import { Link } from "@/components/ui/link"
 import { Pencil, Plus } from "lucide-react"
 import { useState } from "react"
 import AddTransactionSheet from "@/components/add-transaction-sheet"
@@ -210,6 +210,8 @@ export default function CategoryGrid({
 						<Link
 							key={category.id}
 							href={`/categories/${category.id}/edit`}
+							variant="unstyled"
+							size="none"
 							className="group flex min-h-28 flex-col rounded-xl border-2 bg-background p-3 text-center transition-colors hover:bg-accent/20"
 							style={{
 								borderColor: resolveCardColor(category.color, index),
@@ -287,6 +289,8 @@ export default function CategoryGrid({
 				{interactionMode === "edit" ? (
 					<Link
 						href={`/categories/create?type=${activeType}`}
+						variant="unstyled"
+						size="none"
 						className="group flex min-h-28 flex-col rounded-xl border border-dashed border-border/70 bg-background p-3 text-center transition-colors hover:bg-accent/20">
 						<p className="overflow-hidden text-clip whitespace-nowrap text-xs leading-tight font-medium">
 							Add category

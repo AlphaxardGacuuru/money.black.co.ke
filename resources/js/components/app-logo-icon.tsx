@@ -1,21 +1,14 @@
-import type { SVGAttributes } from "react"
+import type { ImgHTMLAttributes } from "react"
 
-export default function AppLogoIcon(props: SVGAttributes<SVGElement>) {
+export default function AppLogoIcon(
+	props: ImgHTMLAttributes<HTMLImageElement>
+) {
 	return (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 48 48"
-            aria-hidden="true"
-        >
-            <path
-                fill="currentColor"
-                d="M43 20h-2.48a16.93 16.93 0 0 0-2-4.85l1.75-1.76a1 1 0 0 0 .3-.7 1 1 0 0 0-.3-.71L36 7.74a1 1 0 0 0-1.41 0l-1.74 1.75a16.93 16.93 0 0 0-4.85-2V5a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v2.48a16.93 16.93 0 0 0-4.85 2l-1.76-1.74a1 1 0 0 0-.7-.3 1 1 0 0 0-.71.3L7.74 12a1 1 0 0 0-.3.71 1 1 0 0 0 .3.7l1.75 1.76a16.93 16.93 0 0 0-2 4.85H5a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.48a16.93 16.93 0 0 0 2 4.85l-1.74 1.74a1 1 0 0 0 0 1.41L12 40.26a1 1 0 0 0 1.41 0l1.76-1.75a16.93 16.93 0 0 0 4.85 2V43a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.48a16.93 16.93 0 0 0 4.85-2l1.76 1.75a1 1 0 0 0 1.41 0L40.26 36a1 1 0 0 0 0-1.41l-1.75-1.76a16.93 16.93 0 0 0 2-4.85H43a1 1 0 0 0 1-1V21a1 1 0 0 0-1-1Zm-19 16a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"
-            />
-            <path
-                fill="currentColor"
-                d="M24 14a10 10 0 1 0 10 10 10 10 0 0 0-10-10Zm3 9a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-2v1a1 1 0 0 1-2 0v-1h-2a1 1 0 0 1 0-2h5v-2h-5a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h2v-1a1 1 0 0 1 2 0v1h2a1 1 0 0 1 0 2h-5v2Z"
-            />
-        </svg>
+		<img
+			src="/default-monochrome-black.svg"
+			alt="Black Money logo icon"
+			aria-hidden="true"
+			{...props}
+		/>
 	)
 }

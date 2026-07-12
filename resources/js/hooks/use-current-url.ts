@@ -1,20 +1,20 @@
-import type { InertiaLinkProps } from '@inertiajs/react';
-import { usePage } from '@inertiajs/react';
+import type { RouteHref } from '@/lib/utils';
 import { toUrl } from '@/lib/utils';
+import { useLocation } from '@tanstack/react-router';
 
 export type IsCurrentUrlFn = (
-    urlToCheck: NonNullable<InertiaLinkProps['href']>,
+    urlToCheck: RouteHref,
     currentUrl?: string,
     startsWith?: boolean,
 ) => boolean;
 
 export type IsCurrentOrParentUrlFn = (
-    urlToCheck: NonNullable<InertiaLinkProps['href']>,
+    urlToCheck: RouteHref,
     currentUrl?: string,
 ) => boolean;
 
 export type WhenCurrentUrlFn = <TIfTrue, TIfFalse = null>(
-    urlToCheck: NonNullable<InertiaLinkProps['href']>,
+    urlToCheck: RouteHref,
     ifTrue: TIfTrue,
     ifFalse?: TIfFalse,
 ) => TIfTrue | TIfFalse;
@@ -27,16 +27,10 @@ export type UseCurrentUrlReturn = {
 };
 
 export function useCurrentUrl(): UseCurrentUrlReturn {
-    const page = usePage();
-    const currentUrlPath = new URL(
-        page.url,
-        typeof window !== 'undefined'
-            ? window.location.origin
-            : 'http://localhost',
-    ).pathname;
+    const { pathname: currentUrlPath } = useLocation();
 
     const isCurrentUrl: IsCurrentUrlFn = (
-        urlToCheck: NonNullable<InertiaLinkProps['href']>,
+        urlToCheck: RouteHref,
         currentUrl?: string,
         startsWith: boolean = false,
     ) => {
@@ -60,14 +54,14 @@ export function useCurrentUrl(): UseCurrentUrlReturn {
     };
 
     const isCurrentOrParentUrl: IsCurrentOrParentUrlFn = (
-        urlToCheck: NonNullable<InertiaLinkProps['href']>,
+        urlToCheck: RouteHref,
         currentUrl?: string,
     ) => {
         return isCurrentUrl(urlToCheck, currentUrl, true);
     };
 
     const whenCurrentUrl: WhenCurrentUrlFn = <TIfTrue, TIfFalse = null>(
-        urlToCheck: NonNullable<InertiaLinkProps['href']>,
+        urlToCheck: RouteHref,
         ifTrue: TIfTrue,
         ifFalse: TIfFalse = null as TIfFalse,
     ): TIfTrue | TIfFalse => {

@@ -1,7 +1,7 @@
 import { Slot } from "@radix-ui/react-slot"
 import type { VariantProps} from "class-variance-authority";
 import { cva } from "class-variance-authority"
-import { MenuIcon, XIcon } from "lucide-react"
+import { MenuIcon, PanelLeftCloseIcon } from "lucide-react"
 import * as React from "react"
 
 import { Button } from "@/components/ui/button"
@@ -226,7 +226,7 @@ function Sidebar({
       />
       <div
         className={cn(
-          "fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex",
+          "fixed inset-y-0 z-40 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex",
           side === "left"
             ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
             : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
@@ -240,7 +240,7 @@ function Sidebar({
       >
         <div
           data-sidebar="sidebar"
-          className="bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm"
+          className="flex h-full w-full flex-col group-data-[variant=sidebar]:bg-sidebar group-data-[variant=inset]:bg-sidebar group-data-[variant=floating]:rounded-xl group-data-[variant=floating]:border group-data-[variant=floating]:border-white/40 group-data-[variant=floating]:bg-white/34 group-data-[variant=floating]:shadow-[0_20px_45px_-28px_rgba(15,23,42,0.45)] group-data-[variant=floating]:backdrop-blur-xl dark:group-data-[variant=floating]:border-white/12 dark:group-data-[variant=floating]:bg-slate-950/20"
         >
           {children}
         </div>
@@ -277,7 +277,7 @@ function SidebarTrigger({
             isOpen ? "rotate-90 scale-75 opacity-0" : "rotate-0 scale-100 opacity-100"
           )}
         />
-        <XIcon
+        <PanelLeftCloseIcon
           className={cn(
             "absolute inset-0 size-4 transition-all duration-200",
             isOpen ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-75 opacity-0"

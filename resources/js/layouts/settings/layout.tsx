@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link } from '@/components/ui/link';
 import type { PropsWithChildren } from 'react';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
@@ -54,7 +54,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                                     'bg-muted': isCurrentOrParentUrl(item.href),
                                 })}
                             >
-                                <Link href={item.href}>
+                                <Link href={toUrl(item.href)}>
                                     {item.icon && (
                                         <item.icon className="h-4 w-4" />
                                     )}

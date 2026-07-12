@@ -1,4 +1,5 @@
-import { Link } from "@inertiajs/react"
+import { Link } from "@/components/ui/link"
+import { toUrl } from "@/lib/utils"
 import {
 	SidebarGroup,
 	SidebarGroupLabel,
@@ -39,7 +40,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
 							isActive={isCurrentOrParentUrl(item.href)}
 							tooltip={{ children: item.title }}>
 							<Link
-								href={item.href}
+								href={toUrl(item.href)}
 								onClick={closeSidebar}>
 								{item.icon && <item.icon />}
 								<span>{item.title}</span>

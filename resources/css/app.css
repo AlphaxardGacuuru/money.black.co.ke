@@ -62,74 +62,82 @@
 }
 
 :root {
+    --brand-lime: #C8FF3D;
+    --brand-indigo: #2D1B69;
+    --brand-blend: color-mix(in oklab, var(--brand-indigo) 65%, var(--brand-lime) 35%);
+
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.145 0 0);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
+    --primary: var(--brand-indigo);
+    --primary-foreground: #F9FAFB;
     --secondary: oklch(0.97 0 0);
     --secondary-foreground: oklch(0.205 0 0);
     --muted: oklch(0.97 0 0);
     --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
+    --accent: var(--brand-lime);
+    --accent-foreground: #111827;
     --destructive: oklch(0.577 0.245 27.325);
     --destructive-foreground: oklch(0.577 0.245 27.325);
     --border: oklch(0.922 0 0);
     --input: oklch(0.922 0 0);
-    --ring: oklch(0.87 0 0);
-    --chart-1: oklch(0.646 0.222 41.116);
-    --chart-2: oklch(0.6 0.118 184.704);
-    --chart-3: oklch(0.398 0.07 227.392);
-    --chart-4: oklch(0.828 0.189 84.429);
-    --chart-5: oklch(0.769 0.188 70.08);
+    --ring: var(--brand-blend);
+    --chart-1: var(--brand-indigo);
+    --chart-2: var(--brand-lime);
+    --chart-3: var(--brand-blend);
+    --chart-4: color-mix(in oklab, var(--brand-lime) 80%, white 20%);
+    --chart-5: color-mix(in oklab, var(--brand-indigo) 75%, black 25%);
     --radius: 0.625rem;
     --sidebar: oklch(0.985 0 0);
     --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-primary: var(--brand-indigo);
+    --sidebar-primary-foreground: #F9FAFB;
+    --sidebar-accent: color-mix(in oklab, var(--brand-lime) 32%, white 68%);
+    --sidebar-accent-foreground: #111827;
     --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.87 0 0);
+    --sidebar-ring: var(--brand-blend);
 }
 
 .dark {
+    --brand-lime: #C8FF3D;
+    --brand-indigo: #2D1B69;
+    --brand-blend: color-mix(in oklab, var(--brand-indigo) 50%, var(--brand-lime) 50%);
+
     --background: oklch(0.145 0 0);
     --foreground: oklch(0.985 0 0);
     --card: oklch(0.145 0 0);
     --card-foreground: oklch(0.985 0 0);
     --popover: oklch(0.145 0 0);
     --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.985 0 0);
-    --primary-foreground: oklch(0.205 0 0);
+    --primary: var(--brand-lime);
+    --primary-foreground: #111827;
     --secondary: oklch(0.269 0 0);
     --secondary-foreground: oklch(0.985 0 0);
     --muted: oklch(0.269 0 0);
     --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
+    --accent: color-mix(in oklab, var(--brand-indigo) 70%, white 30%);
+    --accent-foreground: #F9FAFB;
     --destructive: oklch(0.396 0.141 25.723);
     --destructive-foreground: oklch(0.637 0.237 25.331);
     --border: oklch(0.269 0 0);
     --input: oklch(0.269 0 0);
-    --ring: oklch(0.439 0 0);
-    --chart-1: oklch(0.488 0.243 264.376);
-    --chart-2: oklch(0.696 0.17 162.48);
-    --chart-3: oklch(0.769 0.188 70.08);
-    --chart-4: oklch(0.627 0.265 303.9);
-    --chart-5: oklch(0.645 0.246 16.439);
+    --ring: var(--brand-blend);
+    --chart-1: var(--brand-lime);
+    --chart-2: color-mix(in oklab, var(--brand-lime) 58%, var(--brand-indigo) 42%);
+    --chart-3: var(--brand-indigo);
+    --chart-4: color-mix(in oklab, var(--brand-indigo) 80%, black 20%);
+    --chart-5: color-mix(in oklab, var(--brand-lime) 62%, white 38%);
     --sidebar: oklch(0.205 0 0);
     --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.985 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-primary: var(--brand-lime);
+    --sidebar-primary-foreground: #111827;
+    --sidebar-accent: color-mix(in oklab, var(--brand-indigo) 78%, white 22%);
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(0.269 0 0);
-    --sidebar-ring: oklch(0.439 0 0);
+    --sidebar-ring: var(--brand-blend);
 }
 
 @layer base {
@@ -139,5 +147,109 @@
 
     body {
         @apply bg-background text-foreground;
+    }
+}
+
+@keyframes bg-drift {
+    0% {
+        transform: translate3d(0, 0, 0);
+    }
+
+    25% {
+        transform: translate3d(20px, -14px, 0) scale(1.04);
+    }
+
+    50% {
+        transform: translate3d(32px, -22px, 0) scale(1.06);
+    }
+
+    75% {
+        transform: translate3d(12px, -8px, 0) scale(1.03);
+    }
+
+    100% {
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes bg-float {
+    0% {
+        transform: translate3d(0, 0, 0);
+    }
+
+    25% {
+        transform: translate3d(-18px, 16px, 0) scale(1.03);
+    }
+
+    50% {
+        transform: translate3d(-30px, 26px, 0) scale(1.06);
+    }
+
+    75% {
+        transform: translate3d(-10px, 10px, 0) scale(1.02);
+    }
+
+    100% {
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes bg-rotate {
+    0% {
+        transform: rotate(0deg) scale(1);
+    }
+
+    50% {
+        transform: rotate(16deg) scale(1.07);
+    }
+
+    100% {
+        transform: rotate(0deg) scale(1);
+    }
+}
+
+@layer utilities {
+    .bg-brand-gradient {
+        background-image: linear-gradient(135deg,
+                var(--brand-indigo) 0%,
+                var(--brand-blend) 56%,
+                var(--brand-lime) 100%);
+    }
+
+    .text-brand-gradient {
+        background-image: linear-gradient(135deg,
+                var(--brand-indigo) 0%,
+                var(--brand-lime) 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .bg-motion-drift {
+        animation: bg-drift 8s ease-in-out infinite;
+        will-change: transform;
+    }
+
+    .bg-motion-float {
+        animation: bg-float 9.5s ease-in-out infinite;
+        will-change: transform;
+    }
+
+    .bg-motion-rotate {
+        animation: bg-rotate 11s ease-in-out infinite;
+        transform-origin: center;
+        will-change: transform;
+    }
+
+    .bg-motion-delay-1 {
+        animation-delay: -3s;
+    }
+
+    .bg-motion-delay-2 {
+        animation-delay: -6s;
+    }
+
+    .bg-motion-delay-3 {
+        animation-delay: -9s;
     }
 }

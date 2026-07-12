@@ -27,6 +27,21 @@ class DashboardTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page->component('accounts/index'));
+            ->assertInertia(fn (Assert $page) => $page->component('dashboard'));
+    }
+
+    public function test_dashboard_shares_authenticated_user_basics(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get(route('dashboard'));
+
+        $response
+            ->assertOk()
+            ->assertInertia(
+                fn (Assert $page) => $page
+                    ->component('dashboard')
+                    ->where('auth.user.id', $user->id)
+            );
     }
 }

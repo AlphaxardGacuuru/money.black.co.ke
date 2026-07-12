@@ -1,4 +1,6 @@
-import { Head, Link, router } from "@inertiajs/react"
+import { useNavigate, useParams } from "@tanstack/react-router"
+import { Link } from "@/components/ui/link"
+import { Head } from "@/lib/spa"
 import { ArrowLeft, Trash2 } from "lucide-react"
 import type { FormEvent } from "react"
 import { useEffect, useState } from "react"
@@ -30,15 +32,17 @@ type CategoryFormErrors = Partial<
 	Record<"icon" | "color" | "name" | "type", string>
 >
 
-export default function EditCategory({ id }: { id: string }) {
+export default function EditCategory() {
+	const { id } = useParams({ strict: false })
 	const props = useApp()
+	const navigate = useNavigate()
 
 	const [category, setCategory] = useState<Category>({} as Category)
 
 	const [icon, setIcon] = useState("")
 	const [color, setColor] = useState("#0f172a")
 	const [name, setName] = useState("")
-	const [type, setType] = useState<"expense" | "income" | "">()
+	const [type, setType] = useState<"expense" | "income" | "">("")
 	const [processing, setProcessing] = useState(false)
 	const [errors, setErrors] = useState<CategoryFormErrors>({})
 	const [isDeleting, setIsDeleting] = useState(false)
@@ -100,7 +104,9 @@ export default function EditCategory({ id }: { id: string }) {
 		Axios.delete(CategoryController.destroy.url(id))
 			.then((res) => {
 				toast.success(res.data.message)
-				setTimeout(() => router.visit("/categories"), 500)
+				setTimeout(() => {
+					void navigate({ to: "/categories" })
+				}, 500)
 			})
 			.finally(() => {
 				setIsDeleting(false)
@@ -170,7 +176,6 @@ export default function EditCategory({ id }: { id: string }) {
 						value={name}
 						onChange={(event) => setName(event.target.value)}
 						required
-						placeholder="e.g., Groceries"
 						error={errors.name}
 					/>
 					{/* Category Name Section End */}
@@ -241,7 +246,10 @@ export default function EditCategory({ id }: { id: string }) {
 						<Button
 							variant="outline"
 							asChild>
-							<Link href="/categories">
+							<Link
+								href="/categories"
+								variant="unstyled"
+								size="none">
 								<ArrowLeft className="size-4" />
 								Back to Categories
 							</Link>

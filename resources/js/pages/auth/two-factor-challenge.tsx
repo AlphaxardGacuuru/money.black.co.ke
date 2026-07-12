@@ -1,132 +1,175 @@
-import { Form, Head, setLayoutProps } from '@inertiajs/react';
-import { REGEXP_ONLY_DIGITS } from 'input-otp';
-import { useMemo, useState } from 'react';
-import InputError from '@/components/input-error';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-    InputOTP,
-    InputOTPGroup,
-    InputOTPSlot,
-} from '@/components/ui/input-otp';
-import { OTP_MAX_LENGTH } from '@/hooks/use-two-factor-auth';
-import { store } from '@/routes/two-factor/login';
+import { Head } from "@/lib/spa"
+import { useEffect, useMemo, useState } from "react"
+import { useNavigate } from "@tanstack/react-router"
+import { REGEXP_ONLY_DIGITS } from "input-otp"
+import { toast } from "sonner"
+import axios from "@/lib/axios"
+import InputError from "@/components/input-error"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Spinner } from "@/components/ui/spinner"
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
+import { OTP_MAX_LENGTH } from "@/hooks/use-two-factor-auth"
+import { store } from "@/actions/App/Http/Controllers/Auth/TwoFactorChallengeController"
+import { useApp } from "@/contexts/AppContext"
+import { invalidateAuth } from "@/middleware/auth"
 
 export default function TwoFactorChallenge() {
-    const [showRecoveryInput, setShowRecoveryInput] = useState<boolean>(false);
-    const [code, setCode] = useState<string>('');
+	const { setLocalStorage } = useApp()
+	const navigate = useNavigate()
+	const params = new URLSearchParams(window.location.search)
+	const pendingToken = params.get("pending_token")
 
-    const authConfigContent = useMemo<{
-        title: string;
-        description: string;
-        toggleText: string;
-    }>(() => {
-        if (showRecoveryInput) {
-            return {
-                title: 'Recovery code',
-                description:
-                    'Please confirm access to your account by entering one of your emergency recovery codes.',
-                toggleText: 'login using an authentication code',
-            };
-        }
+	const [showRecovery, setShowRecovery] = useState(false)
+	const [code, setCode] = useState("")
+	const [processing, setProcessing] = useState(false)
+	const [errors, setErrors] = useState<Record<string, string>>({})
 
-        return {
-            title: 'Authentication code',
-            description:
-                'Enter the authentication code provided by your authenticator application.',
-            toggleText: 'login using a recovery code',
-        };
-    }, [showRecoveryInput]);
+	useEffect(() => {
+		if (!pendingToken) {
+			navigate({ to: "/login" })
+		}
+	}, [])
 
-    setLayoutProps({
-        title: authConfigContent.title,
-        description: authConfigContent.description,
-    });
+	const content = useMemo(
+		() =>
+			showRecovery
+				? {
+						title: "Recovery code",
+						description:
+							"Enter one of your emergency recovery codes to access your account.",
+						toggleText: "Use an authentication code instead",
+					}
+				: {
+						title: "Authentication code",
+						description:
+							"Enter the 6-digit code from your authenticator app.",
+						toggleText: "Use a recovery code instead",
+					},
+		[showRecovery]
+	)
 
-    const toggleRecoveryMode = (clearErrors: () => void): void => {
-        setShowRecoveryInput(!showRecoveryInput);
-        clearErrors();
-        setCode('');
-    };
+	function handleToggle() {
+		setShowRecovery((v) => !v)
+		setCode("")
+		setErrors({})
+	}
 
-    return (
-        <>
-            <Head title="Two-factor authentication" />
+	function handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
+		event.preventDefault()
+		if (!pendingToken) {
+			return
+		}
+		setProcessing(true)
+		setErrors({})
 
-            <div className="space-y-6">
-                <Form
-                    {...store.form()}
-                    className="space-y-4"
-                    resetOnError
-                    resetOnSuccess={!showRecoveryInput}
-                >
-                    {({ errors, processing, clearErrors }) => (
-                        <>
-                            {showRecoveryInput ? (
-                                <>
-                                    <Input
-                                        name="recovery_code"
-                                        type="text"
-                                        placeholder="Enter recovery code"
-                                        autoFocus={showRecoveryInput}
-                                        required
-                                    />
-                                    <InputError
-                                        message={errors.recovery_code}
-                                    />
-                                </>
-                            ) : (
-                                <div className="flex flex-col items-center justify-center space-y-3 text-center">
-                                    <div className="flex w-full items-center justify-center">
-                                        <InputOTP
-                                            name="code"
-                                            maxLength={OTP_MAX_LENGTH}
-                                            value={code}
-                                            onChange={(value) => setCode(value)}
-                                            disabled={processing}
-                                            pattern={REGEXP_ONLY_DIGITS}
-                                        >
-                                            <InputOTPGroup>
-                                                {Array.from(
-                                                    { length: OTP_MAX_LENGTH },
-                                                    (_, index) => (
-                                                        <InputOTPSlot
-                                                            key={index}
-                                                            index={index}
-                                                        />
-                                                    ),
-                                                )}
-                                            </InputOTPGroup>
-                                        </InputOTP>
-                                    </div>
-                                    <InputError message={errors.code} />
-                                </div>
-                            )}
+		const { url, method } = store()
 
-                            <Button
-                                type="submit"
-                                className="w-full"
-                                disabled={processing}
-                            >
-                                Continue
-                            </Button>
+		axios
+			.request({
+				url,
+				method,
+				data: { pending_token: pendingToken, code },
+			})
+			.then((response) => {
+				setLocalStorage("sanctumToken", response.data.data)
+				invalidateAuth()
+				toast.success(response.data.message ?? "Logged in")
+				navigate({ to: "/accounts" })
+			})
+			.catch((err: unknown) => {
+				const e = err as {
+					response?: {
+						status?: number
+						data?: { errors?: Record<string, string | string[]> }
+					}
+				}
+				if (e.response?.status === 422) {
+					const raw = e.response.data?.errors ?? {}
+					setErrors(
+						Object.fromEntries(
+							Object.entries(raw).map(([k, v]) => [
+								k,
+								Array.isArray(v) ? String(v[0] ?? "") : String(v),
+							])
+						)
+					)
+					if (raw.pending_token) {
+						toast.error(String(raw.pending_token[0] ?? "Session expired"))
+						navigate({ to: "/login" })
+					}
+				}
+			})
+			.finally(() => setProcessing(false))
+	}
 
-                            <div className="text-center text-sm text-muted-foreground">
-                                <span>or you can </span>
-                                <button
-                                    type="button"
-                                    className="cursor-pointer text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
-                                    onClick={() =>
-                                        toggleRecoveryMode(clearErrors)
-                                    }
-                                >
-                                    {authConfigContent.toggleText}
-                                </button>
-                            </div>
-                        </>
-                    )}
-                </Form>
-            </div>
-        </>
-    );
+	return (
+		<>
+			<Head title="Two-factor authentication" />
+
+			<form
+				onSubmit={handleSubmit}
+				className="flex flex-col gap-6"
+				aria-busy={processing}>
+				<div className="grid gap-6">
+					{showRecovery ? (
+						<div className="grid gap-2">
+							<Input
+								label="Recovery code"
+								type="text"
+								value={code}
+								onChange={(e) => setCode(e.target.value)}
+								placeholder="xxxx-xxxx"
+								autoFocus
+								required
+							/>
+							<InputError message={errors.code} />
+						</div>
+					) : (
+						<div className="flex flex-col items-center gap-3">
+							<InputOTP
+								maxLength={OTP_MAX_LENGTH}
+								value={code}
+								onChange={setCode}
+								disabled={processing}
+								pattern={REGEXP_ONLY_DIGITS}>
+								<InputOTPGroup>
+									{Array.from({ length: OTP_MAX_LENGTH }, (_, i) => (
+										<InputOTPSlot
+											key={i}
+											index={i}
+										/>
+									))}
+								</InputOTPGroup>
+							</InputOTP>
+							<InputError message={errors.code} />
+						</div>
+					)}
+
+					<Button
+						type="submit"
+						className="w-full"
+						disabled={processing || code.length === 0}>
+						{processing && <Spinner />}
+						Continue
+					</Button>
+				</div>
+
+				<div className="text-center text-sm text-muted-foreground">
+					or you can{" "}
+					<button
+						type="button"
+						className="cursor-pointer text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current dark:decoration-neutral-500"
+						onClick={handleToggle}>
+						{content.toggleText}
+					</button>
+				</div>
+			</form>
+		</>
+	)
+}
+
+TwoFactorChallenge.layout = {
+	title: "Two-factor authentication",
+	description: "Confirm access to your account.",
 }

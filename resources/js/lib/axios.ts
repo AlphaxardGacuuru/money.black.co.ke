@@ -13,10 +13,16 @@ const AxiosClient = Axios.create({
 })
 
 AxiosClient.interceptors.request.use((config) => {
-	if (config.method?.toLowerCase() === "get") {
-		config.params = {
-			...(config.params ?? {}),
-			_t: Date.now(),
+	const raw = localStorage.getItem("sanctumToken")
+
+	if (raw) {
+		try {
+			const token = JSON.parse(raw) as string
+			if (token) {
+				config.headers.Authorization = `Bearer ${token}`
+			}
+		} catch {
+			// malformed storage value — skip
 		}
 	}
 

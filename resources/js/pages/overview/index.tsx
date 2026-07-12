@@ -1,4 +1,4 @@
-import { Head } from "@inertiajs/react"
+import { Head } from "@/lib/spa"
 import { CircleDollarSign, TrendingDown, TrendingUp } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import Heading from "@/components/heading"

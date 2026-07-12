@@ -1,19 +1,26 @@
-import { router } from '@inertiajs/react';
-import { useEffect } from 'react';
-import { toast } from 'sonner';
-import type { FlashToast } from '@/types/ui';
+import { usePage } from "@/lib/spa"
+import { useEffect, useRef } from "react"
+import { toast } from "sonner"
+import type { FlashToast } from "@/types/ui"
 
 export function useFlashToast(): void {
-    useEffect(() => {
-        return router.on('flash', (event) => {
-            const flash = (event as CustomEvent).detail?.flash;
-            const data = flash?.toast as FlashToast | undefined;
+	const { flash } = usePage<{ flash?: { toast?: FlashToast } }>().props
+	const shownMessageRef = useRef<string>("")
 
-            if (!data) {
-                return;
-            }
+	useEffect(() => {
+		const data = flash?.toast
 
-            toast[data.type](data.message);
-        });
-    }, []);
+		if (!data) {
+			return
+		}
+
+		const messageKey = `${data.type}:${data.message}`
+
+		if (shownMessageRef.current === messageKey) {
+			return
+		}
+
+		shownMessageRef.current = messageKey
+		toast[data.type](data.message)
+	}, [flash?.toast])
 }

@@ -1,5 +1,9 @@
-import { Link, router } from "@inertiajs/react"
+import type { MouseEvent } from "react"
+import { Link } from "@/components/ui/link"
+import axios from "@/lib/axios"
+import { toast } from "sonner"
 import { Home, LogOut, Settings } from "lucide-react"
+import { useNavigate } from "@tanstack/react-router"
 import {
 	DropdownMenuGroup,
 	DropdownMenuItem,
@@ -8,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { UserInfo } from "@/components/user-info"
 import { useMobileNavigation } from "@/hooks/use-mobile-navigation"
+import { clearAuth } from "@/middleware/auth"
 import { logout } from "@/routes"
 import { edit } from "@/routes/profile"
 import type { User } from "@/types"
@@ -18,10 +23,40 @@ type Props = {
 
 export function UserMenuContent({ user }: Props) {
 	const cleanup = useMobileNavigation()
+	const navigate = useNavigate()
 
-	const handleLogout = () => {
+	const handleLogout = (
+		event: MouseEvent<HTMLAnchorElement | HTMLButtonElement>
+	) => {
+		event.preventDefault()
 		cleanup()
-		router.flushAll()
+
+		const route = logout()
+
+		axios
+			.request({
+				url: route.url,
+				method: route.method,
+			})
+			.then((response) => {
+				toast.success(response.data?.message ?? "Logged out")
+				clearAuth()
+				navigate({ to: "/login" })
+			})
+			.catch((error: unknown) => {
+				const message =
+					error &&
+					typeof error === "object" &&
+					"response" in error &&
+					error.response &&
+					typeof (error as any).response === "object"
+						? (error as any).response?.data?.message
+						: null
+
+				toast.error(message ?? "Unable to log out")
+				clearAuth()
+				navigate({ to: "/login" })
+			})
 	}
 
 	return (
@@ -36,42 +71,35 @@ export function UserMenuContent({ user }: Props) {
 			</DropdownMenuLabel>
 			<DropdownMenuSeparator />
 			<DropdownMenuGroup>
-				{/* Landing Page Start */}
 				<DropdownMenuItem asChild>
 					<Link
+						variant="unstyled"
 						className="block w-full cursor-pointer"
-						href={edit()}
-						prefetch
-						onClick={cleanup}>
+						href="/">
 						<Home className="mr-2" />
-						Landing Page
+						Welcome Page
 					</Link>
 				</DropdownMenuItem>
-				{/* Landing Page End */}
-				{/* Settings Start */}
 				<DropdownMenuItem asChild>
 					<Link
+						variant="unstyled"
 						className="block w-full cursor-pointer"
-						href={edit()}
-						prefetch
+						href={edit().url}
 						onClick={cleanup}>
 						<Settings className="mr-2" />
 						Settings
 					</Link>
 				</DropdownMenuItem>
-				{/* Settings End */}
 			</DropdownMenuGroup>
 			<DropdownMenuSeparator />
 			<DropdownMenuItem asChild>
-				<Link
+				<button
 					className="block w-full cursor-pointer"
-					href={logout()}
-					as="button"
 					onClick={handleLogout}
 					data-test="logout-button">
 					<LogOut className="mr-2" />
 					Log out
-				</Link>
+				</button>
 			</DropdownMenuItem>
 		</>
 	)

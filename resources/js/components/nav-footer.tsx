@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/sidebar"
 import { toUrl } from "@/lib/utils"
 import type { NavItem } from "@/types"
-import { Link } from "@inertiajs/react"
+import { Link } from "@/components/ui/link"
 
 export function NavFooter({
 	items,

@@ -1,4 +1,5 @@
-import { Head, Link } from "@inertiajs/react"
+import { Link } from "@/components/ui/link"
+import { Head } from "@/lib/spa"
 import { Plus, Tags } from "lucide-react"
 import { useEffect } from "react"
 import CategoryGrid from "@/components/categories/category-grid"
@@ -53,7 +54,10 @@ export default function CategoriesIndex() {
 									</p>
 								</div>
 								<Button asChild>
-									<Link href={`/categories/create?type=expense`}>
+									<Link
+										href={`/categories/create?type=expense`}
+										variant="unstyled"
+										size="none">
 										<Plus className="size-4" />
 										Create category
 									</Link>

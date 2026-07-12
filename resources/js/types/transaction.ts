@@ -1,34 +1,24 @@
+export type TransactionAmount = {
+	amount: number
+	formatted?: string
+}
+
 export type Transaction = {
 	id: number | string
+	amount: TransactionAmount
+	notes?: string | null
+	currency?: string
+	transactionDate?: string | null
+	transactionDateInput?: string
+	transactionDateHuman?: string
 	accountId: number | string
-	accountName: string
-	accountCurrency: string
-	accountIcon: string
-	accountColor: string
+	accountName?: string
+	accountColor?: string | null
+	accountIcon?: string | null
 	categoryId: number | string
-	categoryName: string
-	categoryType: string
-	categoryIcon: string
-	categoryColor: string
-	amount: {
-		amount: number
-		formatted: string
-	}
-	currency: string
-	notes: string | null
-	transactionDateHuman: string
-	transactionDateInput: string
-	createdAt: string
-}
-
-export type TransactionResource = {
-	data: Transaction
-}
-
-export type TransactionCollection = {
-	data: Transaction[]
-}
-
-export type TransactionPageProps = {
-	transactions: TransactionCollection
+	categoryName?: string
+	categoryType?: "expense" | "income" | string
+	categoryColor?: string | null
+	categoryIcon?: string | null
+	[key: string]: unknown
 }

@@ -1,4 +1,6 @@
-import { Head, Link, router } from "@inertiajs/react"
+import { useNavigate } from "@tanstack/react-router"
+import { Link } from "@/components/ui/link"
+import { Head } from "@/lib/spa"
 import type { FormEvent } from "react"
 import { useState } from "react"
 import { ArrowLeft } from "lucide-react"
@@ -23,9 +25,10 @@ type CategoryFormErrors = Partial<
 
 export default function CreateCategory({ defaultType }: CreateCategoryProps) {
 	const props = useApp()
+	const navigate = useNavigate()
 
 	const [icon, setIcon] = useState("")
-	const [color, setColor] = useState("")
+	const [color, setColor] = useState("#000000")
 	const [name, setName] = useState<string>()
 	const [type, setType] = useState<"expense" | "income" | "">(defaultType ?? "")
 	const [errors, setErrors] = useState<CategoryFormErrors>({})
@@ -45,7 +48,9 @@ export default function CreateCategory({ defaultType }: CreateCategoryProps) {
 			.then((response) => {
 				setLoading(false)
 				toast.success(response.data.message)
-				setTimeout(() => router.visit("/categories"), 500)
+				setTimeout(() => {
+					void navigate({ to: "/categories" })
+				}, 500)
 			})
 			.catch((error: unknown) => {
 				setLoading(false)
@@ -118,7 +123,6 @@ export default function CreateCategory({ defaultType }: CreateCategoryProps) {
 						name="name"
 						value={name}
 						required
-						placeholder="e.g., Groceries"
 						onChange={(e) => setName(e.target.value)}
 						error={errors.name}
 					/>
@@ -142,7 +146,10 @@ export default function CreateCategory({ defaultType }: CreateCategoryProps) {
 						<Button
 							variant="outline"
 							asChild>
-							<Link href="/categories">
+							<Link
+								href="/categories"
+								variant="unstyled"
+								size="none">
 								<ArrowLeft className="size-4" />
 								Back to Categories
 							</Link>

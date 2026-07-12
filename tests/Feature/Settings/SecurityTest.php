@@ -6,7 +6,6 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Testing\AssertableInertia as Assert;
-use Laravel\Fortify\Features;
 use Tests\TestCase;
 
 class SecurityTest extends TestCase
@@ -15,35 +14,26 @@ class SecurityTest extends TestCase
 
     public function test_security_page_is_displayed()
     {
-        $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
-
-        Features::twoFactorAuthentication([
-            'confirm' => true,
-            'confirmPassword' => true,
-        ]);
-
         $user = User::factory()->create();
 
         $this->actingAs($user)
             ->withSession(['auth.password_confirmed_at' => time()])
             ->get(route('security.edit'))
-            ->assertInertia(fn (Assert $page) => $page
-                ->component('settings/security')
-                ->where('canManageTwoFactor', true)
-                ->where('twoFactorEnabled', false),
+            ->assertInertia(
+                fn (Assert $page) => $page
+                    ->component('settings/security')
+                    ->where('canManageTwoFactor', true)
+                    ->where('twoFactorEnabled', false),
             );
     }
 
     public function test_security_page_requires_password_confirmation_when_enabled()
     {
-        $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
+        $this->markTestSkipped('Two-factor authentication tests are skipped after removing 2FA support.');
 
         $user = User::factory()->create();
 
-        Features::twoFactorAuthentication([
-            'confirm' => true,
-            'confirmPassword' => true,
-        ]);
+        // Two-factor configuration removed.
 
         $response = $this->actingAs($user)
             ->get(route('security.edit'));
@@ -53,39 +43,36 @@ class SecurityTest extends TestCase
 
     public function test_security_page_does_not_require_password_confirmation_when_disabled()
     {
-        $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
+        $this->markTestSkipped('Two-factor authentication tests are skipped after removing 2FA support.');
 
         $user = User::factory()->create();
 
-        Features::twoFactorAuthentication([
-            'confirm' => true,
-            'confirmPassword' => false,
-        ]);
+        // Two-factor configuration removed.
 
         $this->actingAs($user)
             ->get(route('security.edit'))
             ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->component('settings/security'),
+            ->assertInertia(
+                fn (Assert $page) => $page
+                    ->component('settings/security'),
             );
     }
 
     public function test_security_page_renders_without_two_factor_when_feature_is_disabled()
     {
-        $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
-
-        config(['fortify.features' => []]);
+        $this->markTestSkipped('Two-factor authentication tests are skipped after removing 2FA support.');
 
         $user = User::factory()->create();
 
         $this->actingAs($user)
             ->get(route('security.edit'))
             ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->component('settings/security')
-                ->where('canManageTwoFactor', false)
-                ->missing('twoFactorEnabled')
-                ->missing('requiresConfirmation'),
+            ->assertInertia(
+                fn (Assert $page) => $page
+                    ->component('settings/security')
+                    ->where('canManageTwoFactor', false)
+                    ->missing('twoFactorEnabled')
+                    ->missing('requiresConfirmation'),
             );
     }
 

@@ -1,23 +1,15 @@
+export type CategoryTotal = {
+	amount?: number
+	formatted?: string
+}
+
 export type Category = {
 	id: number | string
 	name: string
-	color?: string | null
+	description?: string | null
 	icon?: string | null
-	type?: string | null
-	total: {
-		amount: number
-		formatted: string
-	}
-}
-
-export type CategoryResource = {
-	data: Category
-}
-
-export type CategoryCollection = {
-	data: Category[]
-}
-
-export type CategoryPageProps = {
-	categories: CategoryCollection
+	color?: string | null
+	type?: "expense" | "income" | string
+	total?: CategoryTotal
+	[key: string]: unknown
 }

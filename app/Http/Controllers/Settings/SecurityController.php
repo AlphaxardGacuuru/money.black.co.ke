@@ -4,44 +4,32 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\PasswordUpdateRequest;
-use App\Http\Requests\Settings\TwoFactorAuthenticationRequest;
+use App\Support\Spa;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Routing\Controllers\HasMiddleware;
-use Illuminate\Routing\Controllers\Middleware;
-use Inertia\Inertia;
-use Inertia\Response;
-use Laravel\Fortify\Features;
+use Illuminate\Http\Request;
 
-class SecurityController extends Controller implements HasMiddleware
+class SecurityController extends Controller
 {
-    /**
-     * Get the middleware that should be assigned to the controller.
-     */
-    public static function middleware(): array
+    public function __construct()
     {
-        return Features::canManageTwoFactorAuthentication()
-            && Features::optionEnabled(Features::twoFactorAuthentication(), 'confirmPassword')
-                ? [new Middleware('password.confirm', only: ['edit'])]
-                : [];
+        $this->middleware('password.confirm')->only(['edit']);
     }
 
     /**
      * Show the user's security settings page.
      */
-    public function edit(TwoFactorAuthenticationRequest $request): Response
+    public function edit(Request $request): View
     {
+        $user = $request->user();
+
         $props = [
-            'canManageTwoFactor' => Features::canManageTwoFactorAuthentication(),
+            'canManageTwoFactor' => true,
+            'twoFactorEnabled' => $user?->hasTwoFactorEnabled() ?? false,
+            'requiresConfirmation' => ! ($user?->hasTwoFactorEnabled() ?? false),
         ];
 
-        if (Features::canManageTwoFactorAuthentication()) {
-            $request->ensureStateIsValid();
-
-            $props['twoFactorEnabled'] = $request->user()->hasEnabledTwoFactorAuthentication();
-            $props['requiresConfirmation'] = Features::optionEnabled(Features::twoFactorAuthentication(), 'confirm');
-        }
-
-        return Inertia::render('settings/security', $props);
+        return Spa::render('settings/security', $props);
     }
 
     /**
@@ -53,7 +41,7 @@ class SecurityController extends Controller implements HasMiddleware
             'password' => $request->password,
         ]);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Password updated.')]);
+        $request->session()->flash('flash.toast', ['type' => 'success', 'message' => __('Password updated.')]);
 
         return back();
     }

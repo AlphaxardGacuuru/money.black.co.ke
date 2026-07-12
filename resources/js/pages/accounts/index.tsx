@@ -1,4 +1,5 @@
-import { Head, Link } from "@inertiajs/react"
+import { Link } from "@/components/ui/link"
+import { Head } from "@/lib/spa"
 import { ChevronRight, Plus, Star, Wallet } from "lucide-react"
 import Heading from "@/components/heading"
 import LucideIconDisplay from "@/components/lucide-icon-display"
@@ -40,7 +41,10 @@ export default function AccountsIndex() {
 					<Button
 						asChild
 						className="sm:self-start">
-						<Link href="/accounts/create">
+						<Link
+							href="/accounts/create"
+							variant="unstyled"
+							size="none">
 							<Plus />
 							Create account
 						</Link>
@@ -56,6 +60,8 @@ export default function AccountsIndex() {
 							<Link
 								key={account.id}
 								href={`/accounts/${account.id}/edit`}
+								variant="unstyled"
+								size="none"
 								className="group block">
 								<Card
 									className={`h-full transition-colors group-hover:bg-accent/20 ${account.isDefault ? "border-2 border-primary/60 group-hover:border-primary" : "border-border/80 group-hover:border-primary/40"}`}>

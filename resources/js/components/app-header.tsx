@@ -1,4 +1,5 @@
-import { Link, usePage } from "@inertiajs/react"
+import { Link } from "@/components/ui/link"
+import { useApp } from "@/contexts/AppContext"
 import { BookOpen, Folder, LayoutGrid, Menu, Search } from "lucide-react"
 import AppLogo from "@/components/app-logo"
 import AppLogoIcon from "@/components/app-logo-icon"
@@ -32,7 +33,7 @@ import { UserMenuContent } from "@/components/user-menu-content"
 import { useCurrentUrl } from "@/hooks/use-current-url"
 import { useInitials } from "@/hooks/use-initials"
 import { cn, toUrl } from "@/lib/utils"
-import { dashboard } from "@/routes"
+const DASHBOARD_URL = "/admin/dashboard"
 import type { BreadcrumbItem, NavItem } from "@/types"
 
 type Props = {
@@ -42,7 +43,7 @@ type Props = {
 const mainNavItems: NavItem[] = [
 	{
 		title: "Dashboard",
-		href: dashboard(),
+		href: DASHBOARD_URL,
 		icon: LayoutGrid,
 	},
 ]
@@ -64,8 +65,7 @@ const activeItemStyles =
 	"text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100"
 
 export function AppHeader({ breadcrumbs = [] }: Props) {
-	const page = usePage()
-	const { auth } = page.props
+	const { auth } = useApp()
 	const getInitials = useInitials()
 	const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl()
 
@@ -89,7 +89,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
 								className="flex h-full w-64 flex-col items-stretch justify-between bg-sidebar">
 								<SheetTitle className="sr-only">Navigation menu</SheetTitle>
 								<SheetHeader className="flex justify-start text-left">
-									<AppLogoIcon className="h-6 w-6 fill-current text-black dark:text-white" />
+									<AppLogoIcon className="h-12 w-12 fill-current text-black dark:text-white" />
 								</SheetHeader>
 								<div className="flex h-full flex-1 flex-col space-y-4 p-4">
 									<div className="flex h-full flex-col justify-between text-sm">
@@ -97,7 +97,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
 											{mainNavItems.map((item) => (
 												<Link
 													key={item.title}
-													href={item.href}
+													href={toUrl(item.href)}
 													className="flex items-center space-x-2 font-medium">
 													{item.icon && <item.icon className="h-5 w-5" />}
 													<span>{item.title}</span>
@@ -125,8 +125,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
 					</div>
 
 					<Link
-						href={dashboard()}
-						prefetch
+						href={DASHBOARD_URL}
 						className="flex items-center space-x-2">
 						<AppLogo />
 					</Link>
@@ -140,7 +139,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
 										key={index}
 										className="relative flex h-full items-center">
 										<Link
-											href={item.href}
+											href={toUrl(item.href)}
 											className={cn(
 												navigationMenuTriggerStyle(),
 												whenCurrentUrl(item.href, activeItemStyles),
@@ -195,11 +194,11 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
 									className="size-10 rounded-full p-1">
 									<Avatar className="size-8 overflow-hidden rounded-full">
 										<AvatarImage
-											src={auth.user?.avatar}
-											alt={auth.user?.name}
+											src={auth?.avatar}
+											alt={auth?.name}
 										/>
 										<AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-											{getInitials(auth.user?.name ?? "")}
+											{getInitials(auth?.name ?? "")}
 										</AvatarFallback>
 									</Avatar>
 								</Button>
@@ -207,7 +206,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
 							<DropdownMenuContent
 								className="w-56"
 								align="end">
-								{auth.user && <UserMenuContent user={auth.user} />}
+								{auth && <UserMenuContent user={auth} />}
 							</DropdownMenuContent>
 						</DropdownMenu>
 					</div>

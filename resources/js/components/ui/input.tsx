@@ -18,10 +18,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 			props.onChange?.(e)
 		}
 
-		const isActive =
-			hasValue ||
-			props.value !== undefined ||
-			props.defaultValue !== undefined
+		const hasControlledValue =
+			props.value !== undefined && String(props.value).length > 0
+		const hasDefaultValue =
+			props.defaultValue !== undefined && String(props.defaultValue).length > 0
+		const isActive = hasValue || hasControlledValue || hasDefaultValue
 
 		return (
 			<div className="relative w-full">
@@ -34,14 +35,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 								<input
 									type={type}
 									className={cn(
-										"relative flex h-14 w-full rounded-lg border bg-transparent px-4 pt-5 pb-1 text-white font-light font-nunito text-base transition-all",
+										"relative flex h-14 w-full rounded-4xl border bg-transparent px-4 pt-5 pb-1 font-light font-nunito text-base transition-all placeholder:text-neutral-500 dark:placeholder:text-white/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-neutral-200/5 dark:disabled:bg-white/5 text-neutral-900 dark:text-white",
 										type == "color" ? "pt-6" : null,
 										error
-											? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
-											: "border-white/20 focus:border-white/40 focus:ring-2 focus:ring-white/10",
-										"placeholder:text-transparent",
-										"focus:outline-none",
-										"disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-white/5",
+											? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 dark:border-red-500 dark:focus:border-red-500 dark:focus:ring-red-500/30"
+											: "border-neutral-300 focus:border-neutral-500 focus:ring-2 focus:ring-neutral-400/20 dark:border-white/20 dark:focus:border-white/40 dark:focus:ring-white/10",
 										className
 									)}
 									ref={ref}
@@ -55,7 +53,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 										props.onBlur?.(e as React.FocusEvent<HTMLInputElement>)
 									}}
 									onChange={handleChange}
-									placeholder={label || props.placeholder}
+									placeholder={props.placeholder}
 									{...props}
 								/>
 								{label && (
@@ -63,9 +61,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 										className={cn(
 											"absolute left-4 transition-all duration-200 pointer-events-none font-light font-nunito z-10",
 											isActiveWithFocus
-												? "top-1.5 text-xs text-white"
-												: "top-4 text-base text-white",
-											error && isActiveWithFocus && "text-red-400"
+												? "top-1.5 text-xs text-neutral-700 dark:text-white"
+												: "top-4 text-base text-neutral-600 dark:text-white",
+											error &&
+												isActiveWithFocus &&
+												"text-red-400 dark:text-red-400"
 										)}>
 										{label}
 									</label>
@@ -79,7 +79,9 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 					<p
 						className={cn(
 							"mt-1.5 px-4 text-xs font-light font-nunito",
-							error ? "text-red-400" : "text-white/40"
+							error
+								? "text-red-400 dark:text-red-400"
+								: "text-neutral-500 dark:text-white/40"
 						)}>
 						{error || helperText}
 					</p>

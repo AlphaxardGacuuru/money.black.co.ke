@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react"
-import { Head, Link, router } from "@inertiajs/react"
+import { useNavigate } from "@tanstack/react-router"
+import { useParams } from "@tanstack/react-router"
+import { Link } from "@/components/ui/link"
+import { Head } from "@/lib/spa"
 import { ArrowLeft, Trash2 } from "lucide-react"
 import type { FormEvent } from "react"
 import AccountController from "@/actions/App/Http/Controllers/AccountController"
@@ -33,8 +36,10 @@ type AccountFormErrors = Partial<
 	>
 >
 
-export default function EditAccount({ id }: { id: string }) {
+export default function EditAccount() {
+	const { id } = useParams({ strict: false })
 	const props = useApp()
+	const navigate = useNavigate()
 
 	const [account, setAccount] = useState<Account>({} as Account)
 
@@ -56,7 +61,9 @@ export default function EditAccount({ id }: { id: string }) {
 			setColor(response.data.data.color ?? "#0f172a")
 			setName(response.data.data.name ?? "")
 			setCurrency(response.data.data.currency ?? "KES")
-			setType((response.data.data.type as "regular" | "savings" | "mobile") ?? "")
+			setType(
+				(response.data.data.type as "regular" | "savings" | "mobile") ?? ""
+			)
 			setDescription(response.data.data.description ?? "")
 			setIsDefault(Boolean(response.data.data.isDefault))
 		})
@@ -112,7 +119,9 @@ export default function EditAccount({ id }: { id: string }) {
 		Axios.delete(AccountController.destroy.url(id))
 			.then((res) => {
 				toast.success(res.data.message)
-				setTimeout(() => router.visit("/accounts"), 500)
+				setTimeout(() => {
+					void navigate({ to: "/accounts" })
+				}, 500)
 			})
 			.finally(() => {
 				setIsDeleting(false)
@@ -304,7 +313,10 @@ export default function EditAccount({ id }: { id: string }) {
 						<Button
 							variant="outline"
 							asChild>
-							<Link href="/accounts">
+							<Link
+								href="/accounts"
+								variant="unstyled"
+								size="none">
 								<ArrowLeft className="size-4" />
 								Back to Accounts
 							</Link>

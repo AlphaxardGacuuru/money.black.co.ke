@@ -1,4 +1,4 @@
-import { Head } from "@inertiajs/react"
+import { Head } from "@/lib/spa"
 import { Upload } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -22,7 +22,7 @@ export default function OneMoneyImportPage() {
 	const [loading, setLoading] = useState(false)
 	const [summary, setSummary] = useState<ImportSummary | null>(null)
 
-	async function handleImport() {
+	function handleImport() {
 		if (!file) {
 			toast.error("Choose a file to import.")
 
@@ -31,36 +31,37 @@ export default function OneMoneyImportPage() {
 
 		setLoading(true)
 
-		try {
-			const formData = new FormData()
-			formData.append("file", file)
+		const formData = new FormData()
+		formData.append("file", file)
 
-			const response = await Axios.post("/api/imports/one-money", formData, {
-				headers: {
-					"Content-Type": "multipart/form-data",
-				},
+		Axios.post("/api/imports/one-money", formData, {
+			headers: {
+				"Content-Type": "multipart/form-data",
+			},
+		})
+			.then((response) => {
+				const importSummary = response.data?.summary as ImportSummary
+				setSummary(importSummary)
+				toast.success(response.data?.message ?? "Import completed.")
 			})
-
-			const importSummary = response.data?.summary as ImportSummary
-			setSummary(importSummary)
-			toast.success(response.data?.message ?? "Import completed.")
-		} catch (error: unknown) {
-			const message =
-				(
-					error as {
-						response?: {
-							data?: {
-								message?: string
+			.catch((error: unknown) => {
+				const message =
+					(
+						error as {
+							response?: {
+								data?: {
+									message?: string
+								}
 							}
 						}
-					}
-				).response?.data?.message ??
-				"Import failed. Please check the file format."
+					).response?.data?.message ??
+					"Import failed. Please check the file format."
 
-			toast.error(message)
-		} finally {
-			setLoading(false)
-		}
+				toast.error(message)
+			})
+			.finally(() => {
+				setLoading(false)
+			})
 	}
 
 	return (

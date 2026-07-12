@@ -1,4 +1,4 @@
-const CACHE_NAME = "money-black-v1"
+const CACHE_NAME = "money-black-v2"
 const ASSETS_TO_CACHE = [
 	"/",
 	"/manifest.webmanifest",
@@ -43,12 +43,15 @@ self.addEventListener("fetch", (event) => {
 	const url = new URL(event.request.url)
 	const isApiRequest =
 		url.origin === self.location.origin && url.pathname.startsWith("/api/")
+	const isXhrRequest =
+		event.request.headers.get("X-Requested-With") === "XMLHttpRequest"
 	const isStaticAssetRequest =
 		url.origin === self.location.origin &&
-		(ASSETS_TO_CACHE.includes(url.pathname) || url.pathname.startsWith("/build/"))
+		(ASSETS_TO_CACHE.includes(url.pathname) ||
+			url.pathname.startsWith("/build/"))
 
-	// Dynamic API requests should always hit the network.
-	if (isApiRequest) {
+	// Dynamic API requests and XHR requests should always hit the network.
+	if (isApiRequest || isXhrRequest) {
 		event.respondWith(fetch(event.request))
 
 		return
@@ -62,7 +65,9 @@ self.addEventListener("fetch", (event) => {
 
 	// Non-static assets use network-first to avoid stale UI/data.
 	if (!isStaticAssetRequest) {
-		event.respondWith(fetch(event.request).catch(() => caches.match(event.request)))
+		event.respondWith(
+			fetch(event.request).catch(() => caches.match(event.request))
+		)
 
 		return
 	}

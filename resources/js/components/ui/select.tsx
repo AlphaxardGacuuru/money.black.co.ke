@@ -36,7 +36,7 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "border-input data-placeholder:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-input/50 flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "border-input data-placeholder:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-input/50 flex w-fit items-center justify-between gap-2 rounded-4xl border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       {...props}
@@ -63,7 +63,7 @@ function SelectContent({
       <SelectPrimitive.Content
         data-slot="select-content"
         className={cn(
-          "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-(--radix-select-content-available-height) min-w-32 origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border shadow-md",
+          "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-(--radix-select-content-available-height) min-w-32 origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-4xl border shadow-md",
           position === "popper" &&
             "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
           className
@@ -233,11 +233,12 @@ function SelectField({
               >
                 <SelectTrigger
                   className={cn(
-                    "relative h-14 w-full rounded-lg border bg-transparent pt-9 pb-5 ps-4 text-base font-light font-nunito text-white transition-all focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-white/5",
+                    "relative h-14 w-full rounded-4xl border bg-transparent pt-9 pb-5 ps-4 text-base font-light font-nunito text-neutral-900 transition-all focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-neutral-200/5 dark:disabled:bg-white/5",
+                    "dark:text-white",
                     error
-                      ? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
-                      : "border-white/20 focus:border-white/40 focus:ring-2 focus:ring-white/10",
-                    "[&_span]:text-left [&_span]:text-white [&_span[data-placeholder]]:text-transparent",
+                      ? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 dark:border-red-500 dark:focus:border-red-500 dark:focus:ring-red-500/30"
+                      : "border-neutral-300 focus:border-neutral-500 focus:ring-2 focus:ring-neutral-400/20 dark:border-white/20 dark:focus:border-white/40 dark:focus:ring-white/10",
+                    "[&_span]:text-left [&_span]:capitalize [&_span]:text-neutral-900 dark:[&_span]:text-white [&_span[data-placeholder]]:text-neutral-500 dark:[&_span[data-placeholder]]:text-white/50",
                     triggerClassName
                   )}
                   onFocus={handleFocus}
@@ -253,9 +254,9 @@ function SelectField({
                   className={cn(
                     "pointer-events-none absolute left-4 z-10 font-light font-nunito transition-all duration-200",
                     isActive
-                      ? "top-1.5 text-xs text-white"
-                      : "top-1.5 text-xs text-white",
-                    error && isActive ? "text-red-400" : null
+                      ? "top-1.5 text-xs text-neutral-700 dark:text-white"
+                      : "top-1.5 text-xs text-neutral-700 dark:text-white",
+                    error && isActive ? "text-red-400 dark:text-red-400" : null
                   )}
                 >
                   {label}
@@ -270,7 +271,7 @@ function SelectField({
         <p
           className={cn(
             "mt-1.5 px-4 text-xs font-light font-nunito",
-            error ? "text-red-400" : "text-white/40"
+            error ? "text-red-400 dark:text-red-400" : "text-neutral-500 dark:text-white/40"
           )}
         >
           {error || helperText}

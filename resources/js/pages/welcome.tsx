@@ -1,4 +1,5 @@
-import { Head, Link, usePage } from "@inertiajs/react"
+import { Link } from "@/components/ui/link"
+import { Head } from "@/lib/spa"
 import {
 	ArrowRight,
 	CheckCircle2,
@@ -8,7 +9,11 @@ import {
 	Wallet,
 } from "lucide-react"
 import AppLogo from "@/components/app-logo"
-import { dashboard, login, register } from "@/routes"
+import { useApp } from "@/contexts/AppContext"
+import { toUrl } from "@/lib/utils"
+import { login, register } from "@/routes"
+
+const DASHBOARD_URL = "/accounts"
 
 type WelcomeProps = {
 	canRegister?: boolean
@@ -42,7 +47,7 @@ const features: FeatureItem[] = [
 ]
 
 export default function Welcome({ canRegister = true }: WelcomeProps) {
-	const { auth } = usePage().props as { auth?: { user?: unknown } }
+	const { auth } = useApp()
 
 	return (
 		<>
@@ -52,19 +57,22 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
 				<div className="pointer-events-none absolute inset-0">
 					<div className="absolute -top-28 left-[12%] size-72 rounded-full bg-primary/10 blur-3xl motion-safe:animate-pulse" />
 					<div className="absolute top-[24%] -right-32 size-80 rounded-full bg-chart-2/20 blur-3xl motion-safe:animate-pulse" />
-					<div className="absolute bottom-[-8rem] left-[38%] size-80 rounded-full bg-chart-4/15 blur-3xl motion-safe:animate-pulse" />
+					<div className="absolute -bottom-32 left-[38%] size-80 rounded-full bg-chart-4/15 blur-3xl motion-safe:animate-pulse" />
 				</div>
 
 				<header className="relative mx-auto flex w-full max-w-7xl items-center justify-between px-6 pt-6 lg:px-10">
 					<AppLogo
 						variant="full"
 						className="h-16 w-auto dark:invert"
+						iconClassName="h-36 w-36"
 					/>
 
 					<nav className="flex items-center gap-2 sm:gap-3">
-						{auth?.user ? (
+						{auth ? (
 							<Link
-								href={dashboard()}
+								href="/accounts"
+								variant="unstyled"
+								size="none"
 								className="inline-flex items-center gap-2 rounded-md border border-border/80 bg-card/70 px-4 py-2 text-sm font-medium shadow-xs backdrop-blur transition-colors hover:bg-accent">
 								Open Dashboard
 								<ArrowRight className="size-4" />
@@ -72,13 +80,17 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
 						) : (
 							<>
 								<Link
-									href={login()}
+									href={toUrl(login())}
+									variant="unstyled"
+									size="none"
 									className="inline-flex items-center rounded-md border border-transparent px-4 py-2 text-sm font-medium transition-colors hover:border-border hover:bg-accent">
 									Log in
 								</Link>
 								{canRegister && (
 									<Link
-										href={register()}
+										href={toUrl(register())}
+										variant="unstyled"
+										size="none"
 										className="inline-flex items-center rounded-md border border-border/80 bg-card/70 px-4 py-2 text-sm font-medium shadow-xs backdrop-blur transition-colors hover:bg-accent">
 										Create account
 									</Link>
@@ -107,14 +119,18 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
 
 						<div className="flex flex-wrap items-center gap-3 pt-2">
 							<Link
-								href={auth?.user ? dashboard() : login()}
+								href={auth ? DASHBOARD_URL : toUrl(login())}
+								variant="unstyled"
+								size="none"
 								className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-transform hover:-translate-y-0.5 hover:bg-primary/90">
-								{auth?.user ? "Go to dashboard" : "Start tracking now"}
+								{auth ? "Go to dashboard" : "Start tracking now"}
 								<ArrowRight className="size-4" />
 							</Link>
-							{!auth?.user && canRegister ? (
+							{!auth && canRegister ? (
 								<Link
-									href={register()}
+									href={toUrl(register())}
+									variant="unstyled"
+									size="none"
 									className="inline-flex items-center rounded-md border border-border/80 bg-card/80 px-5 py-2.5 text-sm font-semibold shadow-xs backdrop-blur transition-colors hover:bg-accent">
 									Create free account
 								</Link>

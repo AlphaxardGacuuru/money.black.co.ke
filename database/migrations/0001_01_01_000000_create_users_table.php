@@ -18,7 +18,12 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
+            $table->string('phone')->nullable();
+            $table->string('hashed_phone')->nullable()->unique();
+            $table->string('gender')->nullable();
             $table->string('google_id')->nullable()->unique();
+            $table->string('avatar')->default('avatars/male-avatar.png');
+            $table->jsonb('settings')->nullable();
             $table->timestamps();
         });
 

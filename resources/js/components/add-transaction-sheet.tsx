@@ -1,4 +1,4 @@
-import { Link } from "@inertiajs/react"
+import { Link } from "@/components/ui/link"
 import { Check, Shapes, Trash2, Wallet } from "lucide-react"
 import type { FormEvent } from "react"
 import { useEffect, useState } from "react"
@@ -366,7 +366,7 @@ export default function AddTransactionSheet({
 			}}>
 			<SheetContent
 				side="bottom"
-				className="max-h-[85vh] rounded-t-3xl [&>button]:top-1 [&>button]:right-0 [&>button]:left-auto [&>button]:size-11 [&>button>svg]:size-6 gap-1">
+				className="max-h-[85vh] rounded-t-4xl [&>button]:top-1 [&>button]:right-0 [&>button]:left-auto [&>button]:size-11 [&>button>svg]:size-6 gap-1">
 				{/* Sheet Header Section Start */}
 				<SheetHeader>
 					<SheetTitle>{sheetTitle}</SheetTitle>
@@ -406,7 +406,7 @@ export default function AddTransactionSheet({
 											setIsAccountPickerOpen((isPickerOpen) => !isPickerOpen)
 											setIsCategoryPickerOpen(false)
 										}}
-										className="inline-flex grow items-center gap-2 rounded-xl border border-border/70 bg-background px-3 py-1.5 text-xs font-medium transition-colors hover:bg-accent/20">
+										className="inline-flex grow items-center gap-2 rounded-4xl border border-border/70 bg-background px-3 py-1.5 text-xs font-medium transition-colors hover:bg-accent/20">
 										<div
 											className="flex size-12 items-center justify-center rounded-full border border-border/60 text-white"
 											style={{
@@ -432,7 +432,7 @@ export default function AddTransactionSheet({
 											setIsCategoryPickerOpen((isPickerOpen) => !isPickerOpen)
 											setIsAccountPickerOpen(false)
 										}}
-										className="inline-flex grow items-center gap-2 rounded-xl border border-border/70 bg-background px-3 py-1.5 text-xs font-medium transition-colors hover:bg-accent/20">
+										className="inline-flex grow items-center gap-2 rounded-4xl border border-border/70 bg-background px-3 py-1.5 text-xs font-medium transition-colors hover:bg-accent/20">
 										<div
 											className="flex size-12 items-center justify-center rounded-full border border-border/60 text-white"
 											style={{
@@ -460,7 +460,7 @@ export default function AddTransactionSheet({
 								</div>
 
 								{isAccountPickerOpen ? (
-									<div className="mt-3 grid grid-cols-4 gap-2 rounded-xl border bg-gray-500/10 p-1">
+									<div className="mt-3 grid grid-cols-4 gap-2 rounded-4xl border bg-gray-500/10 p-1">
 										{accounts.map((account, accountIndex) => (
 											<button
 												key={account.id}
@@ -469,7 +469,7 @@ export default function AddTransactionSheet({
 													setSelectedAccount(account)
 													setIsAccountPickerOpen(false)
 												}}
-												className={`flex min-h-24 flex-col rounded-xl border p-2 text-center transition-colors hover:bg-accent/20 ${
+												className={`flex min-h-24 flex-col rounded-4xl border p-2 text-center transition-colors hover:bg-accent/20 ${
 													selectedAccount?.id === account.id
 														? "border-primary/70 bg-primary/10"
 														: "border-border/70 bg-background"
@@ -503,7 +503,7 @@ export default function AddTransactionSheet({
 								) : null}
 
 								{isCategoryPickerOpen ? (
-									<div className="mt-3 grid grid-cols-4 gap-2 rounded-xl border bg-gray-500/10 p-1">
+									<div className="mt-3 grid grid-cols-4 gap-2 rounded-4xl border bg-gray-500/10 p-1">
 										{categories.map((category, categoryIndex) => (
 											<button
 												key={category.id}
@@ -512,14 +512,14 @@ export default function AddTransactionSheet({
 													onSelectedCategoryChange(category)
 													setIsCategoryPickerOpen(false)
 												}}
-												className={`flex min-h-24 flex-col rounded-xl border p-2 text-center transition-colors hover:bg-accent/20 ${
+												className={`flex min-h-24 flex-col rounded-4xl border p-2 text-center transition-colors hover:bg-accent/20 ${
 													selectedCategory?.id === category.id
 														? "border-primary/70 bg-primary/10"
 														: "border-border/70 bg-background"
 												}`}>
 												<div className="flex flex-1 items-center justify-center">
 													<div
-														className="flex size-8 items-center justify-center rounded-full border border-border/60 text-white"
+														className="flex size-12 items-center justify-center rounded-full border border-border/60 text-white"
 														style={{
 															backgroundColor: resolveCardColor(
 																category.color,
@@ -528,7 +528,7 @@ export default function AddTransactionSheet({
 														}}>
 														<LucideIconDisplay
 															icon={category.icon}
-															className="size-3"
+															className="size-6"
 															fallback={
 																<span className="text-[10px] font-semibold">
 																	{getInitials(category.name) || "C"}
@@ -558,7 +558,6 @@ export default function AddTransactionSheet({
 								name="notes"
 								value={notes}
 								onChange={(event) => setNotes(event.target.value)}
-								placeholder="Notes"
 								error={errors.notes}
 							/>
 							{/* Notes Section End */}
@@ -578,7 +577,7 @@ export default function AddTransactionSheet({
 								<InputError message={errors.amount} />
 								<InputError message={errors.transaction_date} />
 
-								<div className="rounded-2xl border border-border/60 bg-muted/40 px-5 py-3 text-right">
+								<div className="rounded-4xl border border-border/60 bg-muted/40 px-5 py-3 text-right">
 									<p className="mb-1 text-xs tracking-widest text-muted-foreground uppercase">
 										Amount
 									</p>
@@ -595,7 +594,7 @@ export default function AddTransactionSheet({
 									<button
 										type="button"
 										onClick={() => handleCalcKey("/")}
-										className="flex h-14 items-center justify-center rounded-2xl bg-primary/10 text-lg font-bold text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
+										className="flex h-14 items-center justify-center rounded-4xl bg-primary/10 text-lg font-bold text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
 										÷
 									</button>
 
@@ -604,7 +603,7 @@ export default function AddTransactionSheet({
 											key={d}
 											type="button"
 											onClick={() => handleCalcKey(d)}
-											className="flex h-14 items-center justify-center rounded-2xl bg-muted text-lg font-semibold transition-all hover:bg-muted/70 active:scale-[0.95]">
+											className="flex h-14 items-center justify-center rounded-4xl bg-muted text-lg font-semibold transition-all hover:bg-muted/70 active:scale-[0.95]">
 											{d}
 										</button>
 									))}
@@ -612,14 +611,14 @@ export default function AddTransactionSheet({
 									<button
 										type="button"
 										onClick={() => handleCalcKey("⌫")}
-										className="flex h-14 items-center justify-center rounded-2xl bg-muted/50 text-lg font-semibold transition-all hover:bg-muted active:scale-[0.95]">
+										className="flex h-14 items-center justify-center rounded-4xl bg-muted/50 text-lg font-semibold transition-all hover:bg-muted active:scale-[0.95]">
 										⌫
 									</button>
 
 									<button
 										type="button"
 										onClick={() => handleCalcKey("*")}
-										className="flex h-14 items-center justify-center rounded-2xl bg-primary/10 text-lg font-bold text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
+										className="flex h-14 items-center justify-center rounded-4xl bg-primary/10 text-lg font-bold text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
 										×
 									</button>
 
@@ -628,7 +627,7 @@ export default function AddTransactionSheet({
 											key={d}
 											type="button"
 											onClick={() => handleCalcKey(d)}
-											className="flex h-14 items-center justify-center rounded-2xl bg-muted text-lg font-semibold transition-all hover:bg-muted/70 active:scale-[0.95]">
+											className="flex h-14 items-center justify-center rounded-4xl bg-muted text-lg font-semibold transition-all hover:bg-muted/70 active:scale-[0.95]">
 											{d}
 										</button>
 									))}
@@ -644,7 +643,7 @@ export default function AddTransactionSheet({
 									<button
 										type="button"
 										onClick={() => handleCalcKey("-")}
-										className="flex h-14 items-center justify-center rounded-2xl bg-primary/10 text-lg font-bold text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
+										className="flex h-14 items-center justify-center rounded-4xl bg-primary/10 text-lg font-bold text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
 										−
 									</button>
 
@@ -653,7 +652,7 @@ export default function AddTransactionSheet({
 											key={d}
 											type="button"
 											onClick={() => handleCalcKey(d)}
-											className="flex h-14 items-center justify-center rounded-2xl bg-muted text-lg font-semibold transition-all hover:bg-muted/70 active:scale-[0.95]">
+											className="flex h-14 items-center justify-center rounded-4xl bg-muted text-lg font-semibold transition-all hover:bg-muted/70 active:scale-[0.95]">
 											{d}
 										</button>
 									))}
@@ -661,26 +660,26 @@ export default function AddTransactionSheet({
 									<button
 										type="submit"
 										disabled={isProcessing || !canSubmit}
-										className="row-span-2 flex items-center justify-center rounded-2xl bg-primary text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.95] disabled:cursor-not-allowed disabled:opacity-50">
+										className="row-span-2 flex items-center justify-center rounded-4xl bg-primary text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.95] disabled:cursor-not-allowed disabled:opacity-50">
 										{isProcessing ? <Spinner /> : <Check className="size-5" />}
 									</button>
 									<button
 										type="button"
 										onClick={() => handleCalcKey("+")}
-										className="flex h-14 items-center justify-center rounded-2xl bg-primary/10 text-lg font-bold text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
+										className="flex h-14 items-center justify-center rounded-4xl bg-primary/10 text-lg font-bold text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
 										+
 									</button>
 
 									<button
 										type="button"
 										onClick={() => handleCalcKey("0")}
-										className="flex h-14 items-center justify-center rounded-2xl bg-muted text-lg font-semibold transition-all hover:bg-muted/70 active:scale-[0.95]">
+										className="flex h-14 items-center justify-center rounded-4xl bg-muted text-lg font-semibold transition-all hover:bg-muted/70 active:scale-[0.95]">
 										0
 									</button>
 									<button
 										type="button"
 										onClick={() => onOpenChange(false)}
-										className="col-span-2 flex h-14 items-center justify-center rounded-2xl bg-destructive/10 text-sm font-semibold text-destructive transition-all hover:bg-destructive/20 active:scale-[0.95]">
+										className="col-span-2 flex h-14 items-center justify-center rounded-4xl bg-destructive/10 text-sm font-semibold text-destructive transition-all hover:bg-destructive/20 active:scale-[0.95]">
 										Cancel
 									</button>
 									{/* Calculator Controls Section End */}
@@ -720,7 +719,10 @@ export default function AddTransactionSheet({
 							</div>
 							<div className="flex justify-end">
 								<Button asChild>
-									<Link href={CategoryController.index.url()}>
+									<Link
+										href={CategoryController.index.url()}
+										variant="unstyled"
+										size="none">
 										<Shapes className="size-4" />
 										Go to Categories
 									</Link>
@@ -737,7 +739,10 @@ export default function AddTransactionSheet({
 						</div>
 						<div className="flex justify-end">
 							<Button asChild>
-								<Link href="/accounts/create">
+								<Link
+									href="/accounts/create"
+									variant="unstyled"
+									size="none">
 									<Wallet className="size-4" />
 									Create Account
 								</Link>

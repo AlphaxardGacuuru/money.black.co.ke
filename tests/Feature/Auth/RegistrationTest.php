@@ -3,7 +3,6 @@
 namespace Tests\Feature\Auth;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Laravel\Fortify\Features;
 use Tests\TestCase;
 
 class RegistrationTest extends TestCase
@@ -14,7 +13,7 @@ class RegistrationTest extends TestCase
     {
         parent::setUp();
 
-        $this->skipUnlessFortifyHas(Features::registration());
+        $this->skipUnlessRouteExists('register');
     }
 
     public function test_registration_screen_can_be_rendered()
@@ -35,7 +34,7 @@ class RegistrationTest extends TestCase
 
         $this->assertAuthenticated();
         $response->assertRedirect(route('dashboard', absolute: false))
-            ->assertInertiaFlash('toast.type', 'success')
-            ->assertInertiaFlash('toast.message', 'Registration successful!');
+            ->assertSessionHas('flash.toast.type', 'success')
+            ->assertSessionHas('flash.toast.message', 'Registration successful!');
     }
 }

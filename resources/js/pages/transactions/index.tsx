@@ -1,4 +1,5 @@
-import { Head, Link } from "@inertiajs/react"
+import { Link } from "@/components/ui/link"
+import { Head } from "@/lib/spa"
 import { ArrowUpLeft, Plus, ArrowUpDown } from "lucide-react"
 import { useEffect, useState } from "react"
 import { buildFilterQuery } from "@/lib/date-filter"
@@ -88,9 +89,9 @@ export default function TransactionsIndex() {
 				(category) => String(category.id) === String(transaction.categoryId)
 			) ?? {
 				id: transaction.categoryId,
-				name: transaction.categoryName,
-				icon: transaction.categoryIcon,
-				color: transaction.categoryColor,
+				name: transaction.categoryName ?? "Category",
+				icon: transaction.categoryIcon ?? null,
+				color: transaction.categoryColor ?? null,
 			}
 		)
 		setIsSheetOpen(true)
@@ -108,8 +109,6 @@ export default function TransactionsIndex() {
 						<div className="mb-4 flex w-full items-center justify-end gap-2">
 							<Input
 								label="Search by notes"
-								placeholder="Search notes..."
-								className="rounded-3xl"
 								value={txFilters.notes}
 								onChange={(event) =>
 									setTxFilters((prev) => ({
@@ -242,7 +241,10 @@ export default function TransactionsIndex() {
 									</p>
 								</div>
 								<Button asChild>
-									<Link href="/categories">
+									<Link
+										href="/categories"
+										variant="unstyled"
+										size="none">
 										<ArrowUpLeft className="size-4" />
 										Go to categories
 									</Link>

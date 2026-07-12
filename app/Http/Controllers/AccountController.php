@@ -8,7 +8,6 @@ use App\Models\Account;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Inertia\Inertia;
 
 class AccountController extends Controller
 {
@@ -45,7 +44,7 @@ class AccountController extends Controller
         [$saved, $message, $account] = $this->service->store($request);
 
         if (!$request->ajax()) {
-            Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
+            session()->flash('toast', ['type' => 'success', 'message' => $message]);
             return redirect()->route('accounts.index');
         }
 
@@ -84,7 +83,7 @@ class AccountController extends Controller
         [$saved, $message, $account] = $this->service->update($request, $account);
 
         if (!$request->ajax()) {
-            Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
+            session()->flash('toast', ['type' => 'success', 'message' => $message]);
             return redirect()->route('accounts.index');
         }
 
@@ -102,7 +101,7 @@ class AccountController extends Controller
         [$deleted, $message, $account] = $this->service->destroy($account);
 
         if (!$request->ajax()) {
-            Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
+            session()->flash('toast', ['type' => 'success', 'message' => $message]);
             return redirect()->route('accounts.index');
         }
 

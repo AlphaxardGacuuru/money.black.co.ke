@@ -1,26 +1,17 @@
+export type AccountBalance = {
+	amount?: number
+	formatted?: string
+}
+
 export type Account = {
 	id: number | string
 	name: string
-	icon: string
-	color: string
-	currency: string
-	balance: {
-		amount: number
-		formatted: string
-	}
-	type: string
-	description: string
-	isDefault: boolean
-}
-
-export type AccountResource = {
-	data: Account
-}
-
-export type AccountCollection = {
-	data: Account[]
-}
-
-export type AccountPageProps = {
-	accounts: AccountCollection
+	description?: string | null
+	color?: string | null
+	icon?: string | null
+	currency?: string | null
+	type?: string | null
+	isDefault?: boolean
+	balance?: AccountBalance
+	[key: string]: unknown
 }

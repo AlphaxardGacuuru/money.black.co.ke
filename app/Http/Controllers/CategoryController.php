@@ -8,7 +8,6 @@ use App\Models\Category;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Inertia\Inertia;
 
 class CategoryController extends Controller
 {
@@ -43,7 +42,7 @@ class CategoryController extends Controller
         [$saved, $message, $category] = $this->service->store($request);
 
         if (!$request->ajax()) {
-            Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
+            session()->flash('toast', ['type' => 'success', 'message' => $message]);
             return redirect()->route('categories.index');
         }
 
@@ -80,7 +79,7 @@ class CategoryController extends Controller
         [$saved, $message, $category] = $this->service->update($request, $category);
 
         if (!$request->ajax()) {
-            Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
+            session()->flash('toast', ['type' => 'success', 'message' => $message]);
             return redirect()->route('categories.index');
         }
 
@@ -98,7 +97,7 @@ class CategoryController extends Controller
         [$deleted, $message, $category] = $this->service->destroy($category);
 
         if (!$request->ajax()) {
-            Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
+            session()->flash('toast', ['type' => 'success', 'message' => $message]);
             return redirect()->route('categories.index');
         }
 

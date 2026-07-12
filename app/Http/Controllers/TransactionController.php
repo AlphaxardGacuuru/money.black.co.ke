@@ -7,7 +7,6 @@ use App\Http\Services\TransactionService;
 use App\Models\Transaction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 
 class TransactionController extends Controller
 {
@@ -43,7 +42,7 @@ class TransactionController extends Controller
         [$saved, $message, $transaction] = $this->service->store($request);
 
         if (!$request->ajax()) {
-            Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
+            session()->flash('toast', ['type' => 'success', 'message' => $message]);
             return redirect($request->input('redirect_to', '/categories'));
         }
 
@@ -78,7 +77,7 @@ class TransactionController extends Controller
         [$saved, $message, $updatedTransaction] = $this->service->update($request, $transaction);
 
         if (!$request->ajax()) {
-            Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
+            session()->flash('toast', ['type' => 'success', 'message' => $message]);
             return redirect($request->input('redirect_to', '/transactions'));
         }
 
@@ -96,7 +95,7 @@ class TransactionController extends Controller
         [$deleted, $message, $transaction] = $this->service->destroy($transaction);
 
         if (!$request->ajax()) {
-            Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
+            session()->flash('toast', ['type' => 'success', 'message' => $message]);
             return redirect($request->input('redirect_to', '/transactions'));
         }
 

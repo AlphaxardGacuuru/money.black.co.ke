@@ -1,34 +1,23 @@
 import type { AxiosError } from "axios"
 import { isCancel } from "axios"
 import { createContext, useContext, useEffect, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 import type { ChangeEvent } from "react"
-import type { Account } from "@/types/account"
-import type { Transaction } from "@/types/transaction"
-import type { Category } from "@/types/category"
-import type { DateFilterParams } from "@/types/date-filter"
-import type { Overview } from "@/types/overview"
 import Axios from "@/lib/axios"
-import {
-	readJsonFromLocalStorage,
-	readStringFromLocalStorage,
-	setLocalStorage,
-} from "@/lib/localStorage"
 import type {
 	AppContextValue,
 	AppProviderProps,
-	AuthState,
 	ErrorResponse,
 	FormError,
 	PaginatedList,
 	PageState,
 } from "../types/app-context"
-
-const DEFAULT_AUTH: AuthState = {
-	id: 0,
-	name: "Guest",
-	username: "@guest",
-	avatar: "/storage/avatars/male-avatar.png",
-}
+import type { User } from "@/types/auth"
+import type { Account } from "@/types/account"
+import type { Category } from "@/types/category"
+import type { OverviewState } from "@/types/overview"
+import type { Transaction } from "@/types/transaction"
+import type { DateFilterParams } from "@/types/date-filter"
 
 const DEFAULT_DATE_FILTERS: DateFilterParams = {
 	filter: "all_time",
@@ -37,8 +26,7 @@ const DEFAULT_DATE_FILTERS: DateFilterParams = {
 	endDate: "",
 }
 
-const DATE_FILTERS_STORAGE_KEY = "dateFilters"
-const DEFAULT_OVERVIEW: Overview = {
+const DEFAULT_OVERVIEW: OverviewState = {
 	categories: [],
 	totals: {
 		expense: 0,
@@ -60,69 +48,28 @@ export const useApp = (): AppContextValue => {
 }
 
 export const AppProvider = ({ children }: AppProviderProps) => {
-	const [messages, setMessages] = useState<string[]>([])
-	const [errors, setErrors] = useState<string[]>([])
-	const [formErrors, setFormErrors] = useState<FormError[]>([])
-	const [login, setLogin] = useState<string | null>(null)
-	const [auth, setAuth] = useState<AuthState>(() =>
-		readJsonFromLocalStorage<AuthState>("auth", DEFAULT_AUTH)
-	)
-	const [headerMenu, setHeaderMenu] = useState<string | null>(null)
-	const [adminMenu, setAdminMenu] = useState<string>(() => {
-		if (window.innerWidth <= 768) {
-			return ""
+
+	function getLocalStorage<T>(key: string, fallback: T): T {
+		if (typeof window === "undefined") {
+			return fallback
 		}
 
-		return "left-open"
-	})
-	const [accounts, setAccounts] = useState<Account[]>(
-		readJsonFromLocalStorage<Account[]>("accounts", [])
-	)
-	const [categories, setCategories] = useState<Category[]>(
-		readJsonFromLocalStorage<Category[]>("categories", [])
-	)
-	const [transactions, setTransactions] = useState<Transaction[]>(
-		readJsonFromLocalStorage<Transaction[]>("transactions", [])
-	)
-	const [overview, setOverview] = useState<Overview>(() =>
-		readJsonFromLocalStorage<Overview>("overview", DEFAULT_OVERVIEW)
-	)
+		const value = window.localStorage.getItem(key)
 
-	const [page, setPage] = useState<PageState>({ name: "/", path: [] })
-	const [loadingItems, setLoadingItems] = useState(0)
-	const [downloadLink, setDownloadLink] = useState<string | null>(null)
-	const [downloadLinkText, setDownloadLinkText] = useState("")
-	const [dateFilters, setDateFilters] = useState<DateFilterParams>(() =>
-		readJsonFromLocalStorage<DateFilterParams>(
-			DATE_FILTERS_STORAGE_KEY,
-			DEFAULT_DATE_FILTERS
-		)
-	)
+		if (!value) {
+			return fallback
+		}
 
-	const getLocalStorage = <T,>(key: string, fallback: T): T => {
-		return readJsonFromLocalStorage<T>(key, fallback)
+		return JSON.parse(value) as T
 	}
 
-	const getNormalLocalStorage = (key: string): string | null => {
-		return readStringFromLocalStorage(key)
+	function setLocalStorage(key: string, value: unknown): void {
+		if (typeof window === "undefined") {
+			return
+		}
+
+		window.localStorage.setItem(key, JSON.stringify(value))
 	}
-
-	const getLocalStorageAuth = (key = "auth"): AuthState => {
-		return getLocalStorage<AuthState>(key, DEFAULT_AUTH)
-	}
-
-	useEffect(() => {
-		setLocalStorage(DATE_FILTERS_STORAGE_KEY, {
-			filter: dateFilters.filter ?? DEFAULT_DATE_FILTERS.filter,
-			date: dateFilters.date ?? DEFAULT_DATE_FILTERS.date,
-			startDate: dateFilters.startDate ?? DEFAULT_DATE_FILTERS.startDate,
-			endDate: dateFilters.endDate ?? DEFAULT_DATE_FILTERS.endDate,
-		})
-	}, [dateFilters])
-
-	useEffect(() => {
-		setLocalStorage("overview", overview)
-	}, [overview])
 
 	const withLoading = (
 		endpoint: string,
@@ -140,6 +87,39 @@ export const AppProvider = ({ children }: AppProviderProps) => {
 			}
 		})
 	}
+	
+	const [messages, setMessages] = useState<string[]>([])
+	const [errors, setErrors] = useState<string[]>([])
+	const [formErrors, setFormErrors] = useState<FormError[]>([])
+	const [login, setLogin] = useState<string | null>(null)
+	// const [auth, setAuth] = useState<User | object>({})
+	const [headerMenu, setHeaderMenu] = useState<string | null>(null)
+	const [accounts, setAccounts] = useState<Account[]>(() =>
+		getLocalStorage<Account[]>("accounts", [])
+	)
+	const [categories, setCategories] = useState<Category[]>(() =>
+		getLocalStorage<Category[]>("categories", [])
+	)
+	const [transactions, setTransactions] = useState<Transaction[]>(() =>
+		getLocalStorage<Transaction[]>("transactions", [])
+	)
+	const [dateFilters, setDateFilters] = useState<DateFilterParams>(() =>
+		getLocalStorage<DateFilterParams>("dateFilters", DEFAULT_DATE_FILTERS)
+	)
+	const [overview, setOverview] = useState<OverviewState>(() =>
+		getLocalStorage<OverviewState>("overview", DEFAULT_OVERVIEW)
+	)
+	const [adminMenu, setAdminMenu] = useState<string>(() => {
+		if (window?.innerWidth <= 768) {
+			return ""
+		}
+
+		return "left-open"
+	})
+	const [page, setPage] = useState<PageState>({ name: "/", path: [] })
+	const [loadingItems, setLoadingItems] = useState(0)
+	const [downloadLink, setDownloadLink] = useState<string | null>(null)
+	const [downloadLinkText, setDownloadLinkText] = useState("")
 
 	const get: AppContextValue["get"] = (
 		endpoint,
@@ -238,6 +218,15 @@ export const AppProvider = ({ children }: AppProviderProps) => {
 		return undefined
 	}
 
+	const memberInitials = (name: string): string => {
+		return name
+			?.split(" ")
+			.map((part) => part[0])
+			.slice(0, 2)
+			.join("")
+			.toUpperCase()
+	}
+
 	const formatToCommas = (event: ChangeEvent<HTMLInputElement>): string => {
 		let value = event.target.value.toString().replace(/[^0-9.]/g, "")
 		value = Number(value).toString()
@@ -245,6 +234,30 @@ export const AppProvider = ({ children }: AppProviderProps) => {
 
 		return event.target.value.replace(/,/g, "")
 	}
+
+	const { data: auth } = useQuery<User>({
+		queryKey: ["auth"],
+		queryFn: () => Axios.get("/api/auth").then((res) => res.data.data),
+	})
+
+	useEffect(() => {
+		if (auth) {
+			setLocalStorage("auth", auth)
+		}
+	}, [auth])
+
+	useEffect(() => {
+		setLocalStorage("dateFilters", {
+			filter: dateFilters.filter ?? DEFAULT_DATE_FILTERS.filter,
+			date: dateFilters.date ?? DEFAULT_DATE_FILTERS.date,
+			startDate: dateFilters.startDate ?? DEFAULT_DATE_FILTERS.startDate,
+			endDate: dateFilters.endDate ?? DEFAULT_DATE_FILTERS.endDate,
+		})
+	}, [dateFilters])
+
+	useEffect(() => {
+		setLocalStorage("overview", overview)
+	}, [overview])
 
 	const value: AppContextValue = {
 		messages,
@@ -256,7 +269,6 @@ export const AppProvider = ({ children }: AppProviderProps) => {
 		login,
 		setLogin,
 		auth,
-		setAuth,
 		headerMenu,
 		setHeaderMenu,
 		adminMenu,
@@ -267,6 +279,8 @@ export const AppProvider = ({ children }: AppProviderProps) => {
 		setCategories,
 		transactions,
 		setTransactions,
+		dateFilters,
+		setDateFilters,
 		overview,
 		setOverview,
 		page,
@@ -280,15 +294,12 @@ export const AppProvider = ({ children }: AppProviderProps) => {
 		get,
 		getPaginated,
 		getLocalStorage,
-		getNormalLocalStorage,
-		getLocalStorageAuth,
 		setLocalStorage,
 		iterator,
 		getErrors,
 		getFieldError,
+		memberInitials,
 		formatToCommas,
-		dateFilters,
-		setDateFilters,
 	}
 
 	return <AppContext.Provider value={value}>{children}</AppContext.Provider>

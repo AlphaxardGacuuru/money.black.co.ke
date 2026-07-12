@@ -2,12 +2,9 @@
 
 namespace Tests\Feature\Auth;
 
-use App\Http\Middleware\UsePersistentAuthSession;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\RateLimiter;
-use Laravel\Fortify\Features;
-use Symfony\Component\HttpFoundation\Cookie;
 use Tests\TestCase;
 
 class AuthenticationTest extends TestCase
@@ -32,70 +29,18 @@ class AuthenticationTest extends TestCase
 
         $this->assertAuthenticated();
         $response->assertRedirect(route('dashboard', absolute: false))
-            ->assertInertiaFlash('toast.type', 'success')
-            ->assertInertiaFlash('toast.message', 'Welcome back!');
-    }
-
-    public function test_remembered_logins_receive_a_persistent_auth_cookie_and_long_session_cookie()
-    {
-        $user = User::factory()->create();
-
-        $response = $this->post(route('login.store'), [
-            'email' => $user->email,
-            'password' => 'password',
-            'remember' => 'on',
-        ]);
-
-        $persistentCookie = $this->findCookie(
-            $response->headers->getCookies(),
-            UsePersistentAuthSession::COOKIE_NAME,
-        );
-        $sessionCookie = $this->findCookie(
-            $response->headers->getCookies(),
-            config('session.cookie'),
-        );
-
-        $this->assertNotNull($persistentCookie);
-        $this->assertGreaterThan(now()->addYear()->timestamp, $persistentCookie->getExpiresTime());
-        $this->assertNotNull($sessionCookie);
-        $this->assertGreaterThan(now()->addYear()->timestamp, $sessionCookie->getExpiresTime());
-    }
-
-    public function test_non_remembered_logins_do_not_receive_a_persistent_auth_cookie()
-    {
-        $user = User::factory()->create();
-
-        $response = $this->post(route('login.store'), [
-            'email' => $user->email,
-            'password' => 'password',
-        ]);
-
-        $persistentCookie = $this->findCookie(
-            $response->headers->getCookies(),
-            UsePersistentAuthSession::COOKIE_NAME,
-        );
-
-        $this->assertNull($persistentCookie);
+            ->assertSessionHas('flash.toast.type', 'success')
+            ->assertSessionHas('flash.toast.message', 'Welcome back!');
     }
 
     public function test_users_with_two_factor_enabled_are_redirected_to_two_factor_challenge()
     {
-        $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
-
-        Features::twoFactorAuthentication([
-            'confirm' => true,
-            'confirmPassword' => true,
-        ]);
-
         $user = User::factory()->create();
 
-        $user->forceFill([
-            'two_factor_secret' => encrypt('test-secret'),
-            'two_factor_recovery_codes' => encrypt(json_encode(['code1', 'code2'])),
-            'two_factor_confirmed_at' => now(),
-        ])->save();
+        $user->createTwoFactorAuth();
+        $user->enableTwoFactorAuth();
 
-        $response = $this->post(route('login'), [
+        $response = $this->post(route('login.store'), [
             'email' => $user->email,
             'password' => 'password',
         ]);
@@ -121,20 +66,11 @@ class AuthenticationTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->withCookie(UsePersistentAuthSession::COOKIE_NAME, '1')
-            ->actingAs($user)
-            ->post(route('logout'));
+        $response = $this->actingAs($user)->post(route('logout'));
 
         $this->assertGuest();
-        $response->assertRedirect(route('home'));
-
-        $persistentCookie = $this->findCookie(
-            $response->headers->getCookies(),
-            UsePersistentAuthSession::COOKIE_NAME,
-        );
-
-        $this->assertNotNull($persistentCookie);
-        $this->assertLessThanOrEqual(time(), $persistentCookie->getExpiresTime());
+        $response->assertStatus(200);
+        $response->assertJson(['message' => 'Logged Out']);
     }
 
     public function test_users_are_rate_limited()
@@ -149,16 +85,5 @@ class AuthenticationTest extends TestCase
         ]);
 
         $response->assertTooManyRequests();
-    }
-
-    private function findCookie(array $cookies, string $name): ?Cookie
-    {
-        foreach ($cookies as $cookie) {
-            if ($cookie->getName() === $name) {
-                return $cookie;
-            }
-        }
-
-        return null;
     }
 }

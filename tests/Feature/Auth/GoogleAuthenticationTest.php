@@ -2,14 +2,13 @@
 
 namespace Tests\Feature\Auth;
 
-use App\Http\Middleware\UsePersistentAuthSession;
 use App\Models\User;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as SocialiteUser;
 use Mockery;
-use Symfony\Component\HttpFoundation\Cookie;
 use Tests\TestCase;
 
 class GoogleAuthenticationTest extends TestCase
@@ -24,7 +23,7 @@ class GoogleAuthenticationTest extends TestCase
 
         $response->assertOk()
             ->assertInertia(
-                fn(Assert $page) => $page
+                fn (Assert $page) => $page
                     ->component('auth/login')
                     ->where('canGoogleLogin', true)
                     ->where('googleLoginUrl', route('login.google.redirect'))
@@ -55,6 +54,11 @@ class GoogleAuthenticationTest extends TestCase
         $googleUser->shouldReceive('getId')->andReturn('google-user-123');
         $googleUser->shouldReceive('getEmail')->andReturn('google-user@example.com');
         $googleUser->shouldReceive('getName')->andReturn('Google User');
+        $googleUser->shouldReceive('getAvatar')->andReturn('https://lh3.googleusercontent.com/a/avatar');
+
+        $provider->shouldReceive('stateless')
+            ->once()
+            ->andReturnSelf();
 
         $provider->shouldReceive('user')
             ->once()
@@ -71,25 +75,12 @@ class GoogleAuthenticationTest extends TestCase
         $this->assertDatabaseHas('users', [
             'email' => 'google-user@example.com',
             'google_id' => 'google-user-123',
+            'avatar' => 'https://lh3.googleusercontent.com/a/avatar',
         ]);
 
-        $persistentCookie = $this->findCookie(
-            $response->headers->getCookies(),
-            UsePersistentAuthSession::COOKIE_NAME,
-        );
-        $sessionCookie = $this->findCookie(
-            $response->headers->getCookies(),
-            config('session.cookie'),
-        );
-
-        $this->assertNotNull($persistentCookie);
-        $this->assertGreaterThan(now()->addYear()->timestamp, $persistentCookie->getExpiresTime());
-        $this->assertNotNull($sessionCookie);
-        $this->assertGreaterThan(now()->addYear()->timestamp, $sessionCookie->getExpiresTime());
-
         $response->assertRedirect(route('dashboard', absolute: false))
-            ->assertInertiaFlash('toast.type', 'success')
-            ->assertInertiaFlash('toast.message', 'Signed in with Google successfully.');
+            ->assertSessionHas('flash.toast.type', 'success')
+            ->assertSessionHas('flash.toast.message', 'Signed in with Google successfully.');
     }
 
     public function test_existing_users_are_linked_to_google_by_email(): void
@@ -97,6 +88,7 @@ class GoogleAuthenticationTest extends TestCase
         $user = User::factory()->unverified()->create([
             'email' => 'existing@example.com',
             'google_id' => null,
+            'avatar' => null,
         ]);
 
         $provider = Mockery::mock();
@@ -104,6 +96,11 @@ class GoogleAuthenticationTest extends TestCase
         $googleUser->shouldReceive('getId')->andReturn('google-user-456');
         $googleUser->shouldReceive('getEmail')->andReturn('existing@example.com');
         $googleUser->shouldReceive('getName')->andReturn('Existing User');
+        $googleUser->shouldReceive('getAvatar')->andReturn('https://lh3.googleusercontent.com/a/updated-avatar');
+
+        $provider->shouldReceive('stateless')
+            ->once()
+            ->andReturnSelf();
 
         $provider->shouldReceive('user')
             ->once()
@@ -118,19 +115,32 @@ class GoogleAuthenticationTest extends TestCase
 
         $this->assertAuthenticatedAs($user->fresh());
         $this->assertSame('google-user-456', $user->fresh()->google_id);
+        $this->assertSame('https://lh3.googleusercontent.com/a/updated-avatar', $user->fresh()->avatar);
         $this->assertNotNull($user->fresh()->email_verified_at);
 
         $response->assertRedirect(route('dashboard', absolute: false));
     }
 
-    private function findCookie(array $cookies, string $name): ?Cookie
+    public function test_google_callback_failures_redirect_back_to_login_with_error(): void
     {
-        foreach ($cookies as $cookie) {
-            if ($cookie->getName() === $name) {
-                return $cookie;
-            }
-        }
+        $provider = Mockery::mock();
+        $provider->shouldReceive('stateless')
+            ->once()
+            ->andReturnSelf();
 
-        return null;
+        $provider->shouldReceive('user')
+            ->once()
+            ->andThrow(new Exception('Google callback failed.'));
+
+        Socialite::shouldReceive('driver')
+            ->once()
+            ->with('google')
+            ->andReturn($provider);
+
+        $response = $this->from(route('login'))->get(route('login.google.callback'));
+
+        $this->assertGuest();
+        $response->assertRedirect(route('login'));
+        $response->assertSessionHasErrors(['socialite']);
     }
 }

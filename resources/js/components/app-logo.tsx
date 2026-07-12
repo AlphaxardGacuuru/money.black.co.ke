@@ -1,34 +1,22 @@
 import AppLogoIcon from "@/components/app-logo-icon"
+import { cn } from "@/lib/utils"
 
 type AppLogoProps = {
-	variant?: "lockup" | "full"
 	className?: string
+	iconClassName?: string
+	textClassName?: string
+	variant?: "full" | "icon"
+	text?: string
 }
 
-export default function AppLogo({
-	variant = "lockup",
-	className,
-}: AppLogoProps) {
-	if (variant === "full") {
-		return (
-			<img
-				src="/default-monochrome-black.svg"
-				alt="Black Money Logo"
-				className={className ?? "h-5 w-auto dark:invert"}
-			/>
-		)
-	}
-
+export default function AppLogo({ className, iconClassName }: AppLogoProps) {
 	return (
-		<>
-			<div className="flex aspect-square size-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
-				<AppLogoIcon className="size-5 fill-current text-white dark:text-black" />
-			</div>
-			<div className="ml-1 grid flex-1 text-left text-sm">
-				<span className="mb-0.5 truncate leading-tight font-semibold">
-					Black Money
-				</span>
-			</div>
-		</>
+		<div
+			className={cn(
+				"inline-flex items-center gap-3 text-foreground",
+				className
+			)}>
+			<AppLogoIcon className={cn("h-9 w-9 shrink-0", iconClassName)} />
+		</div>
 	)
 }

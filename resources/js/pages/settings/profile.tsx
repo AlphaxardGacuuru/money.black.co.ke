@@ -1,132 +1,167 @@
-import { Form, Head, Link, usePage } from '@inertiajs/react';
-import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
-import DeleteUser from '@/components/delete-user';
-import Heading from '@/components/heading';
-import InputError from '@/components/input-error';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { edit } from '@/routes/profile';
-import { send } from '@/routes/verification';
+import { Head } from "@/lib/spa"
+import { useState } from "react"
+import { useApp } from "@/contexts/AppContext"
+import ProfileController from "@/actions/App/Http/Controllers/Settings/ProfileController"
+import DeleteUser from "@/components/delete-user"
+import Heading from "@/components/heading"
+import InputError from "@/components/input-error"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import axios from "@/lib/axios"
+import { edit } from "@/routes/profile"
+import { send } from "@/routes/verification"
 
 export default function Profile({
-    mustVerifyEmail,
-    status,
+	mustVerifyEmail = false,
+	status,
 }: {
-    mustVerifyEmail: boolean;
-    status?: string;
+	mustVerifyEmail: boolean
+	status?: string
 }) {
-    const { auth } = usePage().props;
+	const { auth } = useApp()
+	const user = {
+		name: auth?.name ?? "",
+		email: auth?.email ?? "",
+		email_verified_at: auth?.email_verified_at ?? null,
+	}
+	const [processing, setProcessing] = useState(false)
+	const [errors, setErrors] = useState<Record<string, string>>({})
 
-    return (
-        <>
-            <Head title="Profile settings" />
+	function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+		event.preventDefault()
+		setProcessing(true)
+		setErrors({})
+		const fd = new FormData(event.currentTarget)
+		const { action, method } = ProfileController.update.form()
 
-            <h1 className="sr-only">Profile settings</h1>
+		axios
+			.request({
+				url: action,
+				method,
+				data: Object.fromEntries(fd),
+			})
+			.then((response) => {
+				const finalUrl = (response.request as XMLHttpRequest | null)?.responseURL
+				if (finalUrl) {
+					window.location.assign(finalUrl)
+				}
+			})
+			.catch((err: unknown) => {
+				const e = err as {
+					response?: {
+						status?: number
+						data?: { errors?: Record<string, string | string[]> }
+					}
+				}
 
-            <div className="space-y-6">
-                <Heading
-                    variant="small"
-                    title="Profile information"
-                    description="Update your name and email address"
-                />
+				if (e.response?.status === 422) {
+					const raw = e.response.data?.errors ?? {}
+					setErrors(
+						Object.fromEntries(
+							Object.entries(raw).map(([k, v]) => [
+								k,
+								Array.isArray(v) ? String(v[0] ?? "") : String(v),
+							])
+						)
+					)
+				}
+			})
+			.finally(() => {
+				setProcessing(false)
+			})
+	}
 
-                <Form
-                    {...ProfileController.update.form()}
-                    options={{
-                        preserveScroll: true,
-                    }}
-                    className="space-y-6"
-                >
-                    {({ processing, errors }) => (
-                        <>
-                            <div className="grid gap-2">
-                                <Label htmlFor="name">Name</Label>
+	return (
+		<>
+			<Head title="Profile settings" />
 
-                                <Input
-                                    id="name"
-                                    className="mt-1 block w-full"
-                                    defaultValue={auth.user.name}
-                                    name="name"
-                                    required
-                                    autoComplete="name"
-                                    placeholder="Full name"
-                                />
+			<h1 className="sr-only">Profile settings</h1>
 
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.name}
-                                />
-                            </div>
+			<div className="space-y-6">
+				<Heading
+					variant="small"
+					title="Profile information"
+					description="Update your name and email address"
+				/>
 
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+				<form
+					onSubmit={handleSubmit}
+					className="space-y-6">
+					<div className="grid gap-2">
+						<Input
+							id="name"
+							label="Full name"
+							className="mt-1 block w-full"
+							defaultValue={user.name}
+							name="name"
+							required
+							autoComplete="name"
+						/>
 
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    className="mt-1 block w-full"
-                                    defaultValue={auth.user.email}
-                                    name="email"
-                                    required
-                                    autoComplete="username"
-                                    placeholder="Email address"
-                                />
+						<InputError
+							className="mt-2"
+							message={errors.name}
+						/>
+					</div>
 
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.email}
-                                />
-                            </div>
+					<div className="grid gap-2">
+						<Input
+							id="email"
+							label="Email address"
+							type="email"
+							className="mt-1 block w-full"
+							defaultValue={user.email}
+							name="email"
+							required
+							autoComplete="username"
+						/>
 
-                            {mustVerifyEmail &&
-                                auth.user.email_verified_at === null && (
-                                    <div>
-                                        <p className="-mt-4 text-sm text-muted-foreground">
-                                            Your email address is unverified.{' '}
-                                            <Link
-                                                href={send()}
-                                                as="button"
-                                                className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
-                                            >
-                                                Click here to resend the
-                                                verification email.
-                                            </Link>
-                                        </p>
+						<InputError
+							className="mt-2"
+							message={errors.email}
+						/>
+					</div>
 
-                                        {status ===
-                                            'verification-link-sent' && (
-                                            <div className="mt-2 text-sm font-medium text-green-600">
-                                                A new verification link has been
-                                                sent to your email address.
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
+					{mustVerifyEmail && user.email_verified_at === null && (
+						<div>
+							<p className="-mt-4 text-sm text-muted-foreground">
+								Your email address is unverified.{" "}
+								<button
+									type="button"
+									onClick={() => axios.request({ url: send().url, method: send().method })}
+									className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500">
+									Click here to resend the verification email.
+								</button>
+							</p>
 
-                            <div className="flex items-center gap-4">
-                                <Button
-                                    disabled={processing}
-                                    data-test="update-profile-button"
-                                >
-                                    Save
-                                </Button>
-                            </div>
-                        </>
-                    )}
-                </Form>
-            </div>
+							{status === "verification-link-sent" && (
+								<div className="mt-2 text-sm font-medium text-green-600">
+									A new verification link has been sent to your email address.
+								</div>
+							)}
+						</div>
+					)}
 
-            <DeleteUser />
-        </>
-    );
+					<div className="flex items-center gap-4">
+						<Button
+							disabled={processing}
+							data-test="update-profile-button">
+							Save
+						</Button>
+					</div>
+				</form>
+			</div>
+
+			<DeleteUser />
+		</>
+	)
 }
 
 Profile.layout = {
-    breadcrumbs: [
-        {
-            title: 'Profile settings',
-            href: edit(),
-        },
-    ],
-};
+	breadcrumbs: [
+		{
+			title: "Profile settings",
+			href: edit(),
+		},
+	],
+}
