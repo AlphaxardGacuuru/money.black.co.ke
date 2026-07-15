@@ -1,0 +1,18 @@
+
+Hope you enjoy your new logo, here are the people that
+made your beautiful logo happen :)
+font name: Comfortaa-Light
+font link: https://fonts.google.com/specimen/Comfortaa
+font author: Johan Aakerlund
+font author site: https://aajohan.deviantart.com/
+
+
+icon designer: Deemak Daksina
+icon designer link: /deemakdaksina
+        
+
+fontColor: {"hex":"#C8FF3D"}
+bgColor: {"hex":"#C8FF3D"}
+iconColor: {"hex":"#524D8B"}
+
+      

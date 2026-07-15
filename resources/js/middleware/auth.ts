@@ -42,8 +42,9 @@ export async function requireGuest() {
 /** Clear the auth cache — call this after logout. */
 export function clearAuth() {
     localStorage.removeItem("sanctumToken")
+    localStorage.removeItem("auth")
     queryClient.cancelQueries({ queryKey: AUTH_QUERY.queryKey })
-    queryClient.setQueryData(AUTH_QUERY.queryKey, undefined)
+    queryClient.removeQueries({ queryKey: AUTH_QUERY.queryKey, exact: true })
 }
 
 /** Bust the auth cache — call this after storing a new token so the next render fetches fresh user data. */

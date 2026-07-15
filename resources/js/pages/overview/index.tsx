@@ -181,7 +181,7 @@ export default function OverviewIndex() {
 								<span className="text-sm text-muted-foreground">Expenses</span>
 								<TrendingDown className="size-4 text-rose-500" />
 							</div>
-							<p className="mt-2 text-2xl font-semibold tracking-tight text-rose-600 dark:text-rose-400">
+							<p className="text-xl lg:text-2xl mt-2 font-semibold tracking-tight text-rose-600 dark:text-rose-400">
 								{formatAmount(expenseTotal)}
 							</p>
 						</div>
@@ -193,7 +193,7 @@ export default function OverviewIndex() {
 								<span className="text-sm text-muted-foreground">Income</span>
 								<TrendingUp className="size-4 text-emerald-500" />
 							</div>
-							<p className="mt-2 text-2xl font-semibold tracking-tight text-emerald-600 dark:text-emerald-400">
+							<p className="mt-2 text-xl lg:text-2xl font-semibold tracking-tight text-emerald-600 dark:text-emerald-400">
 								{formatAmount(incomeTotal)}
 							</p>
 						</div>
@@ -205,7 +205,7 @@ export default function OverviewIndex() {
 								<span className="text-sm text-muted-foreground">Net</span>
 								<CircleDollarSign className="size-4 text-primary" />
 							</div>
-							<p className="mt-2 text-2xl font-semibold tracking-tight">
+							<p className="mt-2 text-xl lg:text-2xl font-semibold tracking-tight">
 								{formatAmount(netTotal)}
 							</p>
 						</div>

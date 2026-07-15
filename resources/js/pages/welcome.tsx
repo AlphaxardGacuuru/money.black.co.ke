@@ -64,7 +64,7 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
 					<AppLogo
 						variant="full"
 						className="h-16 w-auto dark:invert"
-						iconClassName="h-36 w-36"
+						iconClassName="h-26 w-26 lg:h-36 lg:w-36"
 					/>
 
 					<nav className="flex items-center gap-2 sm:gap-3">
