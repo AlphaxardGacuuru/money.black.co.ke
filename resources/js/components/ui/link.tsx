@@ -66,37 +66,6 @@ const pathnameFromHref = (href: string): string => {
 	}
 }
 
-const escapeRegExp = (value: string): string => {
-	return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-}
-
-const routePatternToRegExp = (pattern: string): RegExp => {
-	const escapedPattern = escapeRegExp(pattern)
-	const dynamicPattern = escapedPattern.replace(/\\\$[A-Za-z0-9_]+/g, "[^/]+")
-
-	return new RegExp(`^${dynamicPattern}$`)
-}
-
-const canNavigateClientSide = (href: string): boolean => {
-	const routePathname = pathnameFromHref(href)
-
-	if (clientRoutePaths.has(routePathname)) {
-		return true
-	}
-
-	for (const pattern of clientRoutePaths) {
-		if (!pattern.includes("$")) {
-			continue
-		}
-
-		if (routePatternToRegExp(pattern).test(routePathname)) {
-			return true
-		}
-	}
-
-	return false
-}
-
 const Link = ({
 	href,
 	linkStyle,
@@ -113,7 +82,7 @@ const Link = ({
 	const canUseClientNavigation =
 		!isExternalHref(href) &&
 		props.target !== "_blank" &&
-		canNavigateClientSide(href)
+		clientRoutePaths.has(routePathname)
 
 	const content = (
 		<>

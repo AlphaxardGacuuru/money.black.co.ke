@@ -1,4 +1,5 @@
 import { Slot } from "@radix-ui/react-slot"
+import { useRouterState } from "@tanstack/react-router"
 import type { VariantProps} from "class-variance-authority";
 import { cva } from "class-variance-authority"
 import { MenuIcon, PanelLeftCloseIcon } from "lucide-react"
@@ -67,6 +68,7 @@ function SidebarProvider({
 }) {
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
+  const locationHref = useRouterState({ select: (state) => state.location.href })
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
@@ -109,6 +111,22 @@ function SidebarProvider({
 
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [toggleSidebar])
+
+  // Mobile sheets/dialogs can leave body pointer-events locked when routes change quickly.
+  React.useEffect(() => {
+    if (!isMobile) {
+      return
+    }
+
+    setOpenMobile(false)
+    document.body.style.removeProperty("pointer-events")
+  }, [isMobile, locationHref])
+
+  React.useEffect(() => {
+    return () => {
+      document.body.style.removeProperty("pointer-events")
+    }
+  }, [])
 
   // We add a state so that we can do data-state="expanded" or "collapsed".
   // This makes it easier to style the sidebar with Tailwind classes.
