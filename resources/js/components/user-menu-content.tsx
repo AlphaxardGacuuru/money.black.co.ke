@@ -41,7 +41,7 @@ export function UserMenuContent({ user }: Props) {
 			.then((response) => {
 				toast.success(response.data?.message ?? "Logged out")
 				clearAuth()
-				navigate({ to: "/login" })
+				navigate({ to: "/" })
 			})
 			.catch((error: unknown) => {
 				const message =
@@ -55,7 +55,7 @@ export function UserMenuContent({ user }: Props) {
 
 				toast.error(message ?? "Unable to log out")
 				clearAuth()
-				navigate({ to: "/login" })
+				navigate({ to: "/" })
 			})
 	}
 
