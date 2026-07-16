@@ -5,7 +5,6 @@ namespace Tests\Feature\Auth;
 use App\Models\User;
 use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as SocialiteUser;
 use Mockery;
@@ -14,21 +13,6 @@ use Tests\TestCase;
 class GoogleAuthenticationTest extends TestCase
 {
     use RefreshDatabase;
-
-    public function test_login_screen_exposes_google_login_when_configured(): void
-    {
-        config(['services.google.client_id' => 'google-client-id']);
-
-        $response = $this->get(route('login'));
-
-        $response->assertOk()
-            ->assertInertia(
-                fn (Assert $page) => $page
-                    ->component('auth/login')
-                    ->where('canGoogleLogin', true)
-                    ->where('googleLoginUrl', route('login.google.redirect'))
-            );
-    }
 
     public function test_users_can_be_redirected_to_google(): void
     {
@@ -42,7 +26,7 @@ class GoogleAuthenticationTest extends TestCase
             ->with('google')
             ->andReturn($provider);
 
-        $response = $this->get(route('login.google.redirect'));
+        $response = $this->get(route('login.google.redirect', ['website' => 'google']));
 
         $response->assertRedirect('https://accounts.google.com/o/oauth2/auth');
     }
@@ -56,31 +40,31 @@ class GoogleAuthenticationTest extends TestCase
         $googleUser->shouldReceive('getName')->andReturn('Google User');
         $googleUser->shouldReceive('getAvatar')->andReturn('https://lh3.googleusercontent.com/a/avatar');
 
-        $provider->shouldReceive('stateless')
-            ->once()
-            ->andReturnSelf();
-
-        $provider->shouldReceive('user')
-            ->once()
-            ->andReturn($googleUser);
+        $provider->shouldReceive('stateless')->once()->andReturnSelf();
+        $provider->shouldReceive('user')->once()->andReturn($googleUser);
 
         Socialite::shouldReceive('driver')
             ->once()
             ->with('google')
             ->andReturn($provider);
 
-        $response = $this->get(route('login.google.callback'));
+        $response = $this->get(route('login.google.callback', ['website' => 'google']));
 
-        $this->assertAuthenticated();
         $this->assertDatabaseHas('users', [
             'email' => 'google-user@example.com',
             'google_id' => 'google-user-123',
             'avatar' => 'https://lh3.googleusercontent.com/a/avatar',
         ]);
 
-        $response->assertRedirect(route('dashboard', absolute: false))
-            ->assertSessionHas('flash.toast.type', 'success')
-            ->assertSessionHas('flash.toast.message', 'Signed in with Google successfully.');
+        $user = User::query()->where('email', 'google-user@example.com')->firstOrFail();
+
+        $this->assertDatabaseHas('personal_access_tokens', [
+            'tokenable_id' => $user->id,
+            'name' => 'web',
+        ]);
+
+        $response->assertRedirectContains('/socialite-callback?token=');
+        $response->assertRedirectContains('provider=google');
     }
 
     public function test_existing_users_are_linked_to_google_by_email(): void
@@ -88,7 +72,6 @@ class GoogleAuthenticationTest extends TestCase
         $user = User::factory()->unverified()->create([
             'email' => 'existing@example.com',
             'google_id' => null,
-            'avatar' => null,
         ]);
 
         $provider = Mockery::mock();
@@ -98,49 +81,43 @@ class GoogleAuthenticationTest extends TestCase
         $googleUser->shouldReceive('getName')->andReturn('Existing User');
         $googleUser->shouldReceive('getAvatar')->andReturn('https://lh3.googleusercontent.com/a/updated-avatar');
 
-        $provider->shouldReceive('stateless')
-            ->once()
-            ->andReturnSelf();
-
-        $provider->shouldReceive('user')
-            ->once()
-            ->andReturn($googleUser);
+        $provider->shouldReceive('stateless')->once()->andReturnSelf();
+        $provider->shouldReceive('user')->once()->andReturn($googleUser);
 
         Socialite::shouldReceive('driver')
             ->once()
             ->with('google')
             ->andReturn($provider);
 
-        $response = $this->get(route('login.google.callback'));
+        $response = $this->get(route('login.google.callback', ['website' => 'google']));
 
-        $this->assertAuthenticatedAs($user->fresh());
-        $this->assertSame('google-user-456', $user->fresh()->google_id);
-        $this->assertSame('https://lh3.googleusercontent.com/a/updated-avatar', $user->fresh()->avatar);
-        $this->assertNotNull($user->fresh()->email_verified_at);
+        $user->refresh();
 
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $this->assertSame('google-user-456', $user->google_id);
+        $this->assertSame('https://lh3.googleusercontent.com/a/updated-avatar', $user->avatar);
+        $this->assertNotNull($user->email_verified_at);
+
+        $this->assertDatabaseHas('personal_access_tokens', [
+            'tokenable_id' => $user->id,
+            'name' => 'web',
+        ]);
+
+        $response->assertRedirectContains('/socialite-callback?token=');
     }
 
-    public function test_google_callback_failures_redirect_back_to_login_with_error(): void
+    public function test_google_callback_failures_redirect_to_login_with_an_error(): void
     {
         $provider = Mockery::mock();
-        $provider->shouldReceive('stateless')
-            ->once()
-            ->andReturnSelf();
-
-        $provider->shouldReceive('user')
-            ->once()
-            ->andThrow(new Exception('Google callback failed.'));
+        $provider->shouldReceive('stateless')->once()->andReturnSelf();
+        $provider->shouldReceive('user')->once()->andThrow(new Exception('Google callback failed.'));
 
         Socialite::shouldReceive('driver')
             ->once()
             ->with('google')
             ->andReturn($provider);
 
-        $response = $this->from(route('login'))->get(route('login.google.callback'));
+        $response = $this->get(route('login.google.callback', ['website' => 'google']));
 
-        $this->assertGuest();
-        $response->assertRedirect(route('login'));
-        $response->assertSessionHasErrors(['socialite']);
+        $response->assertRedirectContains('/login?error=');
     }
 }

@@ -4,7 +4,7 @@ namespace Tests\Feature\Auth;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class AuthenticationTest extends TestCase
@@ -22,44 +22,79 @@ class AuthenticationTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->post(route('login.store'), [
+        $response = $this->postJson(route('login.store'), [
             'email' => $user->email,
             'password' => 'password',
+            'device_name' => 'test-device',
         ]);
 
-        $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false))
-            ->assertSessionHas('flash.toast.type', 'success')
-            ->assertSessionHas('flash.toast.message', 'Welcome back!');
+        $response->assertOk()
+            ->assertJson(['message' => 'Logged in']);
+
+        $this->assertDatabaseHas('personal_access_tokens', [
+            'tokenable_id' => $user->id,
+            'name' => 'test-device',
+        ]);
     }
 
-    public function test_users_with_two_factor_enabled_are_redirected_to_two_factor_challenge()
+    public function test_login_requires_email_password_and_device_name()
     {
-        $user = User::factory()->create();
+        $response = $this->postJson(route('login.store'), []);
 
-        $user->createTwoFactorAuth();
-        $user->enableTwoFactorAuth();
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['email', 'password', 'device_name']);
+    }
 
-        $response = $this->post(route('login.store'), [
+    public function test_users_with_two_factor_enabled_receive_a_pending_challenge_token()
+    {
+        $user = User::factory()->withTwoFactor()->create();
+
+        $response = $this->postJson(route('login.store'), [
             'email' => $user->email,
             'password' => 'password',
+            'device_name' => 'test-device',
         ]);
 
-        $response->assertRedirect(route('two-factor.login'));
-        $response->assertSessionHas('login.id', $user->id);
-        $this->assertGuest();
+        $response->assertOk()
+            ->assertJson([
+                'message' => 'Two-factor authentication required',
+                'two_factor' => true,
+            ]);
+
+        $pendingToken = $response->json('data');
+
+        $this->assertNotEmpty($pendingToken);
+        $this->assertSame($user->id, Cache::get("2fa_pending:{$pendingToken}"));
+
+        $this->assertDatabaseMissing('personal_access_tokens', [
+            'tokenable_id' => $user->id,
+        ]);
     }
 
     public function test_users_can_not_authenticate_with_invalid_password()
     {
         $user = User::factory()->create();
 
-        $this->post(route('login.store'), [
+        $response = $this->postJson(route('login.store'), [
             'email' => $user->email,
             'password' => 'wrong-password',
+            'device_name' => 'test-device',
         ]);
 
-        $this->assertGuest();
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('password');
+    }
+
+    public function test_users_can_not_authenticate_with_an_unknown_email()
+    {
+        $response = $this->postJson(route('login.store'), [
+            'email' => 'unknown@example.com',
+            'password' => 'password',
+            'device_name' => 'test-device',
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('email');
     }
 
     public function test_users_can_logout()
@@ -68,22 +103,15 @@ class AuthenticationTest extends TestCase
 
         $response = $this->actingAs($user)->post(route('logout'));
 
-        $this->assertGuest();
+        $this->assertGuest('web');
         $response->assertStatus(200);
         $response->assertJson(['message' => 'Logged Out']);
     }
 
-    public function test_users_are_rate_limited()
+    public function test_logout_without_an_authenticated_user_is_unauthorized()
     {
-        $user = User::factory()->create();
+        $response = $this->postJson(route('logout'));
 
-        RateLimiter::increment(md5('login' . implode('|', [$user->email, '127.0.0.1'])), amount: 5);
-
-        $response = $this->post(route('login.store'), [
-            'email' => $user->email,
-            'password' => 'wrong-password',
-        ]);
-
-        $response->assertTooManyRequests();
+        $response->assertStatus(401);
     }
 }

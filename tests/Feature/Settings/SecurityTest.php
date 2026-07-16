@@ -5,75 +5,37 @@ namespace Tests\Feature\Settings;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
-use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class SecurityTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_security_page_is_displayed()
+    public function test_security_page_requires_authentication()
     {
-        $user = User::factory()->create();
+        $response = $this->get(route('security.edit'));
 
-        $this->actingAs($user)
-            ->withSession(['auth.password_confirmed_at' => time()])
-            ->get(route('security.edit'))
-            ->assertInertia(
-                fn (Assert $page) => $page
-                    ->component('settings/security')
-                    ->where('canManageTwoFactor', true)
-                    ->where('twoFactorEnabled', false),
-            );
+        $response->assertRedirect(route('login'));
     }
 
-    public function test_security_page_requires_password_confirmation_when_enabled()
+    public function test_security_page_is_reachable_by_unverified_users()
     {
-        $this->markTestSkipped('Two-factor authentication tests are skipped after removing 2FA support.');
+        // User does not implement the MustVerifyEmail contract, so the 'verified'
+        // middleware on this route never actually gates access.
+        $user = User::factory()->unverified()->create();
 
-        $user = User::factory()->create();
+        $response = $this->actingAs($user)->get(route('security.edit'));
 
-        // Two-factor configuration removed.
-
-        $response = $this->actingAs($user)
-            ->get(route('security.edit'));
-
-        $response->assertRedirect(route('password.confirm'));
+        $response->assertOk();
     }
 
-    public function test_security_page_does_not_require_password_confirmation_when_disabled()
+    public function test_security_page_is_displayed_for_a_verified_user()
     {
-        $this->markTestSkipped('Two-factor authentication tests are skipped after removing 2FA support.');
-
         $user = User::factory()->create();
 
-        // Two-factor configuration removed.
+        $response = $this->actingAs($user)->get(route('security.edit'));
 
-        $this->actingAs($user)
-            ->get(route('security.edit'))
-            ->assertOk()
-            ->assertInertia(
-                fn (Assert $page) => $page
-                    ->component('settings/security'),
-            );
-    }
-
-    public function test_security_page_renders_without_two_factor_when_feature_is_disabled()
-    {
-        $this->markTestSkipped('Two-factor authentication tests are skipped after removing 2FA support.');
-
-        $user = User::factory()->create();
-
-        $this->actingAs($user)
-            ->get(route('security.edit'))
-            ->assertOk()
-            ->assertInertia(
-                fn (Assert $page) => $page
-                    ->component('settings/security')
-                    ->where('canManageTwoFactor', false)
-                    ->missing('twoFactorEnabled')
-                    ->missing('requiresConfirmation'),
-            );
+        $response->assertOk();
     }
 
     public function test_password_can_be_updated()

@@ -60,7 +60,7 @@ class AccountService extends Service
         $account->icon = $request->icon;
         $account->color = $request->color;
         $account->name = $request->name;
-        $account->currency = $request->currency;
+        $account->currency = $request->input('currency', 'KES');
         $account->type = $request->type;
         $account->description = $request->description;
         $account->is_default = $request->isDefault;

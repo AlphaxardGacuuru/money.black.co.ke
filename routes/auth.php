@@ -39,15 +39,15 @@ Route::middleware('guest')->group(function() {
 Route::get('two-factor-challenge', fn() => view('app'))
     ->name('two-factor.login');
 
-Route::post('two-factor-challenge', [TwoFactorChallengeController::class, 'store']);
+Route::post('two-factor-challenge', [TwoFactorChallengeController::class, 'store'])
+    ->name('two-factor-challenge.store');
 
 Route::get('verify-email/{id}/{hash}', [EmailVerificationPromptController::class, '__invoke'])
     ->name('verification.notice');
 
 Route::middleware('auth:sanctum')->group(function() {
     Route::post('verify-email/{id}/{hash}', [VerifyEmailController::class, '__invoke'])
-        // ->middleware(['signed', 'throttle:6,1'])
-        ->middleware(['throttle:6,1'])
+        ->middleware(['signed', 'throttle:6,1'])
         ->name('verification.verify');
 
     Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
@@ -87,6 +87,8 @@ Route::middleware('auth:sanctum')->group(function() {
 /*
  * Social logins */
 Route::get('login/{website}/redirect', [AuthenticatedSessionController::class, 'redirectToProvider'])
-    ->middleware('guest');
+    ->middleware('guest')
+    ->name('login.google.redirect');
 
-Route::get('login/{website}/callback', [AuthenticatedSessionController::class, 'handleProviderCallback']);
+Route::get('login/{website}/callback', [AuthenticatedSessionController::class, 'handleProviderCallback'])
+    ->name('login.google.callback');

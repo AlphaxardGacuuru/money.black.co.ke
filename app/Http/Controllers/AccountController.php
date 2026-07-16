@@ -57,8 +57,10 @@ class AccountController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Account $account): AccountResource
+    public function show(Request $request, Account $account): AccountResource
     {
+        abort_unless($account->user_id === $request->user()->id, 404);
+
         return (new AccountResource($account))->additional([
             'status' => true,
             'message' => 'Account Retrieved Successfully',
@@ -70,6 +72,8 @@ class AccountController extends Controller
      */
     public function update(Request $request, Account $account): AccountResource|RedirectResponse
     {
+        abort_unless($account->user_id === $request->user()->id, 404);
+
         $request->validate([
             'icon' => 'sometimes|string|max:255',
             'color' => 'sometimes|string|max:255',
@@ -98,6 +102,8 @@ class AccountController extends Controller
      */
     public function destroy(Request $request, Account $account): AccountResource|RedirectResponse
     {
+        abort_unless($account->user_id === $request->user()->id, 404);
+
         [$deleted, $message, $account] = $this->service->destroy($account);
 
         if (!$request->ajax()) {

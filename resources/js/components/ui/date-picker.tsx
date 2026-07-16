@@ -310,7 +310,7 @@ export function DatePicker({
 									<button
 										type="button"
 										className={cn(
-											"relative flex h-14 w-full rounded-lg border px-4 pt-5 pb-1 text-left text-neutral-900 dark:text-white font-light font-nunito text-base transition-all",
+											"relative flex h-14 w-full rounded-3xl border px-4 pt-5 pb-1 text-left text-neutral-900 dark:text-white font-light font-nunito text-base transition-all",
 											error
 												? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
 												: "border-neutral-300 focus:border-neutral-500 focus:ring-2 focus:ring-neutral-400/20 dark:border-white/20 dark:focus:border-white/40 dark:focus:ring-white/10",

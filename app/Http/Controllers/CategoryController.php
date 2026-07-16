@@ -55,8 +55,10 @@ class CategoryController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Category $category): CategoryResource
+    public function show(Request $request, Category $category): CategoryResource
     {
+        abort_unless($category->user_id === $request->user()->id, 404);
+
         return (new CategoryResource($category))->additional([
             'status' => true,
             'message' => 'Category Retrieved Successfully',
@@ -68,6 +70,8 @@ class CategoryController extends Controller
      */
     public function update(Request $request, Category $category): CategoryResource|RedirectResponse
     {
+        abort_unless($category->user_id === $request->user()->id, 404);
+
         $request->validate([
             'icon' => 'sometimes|string|max:255',
             'color' => 'sometimes|string|max:255',
@@ -94,6 +98,8 @@ class CategoryController extends Controller
      */
     public function destroy(Request $request, Category $category): CategoryResource|RedirectResponse
     {
+        abort_unless($category->user_id === $request->user()->id, 404);
+
         [$deleted, $message, $category] = $this->service->destroy($category);
 
         if (!$request->ajax()) {

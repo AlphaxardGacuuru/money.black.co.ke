@@ -21,8 +21,7 @@ import Axios from "@/lib/axios"
 
 type CategoryWithCumulative = Category & {
 	numericTotal: number
-	cumulativeTotal: number
-	cumulativePercent: number
+	categoryPercent: number
 }
 
 function formatAmount(value: number | string | null | undefined): string {
@@ -117,27 +116,18 @@ export default function OverviewIndex() {
 
 		const selectedTotal = Number(totals?.[activeType] ?? 0)
 
-		return sorted.reduce<CategoryWithCumulative[]>((rows, category) => {
+		return sorted.map<CategoryWithCumulative>((category) => {
 			const numericTotal = category.total?.amount ?? 0
-			const previousCumulativeTotal = rows.at(-1)?.cumulativeTotal ?? 0
-			const cumulativeTotal = previousCumulativeTotal + numericTotal
 
-			return [
-				...rows,
-				{
-					...category,
-					numericTotal,
-					cumulativeTotal,
-					cumulativePercent:
-						selectedTotal > 0
-							? Math.min(
-									100,
-									Math.round((cumulativeTotal / selectedTotal) * 100)
-								)
-							: 0,
-				},
-			]
-		}, [])
+			return {
+				...category,
+				numericTotal,
+				categoryPercent:
+					selectedTotal > 0
+						? Math.min(100, Math.round((numericTotal / selectedTotal) * 100))
+						: 0,
+			}
+		})
 	}, [activeType, categoryList, totals])
 
 	const expenseTotal = Number(totals?.expense ?? 0)
@@ -181,7 +171,7 @@ export default function OverviewIndex() {
 								<span className="text-sm text-muted-foreground">Expenses</span>
 								<TrendingDown className="size-4 text-rose-500" />
 							</div>
-							<p className="text-xl lg:text-2xl mt-2 font-semibold tracking-tight text-rose-600 dark:text-rose-400">
+							<p className="mt-2 text-xl font-semibold tracking-tight text-rose-600 lg:text-2xl dark:text-rose-400">
 								{formatAmount(expenseTotal)}
 							</p>
 						</div>
@@ -193,7 +183,7 @@ export default function OverviewIndex() {
 								<span className="text-sm text-muted-foreground">Income</span>
 								<TrendingUp className="size-4 text-emerald-500" />
 							</div>
-							<p className="mt-2 text-xl lg:text-2xl font-semibold tracking-tight text-emerald-600 dark:text-emerald-400">
+							<p className="mt-2 text-xl font-semibold tracking-tight text-emerald-600 lg:text-2xl dark:text-emerald-400">
 								{formatAmount(incomeTotal)}
 							</p>
 						</div>
@@ -205,7 +195,7 @@ export default function OverviewIndex() {
 								<span className="text-sm text-muted-foreground">Net</span>
 								<CircleDollarSign className="size-4 text-primary" />
 							</div>
-							<p className="mt-2 text-xl lg:text-2xl font-semibold tracking-tight">
+							<p className="mt-2 text-xl font-semibold tracking-tight lg:text-2xl">
 								{formatAmount(netTotal)}
 							</p>
 						</div>
@@ -292,15 +282,12 @@ export default function OverviewIndex() {
 																? "bg-rose-500/80"
 																: "bg-emerald-500/80"
 														}`}
-														style={{ width: `${category.cumulativePercent}%` }}
+														style={{ width: `${category.categoryPercent}%` }}
 													/>
 												</div>
 												<div className="flex items-center justify-between text-xs text-muted-foreground">
-													<span>
-														Cumulative total:{" "}
-														{formatAmount(category.cumulativeTotal)}
-													</span>
-													<span>{category.cumulativePercent}%</span>
+													<span>Share of {activeType} total</span>
+													<span>{category.categoryPercent}%</span>
 												</div>
 											</div>
 											{/* Category Progress End */}

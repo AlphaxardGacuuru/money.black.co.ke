@@ -22,6 +22,7 @@ import { Spinner } from "@/components/ui/spinner"
 import type { Account } from "@/types/account"
 import type { Category } from "@/types/category"
 import { useApp } from "@/contexts/AppContext"
+import { buildFilterQuery } from "@/lib/date-filter"
 import { toast } from "sonner"
 
 type SelectedCategory = Pick<Category, "id" | "name" | "icon" | "color">
@@ -194,6 +195,8 @@ export default function AddTransactionSheet({
 				onSelectedCategoryChange(null)
 				setCalcDisplay(getTransactionAmountValue(null))
 				setTransactionDate(getTransactionDateValue(null))
+				const query = buildFilterQuery(props.dateFilters)
+				props.get(`categories${query}`, props.setCategories, "categories")
 			})
 			.finally(() => {
 				setIsDeleting(false)
@@ -240,7 +243,8 @@ export default function AddTransactionSheet({
 			.then((response) => {
 				onSuccess()
 				toast.success(response.data.message)
-				props.get("categories", props.setCategories, "categories")
+				const query = buildFilterQuery(props.dateFilters)
+				props.get(`categories${query}`, props.setCategories, "categories")
 			})
 			.catch((error: unknown) => {
 				const response = (
@@ -366,7 +370,7 @@ export default function AddTransactionSheet({
 			}}>
 			<SheetContent
 				side="bottom"
-				className="max-h-[85vh] rounded-t-4xl [&>button]:top-1 [&>button]:right-0 [&>button]:left-auto [&>button]:size-11 [&>button>svg]:size-6 gap-1">
+				className="max-h-[85vh] gap-1 rounded-t-4xl [&>button]:top-1 [&>button]:right-0 [&>button]:left-auto [&>button]:size-11 [&>button>svg]:size-6">
 				{/* Sheet Header Section Start */}
 				<SheetHeader>
 					<SheetTitle>{sheetTitle}</SheetTitle>
@@ -471,7 +475,7 @@ export default function AddTransactionSheet({
 												}}
 												className={`flex min-h-24 flex-col rounded-4xl border p-2 text-center transition-colors hover:bg-accent/20 ${
 													selectedAccount?.id === account.id
-														? "border-primary/70 bg-primary/10"
+														? "border-primary/70 bg-primary/50"
 														: "border-border/70 bg-background"
 												}`}>
 												<div className="flex flex-1 items-center justify-center">
@@ -514,7 +518,7 @@ export default function AddTransactionSheet({
 												}}
 												className={`flex min-h-24 flex-col rounded-4xl border p-2 text-center transition-colors hover:bg-accent/20 ${
 													selectedCategory?.id === category.id
-														? "border-primary/70 bg-primary/10"
+														? "border-primary/70 bg-primary/50"
 														: "border-border/70 bg-background"
 												}`}>
 												<div className="flex flex-1 items-center justify-center">
@@ -594,7 +598,7 @@ export default function AddTransactionSheet({
 									<button
 										type="button"
 										onClick={() => handleCalcKey("/")}
-										className="flex h-14 items-center justify-center rounded-4xl bg-primary/10 text-lg font-bold text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
+										className="flex h-14 items-center justify-center rounded-4xl bg-primary/50 text-lg font-bold text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
 										÷
 									</button>
 
@@ -618,7 +622,7 @@ export default function AddTransactionSheet({
 									<button
 										type="button"
 										onClick={() => handleCalcKey("*")}
-										className="flex h-14 items-center justify-center rounded-4xl bg-primary/10 text-lg font-bold text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
+										className="flex h-14 items-center justify-center rounded-4xl bg-primary/50 text-lg font-bold text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
 										×
 									</button>
 
@@ -643,7 +647,7 @@ export default function AddTransactionSheet({
 									<button
 										type="button"
 										onClick={() => handleCalcKey("-")}
-										className="flex h-14 items-center justify-center rounded-4xl bg-primary/10 text-lg font-bold text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
+										className="flex h-14 items-center justify-center rounded-4xl bg-primary/50 text-lg font-bold text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
 										−
 									</button>
 
@@ -660,13 +664,14 @@ export default function AddTransactionSheet({
 									<button
 										type="submit"
 										disabled={isProcessing || !canSubmit}
-										className="row-span-2 flex items-center justify-center rounded-4xl bg-primary text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.95] disabled:cursor-not-allowed disabled:opacity-50">
+										className="row-span-2 flex items-center justify-center rounded-4xl bg-primary text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/80 active:scale-[0.95] disabled:cursor-not-allowed disabled:opacity-50">
 										{isProcessing ? <Spinner /> : <Check className="size-5" />}
 									</button>
+
 									<button
 										type="button"
 										onClick={() => handleCalcKey("+")}
-										className="flex h-14 items-center justify-center rounded-4xl bg-primary/10 text-lg font-bold text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
+										className="flex h-14 items-center justify-center rounded-4xl bg-primary/50 text-lg font-bold text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
 										+
 									</button>
 
@@ -679,7 +684,7 @@ export default function AddTransactionSheet({
 									<button
 										type="button"
 										onClick={() => onOpenChange(false)}
-										className="col-span-2 flex h-14 items-center justify-center rounded-4xl bg-destructive/10 text-sm font-semibold text-destructive transition-all hover:bg-destructive/20 active:scale-[0.95]">
+										className="col-span-2 flex h-14 items-center justify-center rounded-4xl bg-destructive/40 text-sm font-semibold text-destructive transition-all hover:bg-destructive/20 active:scale-[0.95]">
 										Cancel
 									</button>
 									{/* Calculator Controls Section End */}

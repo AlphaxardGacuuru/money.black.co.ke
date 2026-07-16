@@ -12,13 +12,6 @@ class VerificationNotificationTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->skipUnlessRouteExists('verification.send');
-    }
-
     public function test_sends_verification_notification(): void
     {
         Notification::fake();
@@ -26,8 +19,9 @@ class VerificationNotificationTest extends TestCase
         $user = User::factory()->unverified()->create();
 
         $this->actingAs($user)
-            ->post(route('verification.send'))
-            ->assertRedirect(route('home'));
+            ->postJson(route('verification.send'))
+            ->assertOk()
+            ->assertJson(['status' => 'success', 'message' => 'Verification Link Sent']);
 
         Notification::assertSentTo($user, VerifyEmail::class);
     }
@@ -39,9 +33,15 @@ class VerificationNotificationTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)
-            ->post(route('verification.send'))
-            ->assertRedirect(route('dashboard', absolute: false));
+            ->postJson(route('verification.send'))
+            ->assertOk()
+            ->assertJson(['status' => 'success', 'message' => 'Verification Link Sent']);
 
         Notification::assertNothingSent();
+    }
+
+    public function test_sending_verification_notification_requires_authentication(): void
+    {
+        $this->postJson(route('verification.send'))->assertUnauthorized();
     }
 }

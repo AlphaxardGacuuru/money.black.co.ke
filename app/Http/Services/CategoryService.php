@@ -11,13 +11,16 @@ class CategoryService extends Service
     public function index(Request $request): array
     {
         if ($request->filled('idAndName')) {
-            return Category::where('user_id', $request->user()->id)
+            $categories = Category::query()
+                ->where('user_id', $request->user()->id)
                 ->select('id', 'name')
                 ->orderBy('id', 'DESC')
                 ->get();
+
+            return [true, $categories->count() . ' Categories Retrieved Successfully', $categories];
         }
 
-        $query = Category::where('user_id', $request->user()->id);
+        $query = Category::query()->where('user_id', $request->user()->id);
 
         $query = $this->search($query, $request);
 
@@ -30,10 +33,12 @@ class CategoryService extends Service
 
     public function store(Request $request): array
     {
-        $position = Category::where('user_id', auth()->user()->id)->count() + 1;
+        $position = Category::query()
+            ->where('user_id', auth('sanctum')->user()->id)
+            ->count() + 1;
 
         $category = new Category;
-        $category->user_id = auth()->id();
+        $category->user_id = auth('sanctum')->id();
         $category->icon = $request->icon;
         $category->color = $request->color;
         $category->name = $request->name;

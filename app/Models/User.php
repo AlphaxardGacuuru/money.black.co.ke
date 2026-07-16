@@ -11,14 +11,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Fortify\TwoFactorAuthenticatable;
+use Laragear\TwoFactor\Contracts\TwoFactorAuthenticatable as TwoFactorAuthenticatableContract;
+use Laragear\TwoFactor\TwoFactorAuthentication;
 
-#[Fillable(['name', 'email', 'password', 'google_id', 'email_verified_at'])]
+#[Fillable(['name', 'email', 'password', 'google_id', 'email_verified_at', 'settings', 'avatar'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
-class User extends Authenticatable
+class User extends Authenticatable implements TwoFactorAuthenticatableContract
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasUuids, Notifiable, TwoFactorAuthenticatable, HasApiTokens;
+    use HasFactory, HasUuids, Notifiable, TwoFactorAuthentication, HasApiTokens;
 
     /**
      * Get the attributes that should be cast.
@@ -31,6 +32,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
+            'settings' => 'array',
         ];
     }
 }
