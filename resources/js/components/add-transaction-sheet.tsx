@@ -681,6 +681,7 @@ export default function AddTransactionSheet({
 										className="flex h-14 items-center justify-center rounded-4xl bg-muted text-lg font-semibold transition-all hover:bg-muted/70 active:scale-[0.95]">
 										0
 									</button>
+									
 									<button
 										type="button"
 										onClick={() => onOpenChange(false)}
