@@ -160,11 +160,6 @@ export default function Login({
 									aria-disabled={googleLoading || processing}>
 									{googleLoading ? (
 										<>
-											<Spinner />
-											Redirecting to Google...
-										</>
-									) : (
-										<>
 											<svg
 												aria-hidden="true"
 												className="size-4"
@@ -187,6 +182,11 @@ export default function Login({
 												/>
 											</svg>
 											Continue with Google
+										</>
+									) : (
+										<>
+											<Spinner />
+											Redirecting to Google...
 										</>
 									)}
 								</a>
@@ -259,8 +259,8 @@ export default function Login({
 						tabIndex={4}
 						disabled={processing}
 						data-test="login-button">
-						{processing && <Spinner />}
 						Log in
+						{processing && <Spinner />}
 					</Button>
 				</div>
 

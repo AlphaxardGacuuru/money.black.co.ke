@@ -150,8 +150,8 @@ export default function TwoFactorChallenge() {
 						type="submit"
 						className="w-full"
 						disabled={processing || code.length === 0}>
-						{processing && <Spinner />}
 						Continue
+						{processing && <Spinner />}
 					</Button>
 				</div>
 

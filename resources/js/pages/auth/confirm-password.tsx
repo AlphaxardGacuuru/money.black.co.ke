@@ -84,8 +84,8 @@ export default function ConfirmPassword() {
 							className="w-full"
 							disabled={processing}
 							data-test="confirm-password-button">
-							{processing && <Spinner />}
 							Confirm password
+							{processing && <Spinner />}
 						</Button>
 					</div>
 				</div>

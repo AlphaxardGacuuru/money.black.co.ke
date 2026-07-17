@@ -211,8 +211,8 @@ export default function CreateAccount() {
 						<Button
 							type="submit"
 							disabled={loading}>
-							{loading && <Spinner />}
 							Create Account
+							{loading && <Spinner />}
 						</Button>
 					</div>
 					{/* Form Actions Section End */}

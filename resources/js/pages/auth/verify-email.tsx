@@ -46,8 +46,8 @@ export default function VerifyEmail({ status }: { status?: string }) {
 				<Button
 					disabled={processing}
 					variant="secondary">
-					{processing && <Spinner />}
 					Resend verification email
+					{processing && <Spinner />}
 				</Button>
 
 				<Link

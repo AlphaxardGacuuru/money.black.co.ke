@@ -116,8 +116,8 @@ export default function ResetPassword({ token = "", email = "" }: Props) {
 						className="mt-4 w-full"
 						disabled={processing}
 						data-test="reset-password-button">
-						{processing && <Spinner />}
 						Reset password
+						{processing && <Spinner />}
 					</Button>
 				</div>
 			</form>

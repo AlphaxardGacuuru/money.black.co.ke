@@ -36,7 +36,6 @@ export default function Register({
 	const [processing, setProcessing] = useState(false)
 	const [errors, setErrors] = useState<Record<string, string>>({})
 
-
 	function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault()
 		setProcessing(true)
@@ -130,11 +129,6 @@ export default function Register({
 									aria-disabled={googleLoading || processing}>
 									{googleLoading ? (
 										<>
-											<Spinner />
-											Redirecting to Google...
-										</>
-									) : (
-										<>
 											<svg
 												aria-hidden="true"
 												className="size-4"
@@ -158,6 +152,11 @@ export default function Register({
 											</svg>
 											Continue with Google
 										</>
+									) : (
+										<>
+											<Spinner />
+											Redirecting to Google...
+										</>
 									)}
 								</a>
 							</Button>
@@ -167,7 +166,7 @@ export default function Register({
 									<span className="w-full border-t" />
 								</div>
 								<div className="relative flex justify-center text-xs uppercase">
-									<span className="bg-background py-1 px-2">
+									<span className="bg-background px-2 py-1">
 										Or continue with email
 									</span>
 								</div>
@@ -241,8 +240,8 @@ export default function Register({
 						className="mt-2 w-full"
 						tabIndex={5}
 						data-test="register-user-button">
-						{processing && <Spinner />}
 						Create account
+						{processing && <Spinner />}
 					</Button>
 				</div>
 

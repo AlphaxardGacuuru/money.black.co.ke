@@ -79,7 +79,7 @@ export default function SocialiteCallback() {
 
 	return (
 		<div className="flex h-[50vh] items-center justify-center bg-background rounded-2xl">
-			<div className="flex w-full max-w-xs flex-col items-center justify-center gap-5 rounded-2xl border bg-card p-8 shadow-sm">
+			<div className="flex w-full max-w-xs flex-col items-center justify-center gap-5 rounded-2xl bg-card p-8 shadow-sm">
 				<div className="flex flex-col items-center gap-2">
 					<div className="flex size-11 items-center justify-center rounded-full border bg-background shadow-sm">
 						{PROVIDER_ICONS[provider] ?? (

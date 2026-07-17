@@ -158,8 +158,8 @@ export default function CreateCategory({ defaultType }: CreateCategoryProps) {
 						<Button
 							type="submit"
 							disabled={loading}>
-							{loading && <Spinner />}
 							Create Category
+							{loading && <Spinner />}
 						</Button>
 					</div>
 					{/* Form Actions Section End */}

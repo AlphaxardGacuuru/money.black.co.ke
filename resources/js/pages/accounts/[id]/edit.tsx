@@ -291,9 +291,9 @@ export default function EditAccount() {
 										variant="destructive"
 										disabled={isDeleting}
 										onClick={handleDelete}>
-										{isDeleting && <Spinner />}
 										<Trash2 className="size-4" />
 										Confirm Delete
+										{isDeleting && <Spinner />}
 									</Button>
 								</DialogFooter>
 							</DialogContent>
@@ -303,8 +303,8 @@ export default function EditAccount() {
 						<Button
 							type="submit"
 							disabled={processing}>
-							{processing && <Spinner />}
 							Save Changes
+							{processing && <Spinner />}
 						</Button>
 					</div>
 					{/* Actions Section End */}

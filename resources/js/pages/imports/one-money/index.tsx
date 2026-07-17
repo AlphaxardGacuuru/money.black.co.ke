@@ -91,8 +91,8 @@ export default function OneMoneyImportPage() {
 							type="button"
 							onClick={handleImport}
 							disabled={loading}>
-							{loading ? <Spinner /> : <Upload className="size-4" />}
 							Import to App
+							{loading ? <Spinner /> : <Upload className="size-4" />}
 						</Button>
 					</div>
 				</div>

@@ -224,8 +224,8 @@ export default function EditCategory() {
 										variant="destructive"
 										disabled={isDeleting}
 										onClick={handleDelete}>
-										{isDeleting && <Spinner />}
 										<Trash2 className="size-4" />
+										{isDeleting && <Spinner />}
 										Confirm Delete
 									</Button>
 								</DialogFooter>
@@ -236,8 +236,8 @@ export default function EditCategory() {
 						<Button
 							type="submit"
 							disabled={processing}>
-							{processing && <Spinner />}
 							Save Changes
+							{processing && <Spinner />}
 						</Button>
 					</div>
 					{/* Actions Section End */}
