@@ -95,7 +95,7 @@ export default function CategoryGrid({
 	// Event Handlers Section End
 
 	return (
-		<section className="rounded-2xl border bg-card p-4 shadow-xs sm:p-5">
+		<section className="bg-card shadow-xs sm:p-5">
 			{/* Header Controls Section Start */}
 			<div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 				<div>
@@ -204,7 +204,7 @@ export default function CategoryGrid({
 			{/* Totals Bar Section End */}
 
 			{/* Category Cards Section Start */}
-			<div className="grid grid-cols-4 gap-2">
+			<div className="grid grid-cols-4 gap-1">
 				{visibleCategories.map((category, index) =>
 					interactionMode === "edit" ? (
 						<Link
@@ -250,7 +250,7 @@ export default function CategoryGrid({
 							key={category.id}
 							type="button"
 							onClick={() => handleCategoryClick(category)}
-							className="group flex min-h-28 flex-col rounded-xl border-2 bg-background p-3 text-center transition-colors hover:bg-accent/20"
+							className="group flex min-h-28 flex-col rounded-xl border bg-background p-2 text-center transition-colors hover:bg-accent/20"
 							style={{
 								borderColor: resolveCardColor(category.color, index),
 							}}>

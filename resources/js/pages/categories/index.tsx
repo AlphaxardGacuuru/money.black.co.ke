@@ -26,7 +26,7 @@ export default function CategoriesIndex() {
 			<Head title="Categories" />
 
 			{/* Categories Content Section Start */}
-			<div className="flex flex-1 justify-center p-3 sm:p-4">
+			<div className="flex flex-1 justify-center sm:p-4">
 				<div className="w-full max-w-3xl space-y-4">
 					<div className="flex items-center justify-between">
 						<DateFilterSheet />

@@ -30,7 +30,7 @@ export default function AccountsIndex() {
 		<>
 			<Head title="Accounts" />
 
-			<div className="flex flex-1 flex-col gap-6 p-4">
+			<div className="flex flex-1 flex-col gap-6">
 				{/* Page Header Section Start */}
 				<div className="flex flex-col rounded-xl border bg-card p-6 shadow-sm sm:flex-row sm:items-start sm:justify-between">
 					<Heading

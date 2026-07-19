@@ -102,7 +102,7 @@ export default function TransactionsIndex() {
 			<Head title="Transactions" />
 
 			{/* Transactions Content Section Start */}
-			<div className="flex flex-1 justify-center p-2 sm:p-4">
+			<div className="flex flex-1 justify-center sm:p-4">
 				<div className="w-full max-w-4xl space-y-1 pb-24 md:pb-8">
 					<div className="flex flex-col items-center justify-between gap-2">
 						<DateFilterSheet />

@@ -258,7 +258,7 @@ export default function DateFilterSheet() {
 			open={open}
 			onOpenChange={setOpen}>
 			<div
-				className="flex w-full items-center justify-between gap-2 p-1 text-sidebar-foreground"
+				className="flex w-full items-center justify-between gap-2 py-1 text-sidebar-foreground"
 				onTouchStart={handleTouchStart}
 				onTouchEnd={handleTouchEnd}>
 				{/* Previous Start */}

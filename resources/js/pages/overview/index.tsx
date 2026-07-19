@@ -143,7 +143,7 @@ export default function OverviewIndex() {
 		<>
 			<Head title="Overview" />
 
-			<div className="flex flex-1 justify-center p-3 sm:p-4">
+			<div className="flex flex-1 justify-center sm:p-4">
 				<div className="w-full max-w-4xl space-y-4">
 					{/* Overview Header Start */}
 					<div className="relative overflow-hidden rounded-2xl border bg-card px-4 py-4 shadow-xs sm:px-5">
