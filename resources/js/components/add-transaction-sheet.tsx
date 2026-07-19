@@ -623,7 +623,7 @@ export default function AddTransactionSheet({
 									<button
 										type="button"
 										onClick={() => handleCalcKey("/")}
-										className="flex h-14 items-center justify-center rounded-4xl bg-primary/50 text-4xl font-light text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
+										className="flex h-14 items-center justify-center rounded-4xl bg-primary/50 text-2xl font-light text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
 										÷
 									</button>
 
@@ -632,7 +632,7 @@ export default function AddTransactionSheet({
 											key={d}
 											type="button"
 											onClick={() => handleCalcKey(d)}
-											className="flex h-14 items-center justify-center rounded-4xl bg-muted text-4xl font-light transition-all hover:bg-muted/70 active:scale-[0.95]">
+											className="flex h-14 items-center justify-center rounded-4xl bg-muted text-2xl font-light transition-all hover:bg-muted/70 active:scale-[0.95]">
 											{d}
 										</button>
 									))}
@@ -640,14 +640,14 @@ export default function AddTransactionSheet({
 									<button
 										type="button"
 										onClick={() => handleCalcKey("⌫")}
-										className="flex h-14 items-center justify-center rounded-4xl bg-muted/50 text-4xl font-light transition-all hover:bg-muted active:scale-[0.95]">
+										className="flex h-14 items-center justify-center rounded-4xl bg-muted/50 text-2xl font-light transition-all hover:bg-muted active:scale-[0.95]">
 										⌫
 									</button>
 
 									<button
 										type="button"
 										onClick={() => handleCalcKey("*")}
-										className="flex h-14 items-center justify-center rounded-4xl bg-primary/50 text-4xl font-light text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
+										className="flex h-14 items-center justify-center rounded-4xl bg-primary/50 text-2xl font-light text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
 										×
 									</button>
 
@@ -656,7 +656,7 @@ export default function AddTransactionSheet({
 											key={d}
 											type="button"
 											onClick={() => handleCalcKey(d)}
-											className="flex h-14 items-center justify-center rounded-4xl bg-muted text-4xl font-light transition-all hover:bg-muted/70 active:scale-[0.95]">
+											className="flex h-14 items-center justify-center rounded-4xl bg-muted text-2xl font-light transition-all hover:bg-muted/70 active:scale-[0.95]">
 											{d}
 										</button>
 									))}
@@ -672,7 +672,7 @@ export default function AddTransactionSheet({
 									<button
 										type="button"
 										onClick={() => handleCalcKey("-")}
-										className="flex h-14 items-center justify-center rounded-4xl bg-primary/50 text-4xl font-light text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
+										className="flex h-14 items-center justify-center rounded-4xl bg-primary/50 text-2xl font-light text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
 										−
 									</button>
 
@@ -681,7 +681,7 @@ export default function AddTransactionSheet({
 											key={d}
 											type="button"
 											onClick={() => handleCalcKey(d)}
-											className="flex h-14 items-center justify-center rounded-4xl bg-muted text-4xl font-light transition-all hover:bg-muted/70 active:scale-[0.95]">
+											className="flex h-14 items-center justify-center rounded-4xl bg-muted text-2xl font-light transition-all hover:bg-muted/70 active:scale-[0.95]">
 											{d}
 										</button>
 									))}
@@ -690,27 +690,27 @@ export default function AddTransactionSheet({
 										type="submit"
 										disabled={isProcessing || !canSubmit}
 										className="row-span-2 flex items-center justify-center rounded-4xl bg-primary text-sm font-light text-primary-foreground transition-all hover:bg-primary/80 active:scale-[0.95] disabled:cursor-not-allowed disabled:opacity-50">
-										{isProcessing ? <Spinner /> : <Check className="size-10" />}
+										{isProcessing ? <Spinner /> : <Check className="size-8" />}
 									</button>
 
 									<button
 										type="button"
 										onClick={() => handleCalcKey("+")}
-										className="flex h-14 items-center justify-center rounded-4xl bg-primary/50 text-4xl font-light text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
+										className="flex h-14 items-center justify-center rounded-4xl bg-primary/50 text-2xl font-light text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
 										+
 									</button>
 
 									<button
 										type="button"
 										onClick={() => handleCalcKey("0")}
-										className="flex h-14 items-center justify-center rounded-4xl bg-muted text-4xl font-light transition-all hover:bg-muted/70 active:scale-[0.95]">
+										className="flex h-14 items-center justify-center rounded-4xl bg-muted text-2xl font-light transition-all hover:bg-muted/70 active:scale-[0.95]">
 										0
 									</button>
 
 									<button
 										type="button"
 										onClick={() => onOpenChange(false)}
-										className="col-span-2 flex h-14 items-center justify-center rounded-4xl bg-destructive text-xl font-light text-white transition-all hover:bg-destructive/20 active:scale-[0.95]">
+										className="col-span-2 flex h-14 items-center justify-center rounded-4xl bg-destructive text-lg font-light text-white transition-all hover:bg-destructive/20 active:scale-[0.95]">
 										Cancel
 									</button>
 									{/* Calculator Controls Section End */}

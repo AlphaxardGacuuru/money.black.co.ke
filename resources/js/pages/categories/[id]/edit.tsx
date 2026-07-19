@@ -73,6 +73,9 @@ export default function EditCategory() {
 		})
 			.then((res) => {
 				toast.success(res.data.message)
+				setTimeout(() => {
+					void navigate({ to: "/categories" })
+				}, 500)
 			})
 			.catch((error: unknown) => {
 				const response = (

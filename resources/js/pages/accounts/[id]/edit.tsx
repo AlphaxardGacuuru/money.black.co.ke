@@ -86,6 +86,9 @@ export default function EditAccount() {
 		})
 			.then((res) => {
 				toast.success(res.data.message)
+				setTimeout(() => {
+					void navigate({ to: "/accounts" })
+				}, 500)
 			})
 			.catch((error: unknown) => {
 				const response = (
