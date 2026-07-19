@@ -154,7 +154,7 @@ export default function CategoryGrid({
 			{/* Totals Bar Section Start */}
 			{barCategories.length > 0 ? (
 				<div className="mb-4 space-y-3">
-					<div className="flex h-5 w-full overflow-hidden rounded-full">
+					<div className="flex space-x-1 h-5 w-full overflow-hidden rounded-full">
 						{barCategories.map((category, index) => {
 							const percent =
 								barTotal > 0
@@ -166,7 +166,7 @@ export default function CategoryGrid({
 									key={String(category.id)}
 									title={category.name}
 									style={{
-										width: `${percent}%`,
+										width: `${percent / 1.009}%`,
 										backgroundColor: resolveCardColor(category.color, index),
 									}}
 									className="h-full shrink-0 transition-all"
@@ -250,7 +250,7 @@ export default function CategoryGrid({
 							key={category.id}
 							type="button"
 							onClick={() => handleCategoryClick(category)}
-							className="group flex min-h-28 flex-col rounded-xl border bg-background p-2 text-center transition-colors hover:bg-accent/20"
+							className="group flex min-h-28 flex-col rounded-xl border-2 bg-background p-2 text-center transition-colors hover:bg-accent/20"
 							style={{
 								borderColor: resolveCardColor(category.color, index),
 							}}>

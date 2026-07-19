@@ -1,7 +1,7 @@
 import type { MouseEvent } from "react"
 import { Link } from "@/components/ui/link"
 import axios from "@/lib/axios"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import { Home, LogOut, Settings } from "lucide-react"
 import { useNavigate } from "@tanstack/react-router"
 import {

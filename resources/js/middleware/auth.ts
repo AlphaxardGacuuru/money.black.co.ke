@@ -42,15 +42,15 @@ export async function requireGuest() {
 /** Clear the auth cache — call this after logout. */
 export function clearAuth() {
 	localStorage.removeItem("sanctumToken")
-	localStorage.removeItem("auth") 
-	queryClient.cancelQueries({ queryKey: AUTH_QUERY.queryKey })
-	queryClient.removeQueries({ queryKey: AUTH_QUERY.queryKey, exact: true })
-    
-    invalidateAuth()
+	localStorage.removeItem("auth")
+
+	// `resetQueries` (unlike `removeQueries`) resets the query that any already-mounted
+	// `useQuery(["auth"])` observer is still holding onto, so components relying on the
+	// old (authenticated) result actually re-render instead of showing stale data.
+	queryClient.resetQueries({ queryKey: AUTH_QUERY.queryKey, exact: true })
 }
 
 /** Bust the auth cache — call this after storing a new token so the next render fetches fresh user data. */
 export function invalidateAuth() {
-    queryClient.setQueryData(AUTH_QUERY.queryKey, undefined)
     queryClient.invalidateQueries({ queryKey: AUTH_QUERY.queryKey })
 }

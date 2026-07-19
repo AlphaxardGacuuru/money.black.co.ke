@@ -26,7 +26,7 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { SelectField, SelectItem } from "@/components/ui/select"
 import { Spinner } from "@/components/ui/spinner"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import { useApp } from "@/contexts/AppContext"
 
 type AccountFormErrors = Partial<

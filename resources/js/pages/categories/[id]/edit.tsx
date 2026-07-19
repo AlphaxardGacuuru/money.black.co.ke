@@ -26,7 +26,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { useApp } from "@/contexts/AppContext"
 
 import type { Category } from "@/types/category"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 
 type CategoryFormErrors = Partial<
 	Record<"icon" | "color" | "name" | "type", string>

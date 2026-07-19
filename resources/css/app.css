@@ -253,3 +253,39 @@
         animation-delay: -9s;
     }
 }
+
+@keyframes sonner-toast-progress {
+    from {
+        transform: scaleX(1);
+    }
+
+    to {
+        transform: scaleX(0);
+    }
+}
+
+[data-sonner-toast] {
+    --toast-progress-enabled: 0;
+    --toast-progress-duration: 0ms;
+    overflow: hidden;
+}
+
+[data-sonner-toast]::after {
+    content: "";
+    position: absolute;
+    inset-inline: 12px;
+    bottom: 8px;
+    height: 3px;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, var(--brand-indigo), var(--brand-lime));
+    opacity: var(--toast-progress-enabled);
+    transform-origin: left center;
+    transform: scaleX(1);
+    animation: sonner-toast-progress var(--toast-progress-duration) linear forwards;
+    pointer-events: none;
+}
+
+[data-sonner-toast]:hover::after,
+[data-sonner-toast]:focus-within::after {
+    animation-play-state: paused;
+}

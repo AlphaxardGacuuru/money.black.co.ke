@@ -83,7 +83,7 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
 									href={toUrl(login())}
 									variant="unstyled"
 									size="none"
-									className="inline-flex items-center rounded-md border border-transparent px-4 py-2 text-sm font-medium transition-colors hover:border-border hover:bg-accent">
+									className="inline-flex items-center rounded-md border border-border/80 bg-card/70 px-4 py-2 text-sm font-medium shadow-xs backdrop-blur transition-colors hover:bg-accent">
 									Log in
 								</Link>
 								{canRegister && (

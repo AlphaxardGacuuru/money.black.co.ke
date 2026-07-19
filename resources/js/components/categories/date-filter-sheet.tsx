@@ -258,16 +258,16 @@ export default function DateFilterSheet() {
 			open={open}
 			onOpenChange={setOpen}>
 			<div
-				className="flex w-full items-center justify-between gap-2 py-1 text-sidebar-foreground"
+				className="flex w-full items-center justify-between gap-1 text-sidebar-foreground"
 				onTouchStart={handleTouchStart}
 				onTouchEnd={handleTouchEnd}>
 				{/* Previous Start */}
 				<Button
 					variant="secondary"
-					size="sm"
+					size="lg"
 					onClick={() => handleShift(-1)}
 					disabled={selected === "all_time"}
-					className="rounded-3xl">
+					className="rounded-3xl px-4 py-2">
 					<ChevronLeftIcon />
 				</Button>
 				{/* Previous End */}
@@ -278,20 +278,20 @@ export default function DateFilterSheet() {
 					{/* Date Filter Start */}
 					<Button
 						variant={isActive ? "default" : "outline"}
-						size="sm"
-						className="gap-1.5 rounded-3xl">
+						size="lg"
+						className="gap-2 rounded-3xl px-4 py-2 text-sm">
 						{getFilterLabel(filters)}
-						<ChevronDownIcon className="size-3.5 opacity-60" />
+						<ChevronDownIcon className="size-4 opacity-60" />
 					</Button>
 					{/* Date Filter End */}
 				</SheetTrigger>
 				{/* Next Start */}
 				<Button
 					variant="secondary"
-					size="sm"
+					size="lg"
 					onClick={() => handleShift(1)}
 					disabled={selected === "all_time"}
-					className="rounded-3xl">
+					className="rounded-3xl px-4 py-2">
 					<ChevronRightIcon />
 				</Button>
 				{/* Next End */}
@@ -314,11 +314,11 @@ export default function DateFilterSheet() {
 									key={option.value}
 									onClick={() => handleOptionClick(option.value)}
 									className={cn(
-										"flex w-full flex-col items-center justify-center gap-1.5 rounded-lg border px-3 py-4 text-center text-sm font-medium transition-colors hover:bg-muted",
+										"flex w-full flex-col items-center justify-center gap-2 rounded-xl border px-4 py-5 text-center text-base font-medium transition-colors hover:bg-muted",
 										option.value === "all_time" && "col-span-2",
 										selected === option.value && "bg-muted"
 									)}>
-									<Icon className="size-5" />
+									<Icon className="size-6" />
 									{option.label}
 								</button>
 							)
@@ -340,7 +340,7 @@ export default function DateFilterSheet() {
 								}
 							/>
 							<Button
-								className="w-full"
+								className="h-11 w-full text-base"
 								onClick={() => applyFilter("date")}
 								disabled={!date}>
 								Apply
@@ -371,7 +371,7 @@ export default function DateFilterSheet() {
 								}
 							/>
 							<Button
-								className="w-full"
+								className="h-11 w-full text-base"
 								onClick={() => applyFilter("dateRange")}
 								disabled={!startDate || !endDate}>
 								Apply

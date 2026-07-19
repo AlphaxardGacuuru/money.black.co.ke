@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import { useApp } from "@/contexts/AppContext"
 import { invalidateAuth } from "@/middleware/auth"
 import { CheckCircle2, Circle, Loader2 } from "lucide-react"

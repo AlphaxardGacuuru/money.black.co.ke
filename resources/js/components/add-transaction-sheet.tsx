@@ -24,7 +24,7 @@ import type { Category } from "@/types/category"
 import type { DateFilterParams } from "@/types/date-filter"
 import { useApp } from "@/contexts/AppContext"
 import { buildFilterQuery } from "@/lib/date-filter"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 
 type SelectedCategory = Pick<Category, "id" | "name" | "icon" | "color">
 
@@ -690,7 +690,7 @@ export default function AddTransactionSheet({
 										type="submit"
 										disabled={isProcessing || !canSubmit}
 										className="row-span-2 flex items-center justify-center rounded-4xl bg-primary text-sm font-light text-primary-foreground transition-all hover:bg-primary/80 active:scale-[0.95] disabled:cursor-not-allowed disabled:opacity-50">
-										{isProcessing ? <Spinner /> : <Check className="size-5" />}
+										{isProcessing ? <Spinner /> : <Check className="size-10" />}
 									</button>
 
 									<button

@@ -30,7 +30,7 @@ export default function AccountsIndex() {
 		<>
 			<Head title="Accounts" />
 
-			<div className="flex flex-1 flex-col gap-6">
+			<div className="flex flex-1 flex-col gap-2">
 				{/* Page Header Section Start */}
 				<div className="flex flex-col rounded-xl border bg-card p-6 shadow-sm sm:flex-row sm:items-start sm:justify-between">
 					<Heading
@@ -53,7 +53,7 @@ export default function AccountsIndex() {
 				{/* Page Header Section End */}
 
 				{/* Accounts Content Section Start */}
-				<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+				<div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
 					{props.accounts.length > 0 ? (
 						/* Account Cards Section Start */
 						props.accounts.map((account) => (

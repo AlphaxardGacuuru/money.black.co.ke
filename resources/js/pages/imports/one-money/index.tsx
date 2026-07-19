@@ -1,7 +1,7 @@
 import { Head } from "@/lib/spa"
 import { Upload } from "lucide-react"
 import { useState } from "react"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import Heading from "@/components/heading"
 import Axios from "@/lib/axios"
 import { Button } from "@/components/ui/button"
