@@ -444,7 +444,7 @@ export default function AddTransactionSheet({
 											<span className="text-[10px] text-nowrap">
 												From Account
 											</span>
-											<span className="max-w-28 truncate text-sm">
+											<span className="max-w-24 truncate text-sm">
 												{selectedAccount?.name ?? "Select account"}
 											</span>
 										</div>
@@ -478,7 +478,7 @@ export default function AddTransactionSheet({
 											<span className="text-[10px] text-nowrap">
 												From Category
 											</span>
-											<span className="max-w-28 truncate text-sm">
+											<span className="max-w-24 truncate text-sm">
 												{selectedCategory?.name ?? "Select category"}
 											</span>
 										</div>
