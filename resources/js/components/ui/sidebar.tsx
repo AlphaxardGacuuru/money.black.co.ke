@@ -2,7 +2,7 @@ import { Slot } from "@radix-ui/react-slot"
 import { useRouterState } from "@tanstack/react-router"
 import type { VariantProps} from "class-variance-authority";
 import { cva } from "class-variance-authority"
-import { MenuIcon, PanelLeftCloseIcon } from "lucide-react"
+import { MenuIcon, XIcon } from "lucide-react"
 import * as React from "react"
 
 import { Button } from "@/components/ui/button"
@@ -295,7 +295,7 @@ function SidebarTrigger({
             isOpen ? "rotate-90 scale-75 opacity-0" : "rotate-0 scale-100 opacity-100"
           )}
         />
-        <PanelLeftCloseIcon
+        <XIcon
           className={cn(
             "absolute inset-0 size-4 transition-all duration-200",
             isOpen ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-75 opacity-0"

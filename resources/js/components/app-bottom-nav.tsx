@@ -1,10 +1,14 @@
 import { Link } from "@/components/ui/link"
 import { mainNavItems } from "@/components/app-sidebar"
+import { useApp } from "@/contexts/AppContext"
+import { getTodayDateFilter } from "@/lib/date-filter"
 import { useCurrentUrl } from "@/hooks/use-current-url"
 import { cn } from "@/lib/utils"
 
 export function AppBottomNav() {
+	const { setDateFilters } = useApp()
 	const { isCurrentOrParentUrl } = useCurrentUrl()
+	const dateAwareRoutes = new Set(["/categories", "/transactions", "/overview"])
 
 	return (
 		<div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-3 md:hidden">
@@ -21,6 +25,17 @@ export function AppBottomNav() {
 							variant="unstyled"
 							size="none"
 							aria-current={isActive ? "page" : undefined}
+							onClick={(event) => {
+								if (isActive && dateAwareRoutes.has(href)) {
+									event.preventDefault()
+									setDateFilters((current) => getTodayDateFilter(current))
+
+									return
+								}
+								if (isCurrentOrParentUrl(item.href)) {
+									event.preventDefault()
+								}
+							}}
 							className="flex min-w-0 flex-1 justify-center">
 							<span
 								className={cn(

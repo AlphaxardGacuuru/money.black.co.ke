@@ -4,8 +4,17 @@ import {
 	addYears,
 	differenceInCalendarDays,
 	format,
+	startOfMonth,
+	startOfYear,
 	startOfWeek,
 } from "date-fns"
+import {
+	formatDateInput,
+	getTodayDateFilter,
+	getTodayDateInput,
+	isDateFilterAtToday,
+	parseDateInput,
+} from "@/lib/date-filter"
 import {
 	Calendar1Icon,
 	CalendarArrowUpIcon,
@@ -49,24 +58,6 @@ const FILTER_OPTIONS: FilterOption[] = [
 	{ value: "dateRange", label: "Date Range", icon: CalendarRangeIcon },
 ]
 
-function parseDateInput(value?: string): Date | null {
-	if (!value) {
-		return null
-	}
-
-	const [year, month, day] = value.split("-").map(Number)
-
-	if (!year || !month || !day) {
-		return null
-	}
-
-	return new Date(year, month - 1, day)
-}
-
-function formatDateInput(value: Date): string {
-	return format(value, "yyyy-MM-dd")
-}
-
 function getFilterDateDetail(filters: DateFilterParams): string | null {
 	const activeFilter = filters.filter ?? "all_time"
 	const referenceDate = parseDateInput(filters.date) ?? new Date()
@@ -82,16 +73,12 @@ function getFilterDateDetail(filters: DateFilterParams): string | null {
 			return `${format(start, "EEE, dd")} - ${format(end, "EEE, dd MMM yyyy")}`
 		}
 		case "month": {
-			const start = new Date(
-				referenceDate.getFullYear(),
-				referenceDate.getMonth(),
-				1
-			)
+			const start = startOfMonth(referenceDate)
 
 			return `${format(start, "MMM yyyy")}`
 		}
 		case "year": {
-			const start = new Date(referenceDate.getFullYear(), 0, 1)
+			const start = startOfYear(referenceDate)
 
 			return `${format(start, "yyyy")}`
 		}
@@ -166,15 +153,12 @@ export default function DateFilterSheet() {
 
 	function handleOptionClick(value: DateFilterType) {
 		if (value !== "date" && value !== "dateRange") {
-			applyFilter(value)
+			applyFilter(value, value === "today" ? { date: getTodayDateInput() } : {})
 
 			return
 		}
 
-		setDateFilters((current) => ({
-			...current,
-			filter: value,
-		}))
+		setDateFilters((current) => getTodayDateFilter({ ...current, filter: value }))
 	}
 
 	function handleShift(direction: -1 | 1) {
@@ -251,7 +235,7 @@ export default function DateFilterSheet() {
 		handleShift(deltaX < 0 ? 1 : -1)
 	}
 
-	const isActive = selected !== "all_time" && selected !== "today"
+	const isActive = selected !== "all_time" && !isDateFilterAtToday(filters)
 
 	return (
 		<Sheet

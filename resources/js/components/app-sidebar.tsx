@@ -60,7 +60,7 @@ export function AppSidebar() {
 			collapsible="icon"
 			variant="inset">
 			<SidebarHeader>
-				<div className="flex items-center gap-2">
+				<div className="flex items-center gap-2 mt-2">
 					<SidebarMenu className="min-w-0 flex-1 items-center">
 						<SidebarMenuItem>
 							<SidebarMenuButton
