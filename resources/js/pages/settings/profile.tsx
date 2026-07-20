@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import axios from "@/lib/axios"
 import { edit } from "@/routes/profile"
 import { send } from "@/routes/verification"
+import { Spinner } from "@/components/ui/spinner"
 
 export default function Profile({
 	mustVerifyEmail = false,
@@ -147,6 +148,7 @@ export default function Profile({
 							disabled={processing}
 							data-test="update-profile-button">
 							Save
+							{processing && <Spinner />}
 						</Button>
 					</div>
 				</form>

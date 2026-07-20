@@ -1,6 +1,5 @@
 // Components
 import { Head } from "@/lib/spa"
-import { LoaderCircle } from "lucide-react"
 import { useState } from "react"
 import InputError from "@/components/input-error"
 import { Link } from "@/components/ui/link"
@@ -9,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import axios from "@/lib/axios"
 import { login } from "@/routes"
 import { email } from "@/routes/password"
+import { Spinner } from "@/components/ui/spinner"
 
 export default function ForgotPassword({ status }: { status?: string }) {
 	const [processing, setProcessing] = useState(false)
@@ -92,7 +92,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
 							disabled={processing}
 							data-test="email-password-reset-link-button">
 							Email password reset link
-							{processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
+							{processing && <Spinner />}
 						</Button>
 					</div>
 				</form>

@@ -13,6 +13,7 @@ import axios from "@/lib/axios"
 import { useApp } from "@/contexts/AppContext"
 import { edit } from "@/routes/security"
 import { disable, enable } from '@/routes/two-factor'
+import { Spinner } from "@/components/ui/spinner"
 
 type Props = {
 	requiresConfirmation?: boolean
@@ -197,6 +198,7 @@ export default function Security({
 							disabled={passwordProcessing}
 							data-test="update-password-button">
 							Save password
+							{passwordProcessing && <Spinner />}
 						</Button>
 					</div>
 				</form>
@@ -223,6 +225,7 @@ export default function Security({
 									disabled={disable2faProcessing}
 									onClick={handleDisable2fa}>
 									Disable 2FA
+									{disable2faProcessing && <Spinner />}
 								</Button>
 							</div>
 
@@ -252,6 +255,7 @@ export default function Security({
 										disabled={enable2faProcessing}
 										onClick={handleEnable2fa}>
 										Enable 2FA
+										{enable2faProcessing && <Spinner />}
 									</Button>
 								)}
 							</div>

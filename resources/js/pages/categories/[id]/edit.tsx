@@ -228,8 +228,8 @@ export default function EditCategory() {
 										disabled={isDeleting}
 										onClick={handleDelete}>
 										<Trash2 className="size-4" />
-										{isDeleting && <Spinner />}
 										Confirm Delete
+										{isDeleting && <Spinner />}
 									</Button>
 								</DialogFooter>
 							</DialogContent>

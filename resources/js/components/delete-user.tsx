@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import axios from "@/lib/axios"
+import { Spinner } from "@/components/ui/spinner"
 
 export default function DeleteUser() {
 	const passwordInput = useRef<HTMLInputElement>(null)
@@ -139,6 +140,7 @@ export default function DeleteUser() {
 										type="submit"
 										data-test="confirm-delete-user-button">
 										Delete account
+										{processing && <Spinner />}
 									</button>
 								</Button>
 							</DialogFooter>
