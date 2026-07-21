@@ -154,7 +154,7 @@ export default function CategoryGrid({
 			{/* Totals Bar Section Start */}
 			{barCategories.length > 0 ? (
 				<div className="mb-4 space-y-3">
-					<div className="flex space-x-1 h-5 w-full overflow-hidden rounded-full">
+					<div className="flex h-5 w-full space-x-1 overflow-hidden rounded-full">
 						{barCategories.map((category, index) => {
 							const percent =
 								barTotal > 0
@@ -212,11 +212,13 @@ export default function CategoryGrid({
 							href={`/categories/${category.id}/edit`}
 							variant="unstyled"
 							size="none"
-							className="group flex min-h-28 flex-col rounded-xl border-2 bg-background p-2 text-center transition-colors hover:bg-accent/20"
-							style={{
-								borderColor: resolveCardColor(category.color, index),
-							}}>
-							<p className="overflow-hidden text-clip whitespace-nowrap text-xs leading-tight font-medium">
+							className="group flex min-h-28 flex-col rounded-xl bg-background p-2 text-center transition-colors hover:bg-accent/20"
+							style={
+								{
+									// borderColor: resolveCardColor(category.color, index),
+								}
+							}>
+							<p className="overflow-hidden text-xs leading-tight font-medium text-clip whitespace-nowrap">
 								{category.name}
 							</p>
 
@@ -239,7 +241,9 @@ export default function CategoryGrid({
 							</div>
 
 							<div className="text-center">
-								<p className="flex items-end justify-center text-[0.6em] font-thin">
+								<p
+									className="flex items-end justify-center text-[0.6em] font-thin"
+									style={{ color: resolveCardColor(category.color, index) }}>
 									<small className="me-1">KES</small>{" "}
 									{category.total?.formatted}
 								</p>
@@ -250,11 +254,13 @@ export default function CategoryGrid({
 							key={category.id}
 							type="button"
 							onClick={() => handleCategoryClick(category)}
-							className="group flex min-h-28 flex-col rounded-xl border-2 bg-background p-2 text-center transition-colors hover:bg-accent/20"
-							style={{
-								borderColor: resolveCardColor(category.color, index),
-							}}>
-							<p className="overflow-hidden text-clip whitespace-nowrap text-xs leading-tight font-medium">
+							className="group flex min-h-28 flex-col rounded-xl bg-background p-2 text-center transition-colors hover:bg-accent/20"
+							style={
+								{
+									// borderColor: resolveCardColor(category.color, index),
+								}
+							}>
+							<p className="overflow-hidden text-xs leading-tight font-medium text-clip whitespace-nowrap">
 								{category.name}
 							</p>
 
@@ -277,7 +283,9 @@ export default function CategoryGrid({
 							</div>
 
 							<div className="text-center">
-								<p className="flex items-end justify-center text-[0.6em] leading-none font-thin">
+								<p
+									className="flex items-end justify-center text-[0.6em] leading-none font-thin"
+									style={{ color: resolveCardColor(category.color, index) }}>
 									<small className="me-1">KES</small>{" "}
 									{category.total?.formatted}
 								</p>
@@ -292,7 +300,7 @@ export default function CategoryGrid({
 						variant="unstyled"
 						size="none"
 						className="group flex min-h-28 flex-col rounded-xl border-2 border-dashed border-border/70 bg-background p-2 text-center transition-colors hover:bg-accent/20">
-						<p className="overflow-hidden text-clip whitespace-nowrap text-xs leading-tight font-medium">
+						<p className="overflow-hidden text-xs leading-tight font-medium text-clip whitespace-nowrap">
 							Add category
 						</p>
 

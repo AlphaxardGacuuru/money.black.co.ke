@@ -137,7 +137,7 @@ export default function TransactionsIndex() {
 										onClick={() => handleEditTransaction(transaction)}
 										className="block w-full text-left">
 										<Card className="overflow-hidden border-border/80 py-0 transition-colors hover:bg-accent/10">
-											<CardContent className="flex flex-col gap-2 p-4 sm:flex-row sm:items-start sm:justify-between">
+											<CardContent className="flex flex-col gap-2 p-3 sm:flex-row sm:items-start sm:justify-between">
 												<div className="flex min-w-0 items-start justify-between gap-3">
 													<div className="flex gap-2">
 														{/* Icon Start */}
@@ -175,7 +175,7 @@ export default function TransactionsIndex() {
 															</CardTitle>
 															<CardDescription>
 																<div
-																	className="text-white"
+																	className="mb-1 text-white"
 																	style={{
 																		color:
 																			transaction.categoryColor ??
@@ -185,9 +185,14 @@ export default function TransactionsIndex() {
 																	{transaction.notes?.trim()}
 																</div>
 																<div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-																	{transaction.accountName
-																		? transaction.accountName
-																		: null}
+																	<span
+																		className="rounded border px-2 text-white capitalize"
+																		style={{
+																			backgroundColor:
+																				transaction.accountColor ?? "#0f172a",
+																		}}>
+																		{transaction.accountName}
+																	</span>
 
 																	{transaction.categoryType ? (
 																		<span className="capitalize">
@@ -203,7 +208,7 @@ export default function TransactionsIndex() {
 													{/* Amount Start */}
 													<div className="flex flex-col items-end">
 														<p
-															className={`shrink-0 text-lg font-semibold tracking-tight ${amountTone}`}>
+															className={`text-md shrink-0 font-semibold tracking-tight ${amountTone}`}>
 															{transaction.categoryType === "income"
 																? "+"
 																: "-"}{" "}
