@@ -164,7 +164,7 @@ export default function OverviewIndex() {
 					<DateFilterSheet />
 
 					{/* Summary Cards Start */}
-					<div className="grid grid-cols-3 gap-3">
+					<div className="grid grid-cols-3 gap-3 mt-4">
 						{/* Expenses Card Start */}
 						<div className="rounded-xl border bg-card p-4">
 							<div className="flex items-center justify-between">

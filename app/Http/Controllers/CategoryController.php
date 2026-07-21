@@ -41,11 +41,6 @@ class CategoryController extends Controller
 
         [$saved, $message, $category] = $this->service->store($request);
 
-        if (!$request->ajax()) {
-            session()->flash('toast', ['type' => 'success', 'message' => $message]);
-            return redirect()->route('categories.index');
-        }
-
         return (new CategoryResource($category))->additional([
             'saved' => $saved,
             'message' => $message,
@@ -77,15 +72,11 @@ class CategoryController extends Controller
             'color' => 'sometimes|string|max:255',
             'name' => 'sometimes|string|max:255',
             'type' => 'sometimes|string|in:expense,income',
+            'position' => 'sometimes|integer|min:1',
             'total' => 'nullable|integer|min:0',
         ]);
 
         [$saved, $message, $category] = $this->service->update($request, $category);
-
-        if (!$request->ajax()) {
-            session()->flash('toast', ['type' => 'success', 'message' => $message]);
-            return redirect()->route('categories.index');
-        }
 
         return (new CategoryResource($category))->additional([
             'saved' => $saved,
@@ -101,11 +92,6 @@ class CategoryController extends Controller
         abort_unless($category->user_id === $request->user()->id, 404);
 
         [$deleted, $message, $category] = $this->service->destroy($category);
-
-        if (!$request->ajax()) {
-            session()->flash('toast', ['type' => 'success', 'message' => $message]);
-            return redirect()->route('categories.index');
-        }
 
         return (new CategoryResource($category))->additional([
             'deleted' => $deleted,

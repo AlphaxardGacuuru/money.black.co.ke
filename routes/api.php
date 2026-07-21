@@ -8,7 +8,7 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware(['auth:sanctum'])->group(function() {
     Route::get('auth', fn () => UserResource::make(request()->user()))
         ->name('api.auth.show');
 

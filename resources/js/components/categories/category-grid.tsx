@@ -1,12 +1,21 @@
 import { Link } from "@/components/ui/link"
+import {
+	DragDropContext,
+	Draggable,
+	Droppable,
+	type DropResult,
+} from "@hello-pangea/dnd"
 import { Pencil, Plus } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import AddTransactionSheet from "@/components/add-transaction-sheet"
 import LucideIconDisplay from "@/components/lucide-icon-display"
 import type { Category } from "@/types/category"
 import type { Account } from "@/types/account"
 import { useInitials } from "@/hooks/use-initials"
 import { Button } from "@/components/ui/button"
+import CategoryController from "@/actions/App/Http/Controllers/CategoryController"
+import Axios from "@/lib/axios"
+import { toast } from "@/lib/toast"
 
 type SelectedCategory = Pick<Category, "id" | "name" | "icon" | "color">
 
@@ -36,6 +45,19 @@ type CategoryGridProps = {
 	accounts: Account[]
 }
 
+function sortCategoriesByPosition(categoryList: Category[]): Category[] {
+	return [...categoryList].sort((left, right) => {
+		const leftPosition = Number(left.position ?? Number.MAX_SAFE_INTEGER)
+		const rightPosition = Number(right.position ?? Number.MAX_SAFE_INTEGER)
+
+		if (leftPosition !== rightPosition) {
+			return leftPosition - rightPosition
+		}
+
+		return left.name.localeCompare(right.name)
+	})
+}
+
 export default function CategoryGrid({
 	categories,
 	accounts,
@@ -46,23 +68,28 @@ export default function CategoryGrid({
 	const [interactionMode, setInteractionMode] = useState<"entry" | "edit">(
 		"entry"
 	)
+	const [orderedCategories, setOrderedCategories] = useState<Category[]>(() =>
+		sortCategoriesByPosition(categories)
+	)
+	const [isReordering, setIsReordering] = useState(false)
 	const [selectedCategory, setSelectedCategory] =
 		useState<SelectedCategory | null>(null)
 	const [isEntrySheetOpen, setIsEntrySheetOpen] = useState(false)
 	// State Section End
 
+	useEffect(() => {
+		setOrderedCategories(sortCategoriesByPosition(categories))
+	}, [categories])
+
 	// Derived Data Section Start
-	const sortedCategories = [...categories].sort(
-		(left, right) =>
-			(right.total?.amount ?? 0) - (left.total?.amount ?? 0) ||
-			left.name.localeCompare(right.name)
-	)
-	const visibleCategories = sortedCategories.filter(
+	const visibleCategories = orderedCategories.filter(
 		(category) => category.type === activeType
 	)
 
-	const expenseCategories = sortedCategories.filter((c) => c.type === "expense")
-	const incomeCategories = sortedCategories.filter((c) => c.type === "income")
+	const expenseCategories = orderedCategories.filter(
+		(c) => c.type === "expense"
+	)
+	const incomeCategories = orderedCategories.filter((c) => c.type === "income")
 	const expenseTotal = expenseCategories.reduce(
 		(sum, c) => sum + (c.total?.amount ?? 0),
 		0
@@ -91,6 +118,72 @@ export default function CategoryGrid({
 			color: category.color,
 		})
 		setIsEntrySheetOpen(true)
+	}
+
+	const handleDragEnd = (result: DropResult): void => {
+		if (interactionMode !== "edit") {
+			return
+		}
+
+		const { source, destination } = result
+
+		if (!destination || source.index === destination.index) {
+			return
+		}
+
+		const previousOrder = orderedCategories
+		const movableCategories = visibleCategories
+		const reorderedVisible = [...movableCategories]
+		const [movedCategory] = reorderedVisible.splice(source.index, 1)
+		reorderedVisible.splice(destination.index, 0, movedCategory)
+
+		const visibleIndexes: number[] = []
+		for (const [index, category] of orderedCategories.entries()) {
+			if (category.type === activeType) {
+				visibleIndexes.push(index)
+			}
+		}
+
+		const nextOrdered = [...orderedCategories]
+		for (const [visibleIndex, categoryIndex] of visibleIndexes.entries()) {
+			nextOrdered[categoryIndex] = reorderedVisible[visibleIndex]
+		}
+
+		const nextWithPositions = nextOrdered.map((category, index) => ({
+			...category,
+			position: index + 1,
+		}))
+
+		setOrderedCategories(nextWithPositions)
+		setIsReordering(true)
+
+		const previousPositionsById = new Map(
+			previousOrder.map((category) => [String(category.id), category.position])
+		)
+		const changedCategories = nextWithPositions.filter(
+			(category) =>
+				previousPositionsById.get(String(category.id)) !== category.position
+		)
+
+		if (changedCategories.length === 0) {
+			setIsReordering(false)
+			return
+		}
+
+		Promise.all(
+			changedCategories.map((category) =>
+				Axios.patch(CategoryController.update.url(String(category.id)), {
+					position: category.position,
+				})
+			)
+		)
+			.catch(() => {
+				setOrderedCategories(previousOrder)
+				toast.error("Unable to save category order. Please try again.")
+			})
+			.finally(() => {
+				setIsReordering(false)
+			})
 	}
 	// Event Handlers Section End
 
@@ -204,52 +297,100 @@ export default function CategoryGrid({
 			{/* Totals Bar Section End */}
 
 			{/* Category Cards Section Start */}
-			<div className="grid grid-cols-4 gap-1">
-				{visibleCategories.map((category, index) =>
-					interactionMode === "edit" ? (
-						<Link
-							key={category.id}
-							href={`/categories/${category.id}/edit`}
-							variant="unstyled"
-							size="none"
-							className="group flex min-h-28 flex-col rounded-xl bg-background p-2 text-center transition-colors hover:bg-accent/20"
-							style={
-								{
-									// borderColor: resolveCardColor(category.color, index),
-								}
-							}>
-							<p className="overflow-hidden text-xs leading-tight font-medium text-clip whitespace-nowrap">
-								{category.name}
-							</p>
+			{interactionMode === "edit" ? (
+				<DragDropContext onDragEnd={handleDragEnd}>
+					<Droppable droppableId={`categories-${activeType}`}>
+						{(provided) => (
+							<div
+								ref={provided.innerRef}
+								{...provided.droppableProps}
+								className={`grid grid-cols-4 gap-1 ${isReordering ? "pointer-events-none opacity-80" : ""}`}>
+								{visibleCategories.map((category, index) => (
+									<Draggable
+										key={String(category.id)}
+										draggableId={String(category.id)}
+										index={index}>
+										{(draggableProvided, snapshot) => (
+											<div
+												ref={draggableProvided.innerRef}
+												{...draggableProvided.draggableProps}
+												{...draggableProvided.dragHandleProps}>
+												<Link
+													href={`/categories/${category.id}/edit`}
+													variant="unstyled"
+													size="none"
+													className={`group flex min-h-28 cursor-grab flex-col rounded-xl bg-background p-2 text-center transition-colors hover:bg-accent/20 active:cursor-grabbing ${snapshot.isDragging ? "ring-2 ring-primary/35" : ""}`}>
+													<p className="overflow-hidden text-xs leading-tight font-medium text-clip whitespace-nowrap">
+														{category.name}
+													</p>
 
-							<div className="flex flex-1 items-center justify-center">
-								<div
-									className="flex size-10 shrink-0 items-center justify-center rounded-full border border-border/60 text-white"
-									style={{
-										backgroundColor: resolveCardColor(category.color, index),
-									}}>
-									<LucideIconDisplay
-										icon={category.icon}
-										className="size-4"
-										fallback={
-											<span className="text-[11px] font-semibold">
-												{getInitials(category.name) || "C"}
-											</span>
-										}
-									/>
-								</div>
-							</div>
+													<div className="flex flex-1 items-center justify-center">
+														<div
+															className="flex size-10 shrink-0 items-center justify-center rounded-full border border-border/60 text-white"
+															style={{
+																backgroundColor: resolveCardColor(
+																	category.color,
+																	index
+																),
+															}}>
+															<LucideIconDisplay
+																icon={category.icon}
+																className="size-4"
+																fallback={
+																	<span className="text-[11px] font-semibold">
+																		{getInitials(category.name) || "C"}
+																	</span>
+																}
+															/>
+														</div>
+													</div>
 
-							<div className="text-center">
-								<p
-									className="flex items-end justify-center text-[0.6em] font-thin"
-									style={{ color: resolveCardColor(category.color, index) }}>
-									<small className="me-1">KES</small>{" "}
-									{category.total?.formatted}
-								</p>
+													<div className="text-center">
+														<p
+															className="flex items-end justify-center text-[0.6em] font-thin"
+															style={{
+																color: resolveCardColor(category.color, index),
+															}}>
+															<small className="me-1">KES</small>{" "}
+															{category.total?.formatted}
+														</p>
+													</div>
+												</Link>
+											</div>
+										)}
+									</Draggable>
+								))}
+
+								{provided.placeholder}
+
+								<Link
+									href={`/categories/create?type=${activeType}`}
+									variant="unstyled"
+									size="none"
+									className="group flex min-h-28 flex-col rounded-xl border-2 border-dashed border-border/70 bg-background p-2 text-center transition-colors hover:bg-accent/20">
+									<p className="overflow-hidden text-xs leading-tight font-medium text-clip whitespace-nowrap">
+										Add category
+									</p>
+
+									<div className="flex flex-1 items-center justify-center">
+										<div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground">
+											<Plus className="size-4" />
+										</div>
+									</div>
+
+									<div className="text-center">
+										<p className="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
+											{activeType}
+										</p>
+									</div>
+								</Link>
 							</div>
-						</Link>
-					) : (
+						)}
+					</Droppable>
+				</DragDropContext>
+			) : (
+				<div className="grid grid-cols-4 gap-1">
+					{visibleCategories.map((category, index) => (
 						<button
 							key={category.id}
 							type="button"
@@ -291,33 +432,9 @@ export default function CategoryGrid({
 								</p>
 							</div>
 						</button>
-					)
-				)}
-
-				{interactionMode === "edit" ? (
-					<Link
-						href={`/categories/create?type=${activeType}`}
-						variant="unstyled"
-						size="none"
-						className="group flex min-h-28 flex-col rounded-xl border-2 border-dashed border-border/70 bg-background p-2 text-center transition-colors hover:bg-accent/20">
-						<p className="overflow-hidden text-xs leading-tight font-medium text-clip whitespace-nowrap">
-							Add category
-						</p>
-
-						<div className="flex flex-1 items-center justify-center">
-							<div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground">
-								<Plus className="size-4" />
-							</div>
-						</div>
-
-						<div className="text-center">
-							<p className="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
-								{activeType}
-							</p>
-						</div>
-					</Link>
-				) : null}
-			</div>
+					))}
+				</div>
+			)}
 			{/* Category Cards Section End */}
 
 			{/* No Categories Section Start */}

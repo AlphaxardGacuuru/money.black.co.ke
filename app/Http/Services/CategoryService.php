@@ -34,7 +34,8 @@ class CategoryService extends Service
     public function store(Request $request): array
     {
         $position = Category::query()
-            ->where('user_id', auth('sanctum')->user()->id)
+            ->where('user_id', auth('sanctum')->id())
+            ->get()
             ->count() + 1;
 
         $category = new Category;
@@ -56,6 +57,7 @@ class CategoryService extends Service
         $category->color = $request->input('color', $category->color);
         $category->name = $request->input('name', $category->name);
         $category->type = $request->input('type', $category->type);
+        $category->position = $request->input('position', $category->position);
         $category->total = $request->input('total', $category->total);
         $saved = $category->save();
 
@@ -79,7 +81,7 @@ class CategoryService extends Service
             // Eager load transactions within the date range and calculate the total amount for each category
             $query
                 ->withSum([
-                    'transactions as computed_total' => function (Builder $query) use ($start, $end) {
+                    'transactions as computed_total' => function(Builder $query) use ($start, $end) {
                         $query->whereBetween('transaction_date', [$start, $end]);
                     },
                 ], 'amount');

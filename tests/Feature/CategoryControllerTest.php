@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Category;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -62,6 +63,34 @@ class CategoryControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertJsonStructure(['data' => [['id', 'name']]]);
+    }
+
+    public function test_it_updates_a_category_position_using_update_route()
+    {
+        $user = User::factory()->create();
+
+        $category = Category::factory()->for($user)->create(['position' => 1]);
+
+        $response = $this->actingAs($user)->patchJson(route('categories.update', $category), [
+            'position' => 3,
+        ]);
+
+        $response->assertOk();
+
+        $this->assertDatabaseHas('categories', ['id' => $category->id, 'position' => 3]);
+    }
+
+    public function test_updating_category_position_rejects_invalid_values()
+    {
+        $user = User::factory()->create();
+        $category = Category::factory()->for($user)->create(['position' => 1]);
+
+        $response = $this->actingAs($user)->patchJson(route('categories.update', $category), [
+            'position' => 0,
+        ]);
+
+        $response->assertUnprocessable();
+        $response->assertJsonValidationErrors(['position']);
     }
 
     public function test_it_creates_a_category()
@@ -137,7 +166,7 @@ class CategoryControllerTest extends TestCase
         Category::factory()->for($user)->create(['name' => 'Food']);
 
         $this->withoutExceptionHandling();
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         $this->actingAs($user)->postJson(route('categories.store'), [
             'icon' => 'tags',
