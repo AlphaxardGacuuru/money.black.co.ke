@@ -10,12 +10,7 @@ import type { Transaction } from "@/types/transaction"
 
 import { useInitials } from "@/hooks/use-initials"
 import { Button } from "@/components/ui/button"
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { PlaceholderPattern } from "@/components/ui/placeholder-pattern"
 import { useApp } from "@/contexts/AppContext"
@@ -136,93 +131,84 @@ export default function TransactionsIndex() {
 										type="button"
 										onClick={() => handleEditTransaction(transaction)}
 										className="block w-full text-left">
-										<Card className="overflow-hidden border-border/80 py-0 transition-colors hover:bg-accent/10">
-											<CardContent className="flex flex-col gap-2 p-3 sm:flex-row sm:items-start sm:justify-between">
-												<div className="flex min-w-0 items-start justify-between gap-3">
-													<div className="flex gap-2">
-														{/* Icon Start */}
+										<Card className="overflow-hidden border-0 py-0 transition-colors hover:bg-accent/10">
+											<CardContent className="flex gap-2 px-0 justify-between">
+												{/* Icon Start */}
+												<div
+													className="flex size-14 shrink-0 items-center justify-center rounded-4xl border border-border/60 text-white shadow-sm"
+													style={{
+														backgroundColor:
+															transaction.categoryColor ??
+															transaction.accountColor ??
+															"#0f172a",
+													}}>
+													<LucideIconDisplay
+														icon={
+															transaction.categoryIcon ??
+															transaction.accountIcon
+														}
+														className="size-8"
+														fallback={
+															<span className="text-xs font-semibold">
+																{getInitials(
+																	transaction.categoryName ??
+																		transaction.accountName ??
+																		""
+																)}
+															</span>
+														}
+													/>
+												</div>
+												{/* Icon End */}
+
+												{/* Data Start */}
+												<div className="flex w-full flex-1 justify-between">
+													{/* Title and Notes Start */}
+													<div className="flex flex-col justify-between gap-1">
+														{/* Category Name Start */}
+														<div className="text-base leading-tight">
+															{transaction.categoryName}
+														</div>
+														{/* Category Name End */}
+														<div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+															{/* Account Name Start */}
+															<span className="capitalize">
+																{transaction.accountName}
+															</span>
+															{/* Account Name End */}
+															{/* Category Type Start */}
+															{transaction.categoryType ? (
+																<span className="capitalize">
+																	{transaction.categoryType}
+																</span>
+															) : null}
+															{/* Category Type End */}
+														</div>
+														{/* Title and Notes End */}
+														{/* Notes Start */}
 														<div
-															className="flex size-14 shrink-0 items-center justify-center rounded-4xl border border-border/60 text-white shadow-sm"
+															className="text-sm text-white"
 															style={{
-																backgroundColor:
+																color:
 																	transaction.categoryColor ??
 																	transaction.accountColor ??
 																	"#0f172a",
 															}}>
-															<LucideIconDisplay
-																icon={
-																	transaction.categoryIcon ??
-																	transaction.accountIcon
-																}
-																className="size-8"
-																fallback={
-																	<span className="text-xs font-semibold">
-																		{getInitials(
-																			transaction.categoryName ??
-																				transaction.accountName ??
-																				""
-																		)}
-																	</span>
-																}
-															/>
+															{transaction.notes?.trim()}
 														</div>
-														{/* Icon End */}
-
-														{/* Data Start */}
-														<div className="flex min-w-0 flex-1 flex-col justify-between space-y-1">
-															<CardTitle className="text-base leading-tight">
-																{transaction.categoryName}
-															</CardTitle>
-															<CardDescription>
-																<div
-																	className="mb-1 text-white"
-																	style={{
-																		color:
-																			transaction.categoryColor ??
-																			transaction.accountColor ??
-																			"#0f172a",
-																	}}>
-																	{transaction.notes?.trim()}
-																</div>
-																<div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-																	<span
-																		className="rounded border px-2 text-white capitalize"
-																		style={{
-																			backgroundColor:
-																				transaction.accountColor ?? "#0f172a",
-																		}}>
-																		{transaction.accountName}
-																	</span>
-
-																	{transaction.categoryType ? (
-																		<span className="capitalize">
-																			{transaction.categoryType}
-																		</span>
-																	) : null}
-																</div>
-															</CardDescription>
-														</div>
-														{/* Data End */}
+														{/* Notes End */}
 													</div>
-
+													{/* Title and Notes Start */}
 													{/* Amount Start */}
-													<div className="flex flex-col items-end">
-														<p
-															className={`text-md shrink-0 font-semibold tracking-tight ${amountTone}`}>
-															{transaction.categoryType === "income"
-																? "+"
-																: "-"}{" "}
-															{transaction.currency}{" "}
-															{transaction.amount.formatted}
-														</p>
-														{/* Amount End */}
-														{/* Date Start */}
-														<small className="shrink-0 text-xs text-muted-foreground">
-															{transaction.transactionDateHuman}
-														</small>
-														{/* Date End */}
+													<div
+														className={`text-md shrink-0 items-end font-semibold ${amountTone}`}>
+														{transaction.categoryType === "income" ? "+" : "-"}{" "}
+														{transaction.currency}{" "}
+														{transaction.amount.formatted}
 													</div>
+													{/* Amount End */}
 												</div>
+												{/* Data End */}
 											</CardContent>
 										</Card>
 									</button>
