@@ -63,6 +63,30 @@ export function getTodayDateFilter(filters: DateFilterParams): DateFilterParams 
 	}
 }
 
+export function snapDateFilterToToday(filters: DateFilterParams): DateFilterParams {
+	const filter = filters.filter ?? "all_time"
+
+	if (
+		filter !== "today" &&
+		filter !== "week" &&
+		filter !== "month" &&
+		filter !== "year"
+	) {
+		return filters
+	}
+
+	const today = getTodayDateInput()
+
+	if (filters.date === today) {
+		return filters
+	}
+
+	return {
+		...filters,
+		date: today,
+	}
+}
+
 /**
  * Converts DateFilterParams into a URL query string (e.g. "?filter=month").
  * Returns an empty string when no filter is active (all_time).

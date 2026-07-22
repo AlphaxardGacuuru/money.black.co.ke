@@ -18,6 +18,7 @@ import type { Category } from "@/types/category"
 import type { OverviewState } from "@/types/overview"
 import type { Transaction } from "@/types/transaction"
 import type { DateFilterParams } from "@/types/date-filter"
+import { snapDateFilterToToday } from "@/lib/date-filter"
 
 const DEFAULT_DATE_FILTERS: DateFilterParams = {
 	filter: "all_time",
@@ -254,6 +255,26 @@ export const AppProvider = ({ children }: AppProviderProps) => {
 			endDate: dateFilters.endDate ?? DEFAULT_DATE_FILTERS.endDate,
 		})
 	}, [dateFilters])
+
+	useEffect(() => {
+		const syncDateFilterWithToday = (): void => {
+			setDateFilters((current) => snapDateFilterToToday(current))
+		}
+
+		const handleVisibilityChange = (): void => {
+			if (document.visibilityState === "visible") {
+				syncDateFilterWithToday()
+			}
+		}
+
+		window.addEventListener("focus", syncDateFilterWithToday)
+		document.addEventListener("visibilitychange", handleVisibilityChange)
+
+		return () => {
+			window.removeEventListener("focus", syncDateFilterWithToday)
+			document.removeEventListener("visibilitychange", handleVisibilityChange)
+		}
+	}, [])
 
 	useEffect(() => {
 		setLocalStorage("overview", overview)
