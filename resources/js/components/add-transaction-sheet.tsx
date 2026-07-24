@@ -205,13 +205,15 @@ export default function AddTransactionSheet({
 		Axios.delete(TransactionController.destroy.url(String(transaction.id)), {
 			data: { redirect_to: redirectTo },
 		})
-			.then(() => {
+			.then((res) => {
+				toast.success(res.data.message)
 				onOpenChange(false)
 				onSelectedCategoryChange(null)
 				setCalcDisplay(getTransactionAmountValue(null))
 				setTransactionDate(getTransactionDateValue(null, props.dateFilters))
 				const query = buildFilterQuery(props.dateFilters)
 				props.get(`categories${query}`, props.setCategories, "categories")
+				props.get(`transactions${query}`, props.setTransactions, "transactions")
 			})
 			.finally(() => {
 				setIsDeleting(false)
