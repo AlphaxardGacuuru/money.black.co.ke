@@ -225,7 +225,17 @@ export default function AddTransactionSheet({
 	function handleSubmit(event: FormEvent<HTMLFormElement>): void {
 		event.preventDefault()
 
-		if (!selectedCategory || !selectedAccount || resolvedAmount <= 0) {
+		if (!selectedAccount) {
+			toast.error("Select an account")
+			return
+		}
+
+		if (!selectedCategory) {
+			toast.error("Select a category")
+			return
+		}
+
+		if (resolvedAmount <= 0) {
 			return
 		}
 
