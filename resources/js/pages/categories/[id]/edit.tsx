@@ -29,7 +29,7 @@ import type { Category } from "@/types/category"
 import { toast } from "@/lib/toast"
 
 type CategoryFormErrors = Partial<
-	Record<"icon" | "color" | "name" | "type", string>
+	Record<"icon" | "color" | "name" | "type" | "position", string>
 >
 
 export default function EditCategory() {
@@ -43,6 +43,7 @@ export default function EditCategory() {
 	const [color, setColor] = useState("#0f172a")
 	const [name, setName] = useState("")
 	const [type, setType] = useState<"expense" | "income" | "">("")
+	const [position, setPosition] = useState("")
 	const [processing, setProcessing] = useState(false)
 	const [errors, setErrors] = useState<CategoryFormErrors>({})
 	const [isDeleting, setIsDeleting] = useState(false)
@@ -56,6 +57,9 @@ export default function EditCategory() {
 			setColor(resolvedCategory.color)
 			setName(resolvedCategory.name)
 			setType(resolvedCategory.type)
+			setPosition(
+				resolvedCategory.position ? String(resolvedCategory.position) : ""
+			)
 		})
 	}, [id])
 
@@ -70,6 +74,7 @@ export default function EditCategory() {
 			color,
 			name,
 			type,
+			position: position === "" ? undefined : Number(position),
 		})
 			.then((res) => {
 				toast.success(res.data.message)
@@ -93,6 +98,7 @@ export default function EditCategory() {
 						color: props.getFieldError(response.data.errors.color),
 						name: props.getFieldError(response.data.errors.name),
 						type: props.getFieldError(response.data.errors.type),
+						position: props.getFieldError(response.data.errors.position),
 					})
 				}
 			})
@@ -195,6 +201,20 @@ export default function EditCategory() {
 						<SelectItem value="income">Income</SelectItem>
 					</SelectField>
 					{/* Category Type Section End */}
+
+					{/* Category Position Section Start */}
+					<Input
+						label="Position"
+						id="position"
+						type="number"
+						name="position"
+						min={1}
+						value={position}
+						onChange={(event) => setPosition(event.target.value)}
+						helperText="If this position is already taken, the category will be moved to the last position instead."
+						error={errors.position}
+					/>
+					{/* Category Position Section End */}
 
 					{/* Actions Section Start */}
 					<div className="flex justify-between gap-3">

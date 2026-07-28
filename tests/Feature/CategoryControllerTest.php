@@ -93,6 +93,25 @@ class CategoryControllerTest extends TestCase
         $response->assertJsonValidationErrors(['position']);
     }
 
+    public function test_updating_a_category_to_a_position_already_held_by_another_moves_it_to_the_end()
+    {
+        $user = User::factory()->create();
+
+        $category = Category::factory()->for($user)->create(['position' => 1]);
+        $takenPosition = Category::factory()->for($user)->create(['position' => 2]);
+        Category::factory()->for($user)->create(['position' => 3]);
+        Category::factory()->for($user)->create(['position' => 4]);
+
+        $response = $this->actingAs($user)->patchJson(route('categories.update', $category), [
+            'position' => $takenPosition->position,
+        ]);
+
+        $response->assertOk();
+
+        $this->assertDatabaseHas('categories', ['id' => $category->id, 'position' => 5]);
+        $this->assertDatabaseHas('categories', ['id' => $takenPosition->id, 'position' => 2]);
+    }
+
     public function test_it_creates_a_category()
     {
         $user = User::factory()->create();

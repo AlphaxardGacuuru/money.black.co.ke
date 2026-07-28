@@ -29,6 +29,7 @@ class CategoryResource extends JsonResource
             'color' => $this->color,
             'name' => $this->name,
             'type' => $this->type,
+            'position' => $this->position,
             'total' => [
                 'amount' => (int) $computedTotal,
                 'formatted' => number_format((int) $computedTotal, 2),

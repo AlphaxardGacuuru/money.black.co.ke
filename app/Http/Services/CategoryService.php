@@ -57,11 +57,42 @@ class CategoryService extends Service
         $category->color = $request->input('color', $category->color);
         $category->name = $request->input('name', $category->name);
         $category->type = $request->input('type', $category->type);
-        $category->position = $request->input('position', $category->position);
         $category->total = $request->input('total', $category->total);
+
+        $message = 'Category Updated Successfully';
+
+        if ($request->filled('position')) {
+            [$position, $wasTaken] = $this->resolvePosition($request->integer('position'), $category);
+            $category->position = $position;
+
+            if ($wasTaken) {
+                $message = "Position {$request->integer('position')} was already taken, moved to the last position instead";
+            }
+        }
+
         $saved = $category->save();
 
-        return [$saved, 'Category Updated Successfully', $category];
+        return [$saved, $message, $category];
+    }
+
+    protected function resolvePosition(int $requestedPosition, Category $category): array
+    {
+        $positionTaken = Category::query()
+            ->where('user_id', $category->user_id)
+            ->where('id', '!=', $category->id)
+            ->where('position', $requestedPosition)
+            ->exists();
+
+        if (! $positionTaken) {
+            return [$requestedPosition, false];
+        }
+
+        $lastPosition = Category::query()
+            ->where('user_id', $category->user_id)
+            ->where('id', '!=', $category->id)
+            ->max('position');
+
+        return [(int) $lastPosition + 1, true];
     }
 
     public function destroy(Category $category): array

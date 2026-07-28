@@ -1,11 +1,24 @@
 import { Link } from "@/components/ui/link"
 import {
-	DragDropContext,
-	Draggable,
-	Droppable,
-	type DropResult,
-} from "@hello-pangea/dnd"
-import { Pencil, Plus } from "lucide-react"
+	closestCenter,
+	DndContext,
+	DragOverlay,
+	KeyboardSensor,
+	PointerSensor,
+	useSensor,
+	useSensors,
+	type DragEndEvent,
+	type DragStartEvent,
+} from "@dnd-kit/core"
+import {
+	arrayMove,
+	rectSortingStrategy,
+	SortableContext,
+	sortableKeyboardCoordinates,
+	useSortable,
+} from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
+import { GripVertical, Pencil, Plus } from "lucide-react"
 import { useEffect, useState } from "react"
 import AddTransactionSheet from "@/components/add-transaction-sheet"
 import LucideIconDisplay from "@/components/lucide-icon-display"
@@ -58,6 +71,96 @@ function sortCategoriesByPosition(categoryList: Category[]): Category[] {
 	})
 }
 
+function CategoryCardVisual({
+	category,
+	index,
+	dragging = false,
+}: {
+	category: Category
+	index: number
+	dragging?: boolean
+}) {
+	const getInitials = useInitials()
+
+	return (
+		<div
+			className={`flex min-h-28 flex-col rounded-xl bg-background p-2 text-center transition-colors ${
+				dragging ? "shadow-lg ring-2 ring-primary/50" : ""
+			}`}>
+			<p className="overflow-hidden text-xs leading-tight font-medium text-clip whitespace-nowrap">
+				{category.name}
+			</p>
+
+			<div className="flex flex-1 items-center justify-center py-2">
+				<div
+					className="flex size-18 shrink-0 items-center justify-center rounded-full border border-border/60 text-white"
+					style={{
+						backgroundColor: resolveCardColor(category.color, index),
+					}}>
+					<LucideIconDisplay
+						icon={category.icon}
+						className="size-10"
+						fallback={
+							<span className="text-md font-semibold">
+								{getInitials(category.name) || "C"}
+							</span>
+						}
+					/>
+				</div>
+			</div>
+
+			<div className="text-center">
+				<p
+					className="flex items-end justify-center text-xs font-thin"
+					style={{ color: resolveCardColor(category.color, index) }}>
+					<small className="me-1">KES</small> {category.total?.formatted}
+				</p>
+			</div>
+		</div>
+	)
+}
+
+function SortableCategoryCard({
+	category,
+	index,
+}: {
+	category: Category
+	index: number
+}) {
+	const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+		useSortable({ id: String(category.id) })
+
+	const style = {
+		transform: CSS.Transform.toString(transform),
+		transition,
+		opacity: isDragging ? 0.4 : 1,
+	}
+
+	return (
+		<div
+			ref={setNodeRef}
+			style={style}
+			className="relative">
+			<Link
+				href={`/categories/${category.id}/edit`}
+				variant="unstyled"
+				size="none"
+				className="block rounded-xl hover:bg-accent/20">
+				<CategoryCardVisual category={category} index={index} />
+			</Link>
+
+			<button
+				type="button"
+				{...attributes}
+				{...listeners}
+				aria-label={`Reorder ${category.name}`}
+				className="absolute top-1 right-1 flex size-7 touch-none items-center justify-center rounded-full bg-background/90 text-muted-foreground shadow-sm ring-1 ring-border/60 active:cursor-grabbing">
+				<GripVertical className="size-4" />
+			</button>
+		</div>
+	)
+}
+
 export default function CategoryGrid({
 	categories,
 	accounts,
@@ -72,9 +175,14 @@ export default function CategoryGrid({
 		sortCategoriesByPosition(categories)
 	)
 	const [isReordering, setIsReordering] = useState(false)
+	const [activeDragId, setActiveDragId] = useState<string | null>(null)
 	const [selectedCategory, setSelectedCategory] =
 		useState<SelectedCategory | null>(null)
 	const [isEntrySheetOpen, setIsEntrySheetOpen] = useState(false)
+	const sensors = useSensors(
+		useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+		useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+	)
 	// State Section End
 
 	useEffect(() => {
@@ -85,6 +193,11 @@ export default function CategoryGrid({
 	const visibleCategories = orderedCategories.filter(
 		(category) => category.type === activeType
 	)
+	const activeDragCategory = activeDragId
+		? (visibleCategories.find(
+				(category) => String(category.id) === activeDragId
+			) ?? null)
+		: null
 
 	const expenseCategories = orderedCategories.filter(
 		(c) => c.type === "expense"
@@ -120,22 +233,40 @@ export default function CategoryGrid({
 		setIsEntrySheetOpen(true)
 	}
 
-	const handleDragEnd = (result: DropResult): void => {
+	const handleDragStart = (event: DragStartEvent): void => {
+		setActiveDragId(String(event.active.id))
+	}
+
+	const handleDragEnd = (event: DragEndEvent): void => {
+		setActiveDragId(null)
+
 		if (interactionMode !== "edit") {
 			return
 		}
 
-		const { source, destination } = result
+		const { active, over } = event
 
-		if (!destination || source.index === destination.index) {
+		if (!over || active.id === over.id) {
+			return
+		}
+
+		const sourceIndex = visibleCategories.findIndex(
+			(category) => String(category.id) === String(active.id)
+		)
+		const destinationIndex = visibleCategories.findIndex(
+			(category) => String(category.id) === String(over.id)
+		)
+
+		if (sourceIndex === -1 || destinationIndex === -1) {
 			return
 		}
 
 		const previousOrder = orderedCategories
-		const movableCategories = visibleCategories
-		const reorderedVisible = [...movableCategories]
-		const [movedCategory] = reorderedVisible.splice(source.index, 1)
-		reorderedVisible.splice(destination.index, 0, movedCategory)
+		const reorderedVisible = arrayMove(
+			visibleCategories,
+			sourceIndex,
+			destinationIndex
+		)
 
 		const visibleIndexes: number[] = []
 		for (const [index, category] of orderedCategories.entries()) {
@@ -244,8 +375,8 @@ export default function CategoryGrid({
 
 			{/* Totals Bar Section Start */}
 			{barCategories.length > 0 ? (
-				<div className="mb-2 space-y-3">
-					<div className="flex h-5 w-full overflow-hidden rounded-full">
+				<div className="mb-2 space-y-3 ">
+					<div className="flex h-5 w-[90%] mx-auto overflow-hidden rounded-full">
 						{barCategories.map((category, index) => {
 							const percent =
 								barTotal > 0
@@ -257,7 +388,7 @@ export default function CategoryGrid({
 									key={String(category.id)}
 									title={category.name}
 									style={{
-										width: `${percent / 1.009}%`,
+										width: `${percent / 0.999}%`,
 										backgroundColor: resolveCardColor(category.color, index),
 									}}
 									className="h-full shrink-0 transition-all"
@@ -296,96 +427,60 @@ export default function CategoryGrid({
 
 			{/* Category Cards Section Start */}
 			{interactionMode === "edit" ? (
-				<DragDropContext onDragEnd={handleDragEnd}>
-					<Droppable droppableId={`categories-${activeType}`}>
-						{(provided) => (
-							<div
-								ref={provided.innerRef}
-								{...provided.droppableProps}
-								className={`grid grid-cols-4 gap-1 ${isReordering ? "pointer-events-none opacity-80" : ""}`}>
-								{visibleCategories.map((category, index) => (
-									<Draggable
-										key={String(category.id)}
-										draggableId={String(category.id)}
-										index={index}>
-										{(draggableProvided, snapshot) => (
-											<div
-												ref={draggableProvided.innerRef}
-												{...draggableProvided.draggableProps}
-												{...draggableProvided.dragHandleProps}>
-												<Link
-													href={`/categories/${category.id}/edit`}
-													variant="unstyled"
-													size="none"
-													className={`group flex min-h-28 cursor-grab flex-col rounded-xl bg-background p-2 text-center transition-colors hover:bg-accent/20 active:cursor-grabbing ${snapshot.isDragging ? "ring-2 ring-primary/35" : ""}`}>
-													<p className="overflow-hidden text-xs leading-tight font-medium text-clip whitespace-nowrap">
-														{category.name}
-													</p>
+				<DndContext
+					sensors={sensors}
+					collisionDetection={closestCenter}
+					onDragStart={handleDragStart}
+					onDragEnd={handleDragEnd}>
+					<SortableContext
+						items={visibleCategories.map((category) => String(category.id))}
+						strategy={rectSortingStrategy}>
+						<div
+							className={`grid grid-cols-4 gap-1 ${isReordering ? "pointer-events-none opacity-80" : ""}`}>
+							{visibleCategories.map((category, index) => (
+								<SortableCategoryCard
+									key={String(category.id)}
+									category={category}
+									index={index}
+								/>
+							))}
 
-													<div className="flex flex-1 items-center justify-center py-2">
-														<div
-															className="flex size-18 shrink-0 items-center justify-center rounded-full border border-border/60 text-white"
-															style={{
-																backgroundColor: resolveCardColor(
-																	category.color,
-																	index
-																),
-															}}>
-															<LucideIconDisplay
-																icon={category.icon}
-																className="size-10"
-																fallback={
-																	<span className="text-md font-semibold">
-																		{getInitials(category.name) || "C"}
-																	</span>
-																}
-															/>
-														</div>
-													</div>
+							<Link
+								href={`/categories/create?type=${activeType}`}
+								variant="unstyled"
+								size="none"
+								className="group flex min-h-28 flex-col rounded-xl border-2 border-dashed border-border/70 bg-background p-2 text-center transition-colors hover:bg-accent/20">
+								<p className="overflow-hidden text-xs leading-tight font-medium text-clip whitespace-nowrap">
+									Add category
+								</p>
 
-													<div className="text-center">
-														<p
-															className="flex items-end justify-center text-xs font-thin"
-															style={{
-																color: resolveCardColor(category.color, index),
-															}}>
-															<small className="me-1">KES</small>{" "}
-															{category.total?.formatted}
-														</p>
-													</div>
-												</Link>
-											</div>
-										)}
-									</Draggable>
-								))}
+								<div className="flex flex-1 items-center justify-center">
+									<div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground">
+										<Plus className="size-4" />
+									</div>
+								</div>
 
-								{provided.placeholder}
-
-								<Link
-									href={`/categories/create?type=${activeType}`}
-									variant="unstyled"
-									size="none"
-									className="group flex min-h-28 flex-col rounded-xl border-2 border-dashed border-border/70 bg-background p-2 text-center transition-colors hover:bg-accent/20">
-									<p className="overflow-hidden text-xs leading-tight font-medium text-clip whitespace-nowrap">
-										Add category
+								<div className="text-center">
+									<p className="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
+										{activeType}
 									</p>
+								</div>
+							</Link>
+						</div>
+					</SortableContext>
 
-									<div className="flex flex-1 items-center justify-center">
-										<div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground">
-											<Plus className="size-4" />
-										</div>
-									</div>
-
-									<div className="text-center">
-										<p className="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
-											{activeType}
-										</p>
-									</div>
-								</Link>
-							</div>
-						)}
-					</Droppable>
-				</DragDropContext>
+					<DragOverlay>
+						{activeDragCategory ? (
+							<CategoryCardVisual
+								category={activeDragCategory}
+								index={visibleCategories.findIndex(
+									(category) => String(category.id) === activeDragId
+								)}
+								dragging
+							/>
+						) : null}
+					</DragOverlay>
+				</DndContext>
 			) : (
 				<div className="grid grid-cols-4 gap-1">
 					{visibleCategories.map((category, index) => (
