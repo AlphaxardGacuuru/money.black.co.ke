@@ -132,7 +132,7 @@ export default function TransactionsIndex() {
 										onClick={() => handleEditTransaction(transaction)}
 										className="block w-full text-left">
 										<Card className="overflow-hidden border-0 py-0 transition-colors hover:bg-accent/10">
-											<CardContent className="flex gap-2 px-0 justify-between">
+											<CardContent className="flex justify-between gap-2 px-0">
 												{/* Icon Start */}
 												<div
 													className="flex size-14 shrink-0 items-center justify-center rounded-4xl border border-border/60 text-white shadow-sm"

@@ -63,6 +63,27 @@ class TransactionControllerTest extends TestCase
         $response->assertJsonPath('data.0.id', $matching->id);
     }
 
+    public function test_it_lists_transactions_in_ascending_transaction_date_order()
+    {
+        $user = User::factory()->create();
+
+        $newer = Transaction::factory()->for($user)->create([
+            'user_id' => $user->id,
+            'transaction_date' => now()->subDay()->toDateString(),
+        ]);
+
+        $older = Transaction::factory()->for($user)->create([
+            'user_id' => $user->id,
+            'transaction_date' => now()->subDays(7)->toDateString(),
+        ]);
+
+        $response = $this->actingAs($user)->getJson(route('api.transactions.index'));
+
+        $response->assertOk();
+        $response->assertJsonPath('data.0.id', $older->id);
+        $response->assertJsonPath('data.1.id', $newer->id);
+    }
+
     public function test_it_creates_a_transaction_and_applies_its_impact()
     {
         $user = User::factory()->create();

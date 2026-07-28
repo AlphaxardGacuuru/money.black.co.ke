@@ -20,7 +20,8 @@ class TransactionService extends Service
         $query = $this->search($query, $request);
 
         $transactions = $query
-            ->orderBy('transaction_date', 'DESC')
+            ->orderBy('transaction_date', 'ASC')
+            ->orderBy('created_at', 'ASC')
             ->get();
 
         $accounts = Account::where('user_id', $request->user()->id)
@@ -33,7 +34,7 @@ class TransactionService extends Service
 
         return [
             true,
-            $transactions->count().' Transactions Retrieved Successfully',
+            $transactions->count() . ' Transactions Retrieved Successfully',
             $transactions,
             $accounts,
             $categories,
@@ -42,7 +43,7 @@ class TransactionService extends Service
 
     public function store(Request $request): array
     {
-        return DB::transaction(function () use ($request) {
+        return DB::transaction(function() use ($request) {
 
             $category = Category::where('user_id', auth()->id())
                 ->findOrFail($request->category_id);
@@ -71,7 +72,7 @@ class TransactionService extends Service
 
     public function update(Request $request, Transaction $transaction): array
     {
-        return DB::transaction(function () use ($request, $transaction) {
+        return DB::transaction(function() use ($request, $transaction) {
 
             $currentCategory = Category::where('user_id', auth()->id())
                 ->findOrFail($transaction->category_id);
@@ -111,7 +112,7 @@ class TransactionService extends Service
 
     public function destroy(Transaction $transaction): array
     {
-        return DB::transaction(function () use ($transaction) {
+        return DB::transaction(function() use ($transaction) {
 
             $category = Category::where('user_id', auth()->id())
                 ->findOrFail($transaction->category_id);
@@ -140,7 +141,7 @@ class TransactionService extends Service
         }
 
         if ($request->filled('notes')) {
-            $query->where('notes', 'like', '%'.$request->input('notes').'%');
+            $query->where('notes', 'like', '%' . $request->input('notes') . '%');
         }
 
         if ($request->filled('amount')) {
