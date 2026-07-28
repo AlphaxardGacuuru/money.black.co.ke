@@ -158,7 +158,9 @@ export default function DateFilterSheet() {
 			return
 		}
 
-		setDateFilters((current) => getTodayDateFilter({ ...current, filter: value }))
+		setDateFilters((current) =>
+			getTodayDateFilter({ ...current, filter: value })
+		)
 	}
 
 	function handleShift(direction: -1 | 1) {
@@ -242,7 +244,7 @@ export default function DateFilterSheet() {
 			open={open}
 			onOpenChange={setOpen}>
 			<div
-				className="flex w-full items-center justify-between gap-1 mb-2 text-sidebar-foreground"
+				className="flex w-full items-center justify-between gap-1 text-sidebar-foreground"
 				onTouchStart={handleTouchStart}
 				onTouchEnd={handleTouchEnd}>
 				{/* Previous Start */}

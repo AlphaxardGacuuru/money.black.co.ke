@@ -191,13 +191,11 @@ export default function CategoryGrid({
 		<section className="bg-card shadow-xs sm:p-5">
 			{/* Header Controls Section Start */}
 			<div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-				<div>
-					<p className="text-xs text-muted-foreground">
-						{interactionMode === "entry"
-							? "Tap a category to add a transaction."
-							: "Tap a category to edit it."}
-					</p>
-				</div>
+				<p className="text-xs text-muted-foreground">
+					{interactionMode === "entry"
+						? "Tap a category to add a transaction."
+						: "Tap a category to edit it."}
+				</p>
 
 				<div className="flex flex-col gap-2 sm:items-end">
 					<div className="inline-flex justify-between gap-1 rounded-lg border bg-background p-1">
@@ -246,8 +244,8 @@ export default function CategoryGrid({
 
 			{/* Totals Bar Section Start */}
 			{barCategories.length > 0 ? (
-				<div className="mb-4 space-y-3">
-					<div className="flex h-5 w-full space-x-1 overflow-hidden rounded-full">
+				<div className="mb-2 space-y-3">
+					<div className="flex h-5 w-full overflow-hidden rounded-full">
 						{barCategories.map((category, index) => {
 							const percent =
 								barTotal > 0
@@ -324,9 +322,9 @@ export default function CategoryGrid({
 														{category.name}
 													</p>
 
-													<div className="flex flex-1 items-center justify-center">
+													<div className="flex flex-1 items-center justify-center py-2">
 														<div
-															className="flex size-10 shrink-0 items-center justify-center rounded-full border border-border/60 text-white"
+															className="flex size-18 shrink-0 items-center justify-center rounded-full border border-border/60 text-white"
 															style={{
 																backgroundColor: resolveCardColor(
 																	category.color,
@@ -335,9 +333,9 @@ export default function CategoryGrid({
 															}}>
 															<LucideIconDisplay
 																icon={category.icon}
-																className="size-4"
+																className="size-10"
 																fallback={
-																	<span className="text-[11px] font-semibold">
+																	<span className="text-md font-semibold">
 																		{getInitials(category.name) || "C"}
 																	</span>
 																}
@@ -347,7 +345,7 @@ export default function CategoryGrid({
 
 													<div className="text-center">
 														<p
-															className="flex items-end justify-center text-[0.6em] font-thin"
+															className="flex items-end justify-center text-xs font-thin"
 															style={{
 																color: resolveCardColor(category.color, index),
 															}}>
@@ -405,15 +403,15 @@ export default function CategoryGrid({
 								{category.name}
 							</p>
 
-							<div className="flex flex-1 items-center justify-center">
+							<div className="flex flex-1 items-center justify-center py-2">
 								<div
-									className="flex size-10 shrink-0 items-center justify-center rounded-full border border-border/60 text-white"
+									className="flex size-18 shrink-0 items-center justify-center rounded-full border border-border/60 text-white"
 									style={{
 										backgroundColor: resolveCardColor(category.color, index),
 									}}>
 									<LucideIconDisplay
 										icon={category.icon}
-										className="size-4"
+										className="size-10"
 										fallback={
 											<span className="text-[11px] font-semibold">
 												{getInitials(category.name) || "C"}
@@ -425,7 +423,7 @@ export default function CategoryGrid({
 
 							<div className="text-center">
 								<p
-									className="flex items-end justify-center text-[0.6em] leading-none font-thin"
+									className="flex items-end justify-center text-xs leading-none font-thin"
 									style={{ color: resolveCardColor(category.color, index) }}>
 									<small className="me-1">KES</small>{" "}
 									{category.total?.formatted}
