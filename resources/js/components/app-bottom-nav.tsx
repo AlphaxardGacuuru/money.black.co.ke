@@ -49,9 +49,9 @@ export function AppBottomNav() {
 										"flex size-11 items-center justify-center rounded-2xl border border-transparent transition-all",
 										isActive
 											? "text-sidebar-accent-foreground"
-											: "bg-sidebar-accent/60 text-sidebar-foreground border-sidebar-border"
+											: "text-sidebar-foreground"
 									)}>
-									{Icon ? <Icon className="size-4" /> : null}
+									{Icon ? <Icon className="size-10" /> : null}
 								</span>
 								<span className="truncate">{item.title}</span>
 							</span>

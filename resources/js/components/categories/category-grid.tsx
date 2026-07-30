@@ -101,7 +101,7 @@ function CategoryCardVisual({
 						icon={category.icon}
 						className="size-10"
 						fallback={
-							<span className="text-md font-semibold">
+							<span className="text-3xl font-semibold">
 								{getInitials(category.name) || "C"}
 							</span>
 						}
@@ -154,8 +154,8 @@ function SortableCategoryCard({
 				{...attributes}
 				{...listeners}
 				aria-label={`Reorder ${category.name}`}
-				className="absolute top-1 right-1 flex size-7 touch-none items-center justify-center rounded-full bg-background/90 text-muted-foreground shadow-sm ring-1 ring-border/60 active:cursor-grabbing">
-				<GripVertical className="size-4" />
+				className="absolute inset-0 z-10 m-auto flex size-14 touch-none items-center justify-center rounded-full bg-background/50 text-muted-foreground shadow-sm ring-1 ring-border/60 active:cursor-grabbing">
+				<GripVertical className="size-6" />
 			</button>
 		</div>
 	)
@@ -301,20 +301,34 @@ export default function CategoryGrid({
 			return
 		}
 
-		Promise.all(
-			changedCategories.map((category) =>
-				Axios.patch(CategoryController.update.url(String(category.id)), {
-					position: category.position,
-				})
-			)
-		)
-			.catch(() => {
+		const temporaryBasePosition = orderedCategories.length + 1000
+
+		const saveCategoryOrder = async (): Promise<void> => {
+			try {
+				await Promise.all(
+					changedCategories.map((category, index) =>
+						Axios.patch(CategoryController.update.url(String(category.id)), {
+							position: temporaryBasePosition + index,
+						})
+					)
+				)
+
+				await Promise.all(
+					changedCategories.map((category) =>
+						Axios.patch(CategoryController.update.url(String(category.id)), {
+							position: category.position,
+						})
+					)
+				)
+			} catch {
 				setOrderedCategories(previousOrder)
 				toast.error("Unable to save category order. Please try again.")
-			})
-			.finally(() => {
+			} finally {
 				setIsReordering(false)
-			})
+			}
+		}
+
+		void saveCategoryOrder()
 	}
 	// Event Handlers Section End
 
@@ -348,6 +362,7 @@ export default function CategoryGrid({
 							className="grow rounded-lg"
 							variant={interactionMode === "edit" ? "default" : "outline"}
 							size="sm"
+							disabled={isReordering}
 							onClick={() =>
 								setInteractionMode((currentMode) =>
 									currentMode === "entry" ? "edit" : "entry"
@@ -376,7 +391,7 @@ export default function CategoryGrid({
 			{/* Totals Bar Section Start */}
 			{barCategories.length > 0 ? (
 				<div className="mb-2 space-y-3 ">
-					<div className="flex h-5 w-[90%] mx-auto overflow-hidden rounded-full">
+					<div className="flex h-5 w-[95%] mx-auto overflow-hidden rounded-full">
 						{barCategories.map((category, index) => {
 							const percent =
 								barTotal > 0
@@ -451,12 +466,12 @@ export default function CategoryGrid({
 								size="none"
 								className="group flex min-h-28 flex-col rounded-xl border-2 border-dashed border-border/70 bg-background p-2 text-center transition-colors hover:bg-accent/20">
 								<p className="overflow-hidden text-xs leading-tight font-medium text-clip whitespace-nowrap">
-									Add category
+									Add
 								</p>
 
 								<div className="flex flex-1 items-center justify-center">
-									<div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground">
-										<Plus className="size-4" />
+									<div className="flex size-16 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground">
+										<Plus className="size-10" />
 									</div>
 								</div>
 
@@ -508,7 +523,7 @@ export default function CategoryGrid({
 										icon={category.icon}
 										className="size-10"
 										fallback={
-											<span className="text-[11px] font-semibold">
+											<span className="text-3xl font-semibold">
 												{getInitials(category.name) || "C"}
 											</span>
 										}

@@ -714,6 +714,12 @@ export default function AddTransactionSheet({
 
 									<button
 										type="button"
+										className="flex h-14 items-center justify-center rounded-4xl bg-muted text-2xl font-light transition-all hover:bg-muted/70 active:scale-[0.95]">
+										
+									</button>
+
+									<button
+										type="button"
 										onClick={() => handleCalcKey("0")}
 										className="flex h-14 items-center justify-center rounded-4xl bg-muted text-2xl font-light transition-all hover:bg-muted/70 active:scale-[0.95]">
 										0
@@ -721,9 +727,8 @@ export default function AddTransactionSheet({
 
 									<button
 										type="button"
-										onClick={() => onOpenChange(false)}
-										className="col-span-2 flex h-14 items-center justify-center rounded-4xl bg-destructive text-lg font-light text-white transition-all hover:bg-destructive/20 active:scale-[0.95]">
-										Cancel
+										className="flex h-14 items-center justify-center rounded-4xl bg-muted text-2xl font-light transition-all hover:bg-muted/70 active:scale-[0.95]">
+										
 									</button>
 									{/* Calculator Controls Section End */}
 								</div>
