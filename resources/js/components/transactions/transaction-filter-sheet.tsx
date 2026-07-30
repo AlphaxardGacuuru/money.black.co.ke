@@ -68,7 +68,7 @@ export default function TransactionFilterSheet({
 					className="h-14 w-14 rounded-full px-5 shadow-lg">
 					<FilterIcon className="size-4" />
 					{activeCount > 0 && (
-						<span className="flex size-5 items-center justify-center p-2 rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">
+						<span className="flex size-5 items-center justify-center rounded-full bg-primary p-2 text-[10px] font-semibold text-primary-foreground">
 							{activeCount}
 						</span>
 					)}
@@ -132,6 +132,18 @@ export default function TransactionFilterSheet({
 							setLocal((prev) => ({
 								...prev,
 								amount: e.target.value || undefined,
+							}))
+						}
+					/>
+
+					{/* Notes */}
+					<Input
+						label="Search by notes"
+						value={local.notes}
+						onChange={(event) =>
+							setLocal((prev) => ({
+								...prev,
+								notes: event.target.value || undefined,
 							}))
 						}
 					/>

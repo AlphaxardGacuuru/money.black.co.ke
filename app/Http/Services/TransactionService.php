@@ -24,6 +24,8 @@ class TransactionService extends Service
             ->orderBy('created_at', 'ASC')
             ->get();
 
+        $summary = $this->buildPeriodSummary($request);
+
         $accounts = Account::where('user_id', $request->user()->id)
             ->orderBy('name')
             ->get();
@@ -36,9 +38,73 @@ class TransactionService extends Service
             true,
             $transactions->count() . ' Transactions Retrieved Successfully',
             $transactions,
-            $accounts,
-            $categories,
+            $summary,
         ];
+    }
+
+    private function buildPeriodSummary(Request $request): array
+    {
+        $accountsQuery = Account::query()->where('user_id', $request->user()->id);
+
+        if ($request->filled('accountId')) {
+            $accountsQuery->where('id', $request->input('accountId'));
+        }
+
+        $accounts = $accountsQuery->get(['id', 'balance', 'currency']);
+
+        if ($accounts->isEmpty()) {
+            return [
+                'startingBalance' => 0,
+                'endingBalance' => 0,
+                'total' => 0,
+                'currency' => 'KES',
+            ];
+        }
+
+        $accountIds = $accounts->pluck('id');
+
+        $movementQuery = Transaction::query()
+            ->where('transactions.user_id', $request->user()->id)
+            ->whereIn('transactions.account_id', $accountIds);
+
+        $endingBalance = (int) $accounts->sum('balance');
+        $periodNet = 0;
+        $dateRange = $this->resolveDateRange($request);
+
+        if ($dateRange !== null) {
+            [$rangeStart, $rangeEnd] = $dateRange;
+
+            $periodNet = $this->calculateNetMovement(
+                (clone $movementQuery)->whereBetween('transaction_date', [$rangeStart, $rangeEnd])
+            );
+
+            $postPeriodNet = $this->calculateNetMovement(
+                (clone $movementQuery)->where('transaction_date', '>', $rangeEnd)
+            );
+
+            $endingBalance -= $postPeriodNet;
+        } else {
+            $periodNet = $this->calculateNetMovement(clone $movementQuery);
+        }
+
+        $startingBalance = $endingBalance - $periodNet;
+
+        return [
+            'startingBalance' => $startingBalance,
+            'endingBalance' => $endingBalance,
+            'total' => $periodNet,
+            'currency' => (string) ($accounts->first()->currency ?? 'KES'),
+        ];
+    }
+
+    private function calculateNetMovement(Builder $query): int
+    {
+        $netMovement = (clone $query)
+            ->join('categories', 'transactions.category_id', '=', 'categories.id')
+            ->selectRaw("COALESCE(SUM(CASE WHEN categories.type = 'income' THEN transactions.amount ELSE -transactions.amount END), 0) as net_amount")
+            ->value('net_amount');
+
+        return (int) $netMovement;
     }
 
     public function store(Request $request): array

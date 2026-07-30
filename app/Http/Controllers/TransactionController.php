@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Resources\TransactionResource;
 use App\Http\Services\TransactionService;
 use App\Models\Transaction;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class TransactionController extends Controller
@@ -17,11 +16,12 @@ class TransactionController extends Controller
      */
     public function index(Request $request)
     {
-        [$status, $message, $transactions] = $this->service->index($request);
+        [$status, $message, $transactions, $summary] = $this->service->index($request);
 
         return TransactionResource::collection($transactions)->additional([
             'status' => $status,
             'message' => $message,
+            'summary' => $summary,
         ]);
     }
 
@@ -41,8 +41,9 @@ class TransactionController extends Controller
 
         [$saved, $message, $transaction] = $this->service->store($request);
 
-        if (!$request->ajax()) {
+        if (! $request->ajax()) {
             session()->flash('toast', ['type' => 'success', 'message' => $message]);
+
             return redirect($request->input('redirect_to', '/categories'));
         }
 
@@ -76,8 +77,9 @@ class TransactionController extends Controller
 
         [$saved, $message, $updatedTransaction] = $this->service->update($request, $transaction);
 
-        if (!$request->ajax()) {
+        if (! $request->ajax()) {
             session()->flash('toast', ['type' => 'success', 'message' => $message]);
+
             return redirect($request->input('redirect_to', '/transactions'));
         }
 
@@ -94,8 +96,9 @@ class TransactionController extends Controller
     {
         [$deleted, $message, $transaction] = $this->service->destroy($transaction);
 
-        if (!$request->ajax()) {
+        if (! $request->ajax()) {
             session()->flash('toast', ['type' => 'success', 'message' => $message]);
+
             return redirect($request->input('redirect_to', '/transactions'));
         }
 

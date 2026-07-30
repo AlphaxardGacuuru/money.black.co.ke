@@ -84,6 +84,61 @@ class TransactionControllerTest extends TestCase
         $response->assertJsonPath('data.1.id', $newer->id);
     }
 
+    public function test_it_returns_period_summary_for_the_selected_time_filter()
+    {
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create([
+            'balance' => 650,
+            'currency' => 'KES',
+        ]);
+
+        $incomeCategory = Category::factory()->for($user)->income()->create();
+        $expenseCategory = Category::factory()->for($user)->expense()->create();
+
+        Transaction::factory()->for($user)->create([
+            'user_id' => $user->id,
+            'account_id' => $account->id,
+            'category_id' => $incomeCategory->id,
+            'amount' => 300,
+            'transaction_date' => '2026-01-05',
+        ]);
+
+        Transaction::factory()->for($user)->create([
+            'user_id' => $user->id,
+            'account_id' => $account->id,
+            'category_id' => $expenseCategory->id,
+            'amount' => 100,
+            'transaction_date' => '2026-01-10',
+        ]);
+
+        Transaction::factory()->for($user)->create([
+            'user_id' => $user->id,
+            'account_id' => $account->id,
+            'category_id' => $incomeCategory->id,
+            'amount' => 500,
+            'transaction_date' => '2026-02-03',
+        ]);
+
+        Transaction::factory()->for($user)->create([
+            'user_id' => $user->id,
+            'account_id' => $account->id,
+            'category_id' => $expenseCategory->id,
+            'amount' => 50,
+            'transaction_date' => '2026-03-01',
+        ]);
+
+        $response = $this->actingAs($user)->getJson(route('api.transactions.index', [
+            'filter' => 'month',
+            'date' => '2026-01-15',
+        ]));
+
+        $response->assertOk();
+        $response->assertJsonPath('summary.startingBalance', 0);
+        $response->assertJsonPath('summary.endingBalance', 200);
+        $response->assertJsonPath('summary.total', 200);
+        $response->assertJsonPath('summary.currency', 'KES');
+    }
+
     public function test_it_creates_a_transaction_and_applies_its_impact()
     {
         $user = User::factory()->create();

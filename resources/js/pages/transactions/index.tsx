@@ -11,14 +11,28 @@ import type { Transaction } from "@/types/transaction"
 import { useInitials } from "@/hooks/use-initials"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { PlaceholderPattern } from "@/components/ui/placeholder-pattern"
 import { useApp } from "@/contexts/AppContext"
+import Axios from "@/lib/axios"
 import DateFilterSheet from "@/components/categories/date-filter-sheet"
 import TransactionFilterSheet from "@/components/transactions/transaction-filter-sheet"
 import type { TransactionFilters } from "@/components/transactions/transaction-filter-sheet"
 
 type SheetCategory = Pick<Category, "id" | "name" | "icon" | "color">
+
+type TransactionPeriodSummary = {
+	startingBalance: number
+	endingBalance: number
+	total: number
+	currency: string
+}
+
+const DEFAULT_TRANSACTION_PERIOD_SUMMARY: TransactionPeriodSummary = {
+	startingBalance: 0,
+	endingBalance: 0,
+	total: 0,
+	currency: "KES",
+}
 
 function buildTransactionFilterQuery(filters: TransactionFilters): string {
 	const params = new URLSearchParams()
@@ -53,6 +67,8 @@ export default function TransactionsIndex() {
 	const [selectedCategory, setSelectedCategory] =
 		useState<SheetCategory | null>(null)
 	const [txFilters, setTxFilters] = useState<TransactionFilters>({})
+	const [periodSummary, setPeriodSummary] =
+		useState<TransactionPeriodSummary>(DEFAULT_TRANSACTION_PERIOD_SUMMARY)
 
 	useEffect(() => {
 		props.get("categories", props.setCategories, "categories")
@@ -68,8 +84,40 @@ export default function TransactionsIndex() {
 			: txQuery
 				? `?${txQuery}`
 				: ""
-		props.get(`transactions${combined}`, props.setTransactions, "transactions")
+
+		Axios.get(`/api/transactions${combined}`)
+			.then((response) => {
+				const transactions = response.data?.data ?? []
+				const summary =
+					response.data?.summary ?? DEFAULT_TRANSACTION_PERIOD_SUMMARY
+
+				props.setTransactions(transactions)
+				props.setLocalStorage("transactions", transactions)
+				setPeriodSummary({
+					startingBalance: Number(summary.startingBalance ?? 0),
+					endingBalance: Number(summary.endingBalance ?? 0),
+					total: Number(summary.total ?? 0),
+					currency: String(summary.currency ?? "KES"),
+				})
+			})
+			.catch(() => {
+				props.setErrors(["Failed to fetch transactions"])
+			})
 	}, [props.dateFilters, txFilters])
+
+	function formatCurrencyAmount(value: number): string {
+		return value.toLocaleString(undefined, {
+			minimumFractionDigits: 2,
+			maximumFractionDigits: 2,
+		})
+	}
+
+	const summaryTone =
+		periodSummary.total > 0
+			? "text-emerald-600 dark:text-emerald-400"
+			: periodSummary.total < 0
+				? "text-rose-600 dark:text-rose-400"
+				: "text-muted-foreground"
 
 	function handleCreateTransaction(): void {
 		setSelectedTransaction(null)
@@ -101,19 +149,45 @@ export default function TransactionsIndex() {
 				<div className="w-full max-w-4xl space-y-1 pb-24 md:pb-8">
 					<div className="flex flex-col items-center justify-between gap-2">
 						<DateFilterSheet />
-						<div className="mb-4 flex w-full items-center justify-end gap-2">
-							<Input
-								label="Search by notes"
-								value={txFilters.notes}
-								onChange={(event) =>
-									setTxFilters((prev) => ({
-										...prev,
-										notes: event.target.value || undefined,
-									}))
-								}
-							/>
-						</div>
 					</div>
+
+					<Card className="mb-3 border border-border/70 bg-card/70 p-0">
+						<CardContent className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-3">
+							<div className="flex justify-between gap-1">
+								<div className="space-y-1">
+									<p className="text-xs tracking-wide text-muted-foreground uppercase">
+										Starting balance
+									</p>
+									<p className="text-base font-semibold">
+										{periodSummary.currency}{" "}
+										{formatCurrencyAmount(periodSummary.startingBalance)}
+									</p>
+								</div>
+
+								<div className="space-y-1">
+									<p className="text-xs tracking-wide text-muted-foreground uppercase">
+										Ending balance
+									</p>
+									<p className="text-base font-semibold">
+										{periodSummary.currency}{" "}
+										{formatCurrencyAmount(periodSummary.endingBalance)}
+									</p>
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+
+					<div className="flex justify-end items-end gap-2 space-y-1">
+						<p className="text-xs text-muted-foreground uppercase">
+							Total
+						</p>
+						<p className={`text-base font-semibold ${summaryTone}`}>
+							{periodSummary.total >= 0 ? "+" : "-"}
+							{periodSummary.currency}{" "}
+							{formatCurrencyAmount(Math.abs(periodSummary.total))}
+						</p>
+					</div>
+
 					{props.transactions.length > 0 ? (
 						/* Transaction List Section Start */
 						<div className="space-y-2">
