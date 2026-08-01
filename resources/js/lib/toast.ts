@@ -4,6 +4,8 @@ import type { CSSProperties } from "react"
 const DEFAULT_TOAST_DURATION = 4000
 const PROGRESS_ENABLED_VAR = "--toast-progress-enabled"
 const PROGRESS_DURATION_VAR = "--toast-progress-duration"
+const DEFAULT_TOAST_POSITION: NonNullable<ExternalToast["position"]> =
+	"top-right"
 
 type ToastOptions = ExternalToast
 
@@ -17,11 +19,15 @@ function withProgressStyle(options?: ToastOptions): ToastOptions | undefined {
 	const duration = options?.duration ?? DEFAULT_TOAST_DURATION
 
 	if (!hasFiniteDuration(duration)) {
-		return options
+		return {
+			...options,
+			position: DEFAULT_TOAST_POSITION,
+		}
 	}
 
 	return {
 		...options,
+		position: DEFAULT_TOAST_POSITION,
 		style: {
 			...(options?.style ?? {}),
 			[PROGRESS_ENABLED_VAR]: 1,

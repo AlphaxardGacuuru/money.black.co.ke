@@ -20,11 +20,16 @@ class TransactionService extends Service
         $query = $this->search($query, $request);
 
         $transactions = $query
-            ->orderBy('transaction_date', 'ASC')
-            ->orderBy('created_at', 'ASC')
+            ->orderBy('transaction_date', 'DESC')
+            ->orderBy('created_at', 'DESC')
             ->get();
 
         $summary = $this->buildPeriodSummary($request);
+        $summary['total'] = $transactions->sum(function(Transaction $transaction): int {
+            return $transaction->category?->type === 'income'
+                ? (int) $transaction->amount
+                : (int) $transaction->amount * -1;
+        });
 
         $accounts = Account::where('user_id', $request->user()->id)
             ->orderBy('name')

@@ -63,7 +63,7 @@ class TransactionControllerTest extends TestCase
         $response->assertJsonPath('data.0.id', $matching->id);
     }
 
-    public function test_it_lists_transactions_in_ascending_transaction_date_order()
+    public function test_it_lists_transactions_in_descending_transaction_date_order()
     {
         $user = User::factory()->create();
 
@@ -80,8 +80,8 @@ class TransactionControllerTest extends TestCase
         $response = $this->actingAs($user)->getJson(route('api.transactions.index'));
 
         $response->assertOk();
-        $response->assertJsonPath('data.0.id', $older->id);
-        $response->assertJsonPath('data.1.id', $newer->id);
+        $response->assertJsonPath('data.0.id', $newer->id);
+        $response->assertJsonPath('data.1.id', $older->id);
     }
 
     public function test_it_returns_period_summary_for_the_selected_time_filter()
@@ -137,6 +137,50 @@ class TransactionControllerTest extends TestCase
         $response->assertJsonPath('summary.endingBalance', 200);
         $response->assertJsonPath('summary.total', 200);
         $response->assertJsonPath('summary.currency', 'KES');
+    }
+
+    public function test_summary_total_reflects_the_filtered_visible_transactions()
+    {
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create();
+
+        $incomeCategory = Category::factory()->for($user)->income()->create();
+        $expenseCategory = Category::factory()->for($user)->expense()->create();
+
+        Transaction::factory()->for($user)->create([
+            'user_id' => $user->id,
+            'account_id' => $account->id,
+            'category_id' => $incomeCategory->id,
+            'amount' => 500,
+            'notes' => 'salary august',
+            'transaction_date' => now()->toDateString(),
+        ]);
+
+        Transaction::factory()->for($user)->create([
+            'user_id' => $user->id,
+            'account_id' => $account->id,
+            'category_id' => $expenseCategory->id,
+            'amount' => 120,
+            'notes' => 'salary tax',
+            'transaction_date' => now()->toDateString(),
+        ]);
+
+        Transaction::factory()->for($user)->create([
+            'user_id' => $user->id,
+            'account_id' => $account->id,
+            'category_id' => $incomeCategory->id,
+            'amount' => 800,
+            'notes' => 'bonus',
+            'transaction_date' => now()->toDateString(),
+        ]);
+
+        $response = $this->actingAs($user)->getJson(route('api.transactions.index', [
+            'notes' => 'salary',
+        ]));
+
+        $response->assertOk();
+        $response->assertJsonCount(2, 'data');
+        $response->assertJsonPath('summary.total', 380);
     }
 
     public function test_it_creates_a_transaction_and_applies_its_impact()
