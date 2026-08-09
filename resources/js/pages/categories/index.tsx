@@ -4,6 +4,7 @@ import { Plus, Tags } from "lucide-react"
 import { useEffect } from "react"
 import CategoryGrid from "@/components/categories/category-grid"
 import DateFilterSheet from "@/components/categories/date-filter-sheet"
+import SwipeableDateView from "@/components/swipeable-date-view"
 import { useApp } from "@/contexts/AppContext"
 import { Button } from "@/components/ui/button"
 import { PlaceholderPattern } from "@/components/ui/placeholder-pattern"
@@ -27,7 +28,7 @@ export default function CategoriesIndex() {
 
 			{/* Categories Content Section Start */}
 			<div className="flex flex-1 justify-center sm:p-4">
-				<div className="w-full max-w-3xl space-y-4">
+				<SwipeableDateView className="w-full max-w-3xl space-y-4">
 					<div className="flex items-center justify-between">
 						<DateFilterSheet />
 					</div>
@@ -66,7 +67,7 @@ export default function CategoriesIndex() {
 						</div>
 						/* Empty State Section End */
 					)}
-				</div>
+				</SwipeableDateView>
 			</div>
 			{/* Categories Content Section End */}
 		</>

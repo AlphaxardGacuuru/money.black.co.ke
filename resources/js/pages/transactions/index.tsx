@@ -15,6 +15,8 @@ import { PlaceholderPattern } from "@/components/ui/placeholder-pattern"
 import { useApp } from "@/contexts/AppContext"
 import Axios from "@/lib/axios"
 import DateFilterSheet from "@/components/categories/date-filter-sheet"
+import SwipeableDateView from "@/components/swipeable-date-view"
+import { useSidebar } from "@/components/ui/sidebar"
 import TransactionFilterSheet from "@/components/transactions/transaction-filter-sheet"
 import type { TransactionFilters } from "@/components/transactions/transaction-filter-sheet"
 
@@ -60,6 +62,12 @@ export default function TransactionsIndex() {
 	const props = useApp()
 
 	const getInitials = useInitials()
+	const { state: sidebarState } = useSidebar()
+
+	const desktopFabOffset =
+		sidebarState === "collapsed"
+			? "calc(var(--sidebar-width-icon) + 2rem)"
+			: "calc(var(--sidebar-width) + 2rem)"
 
 	const [isSheetOpen, setIsSheetOpen] = useState(false)
 	const [selectedTransaction, setSelectedTransaction] =
@@ -67,8 +75,9 @@ export default function TransactionsIndex() {
 	const [selectedCategory, setSelectedCategory] =
 		useState<SheetCategory | null>(null)
 	const [txFilters, setTxFilters] = useState<TransactionFilters>({})
-	const [periodSummary, setPeriodSummary] =
-		useState<TransactionPeriodSummary>(DEFAULT_TRANSACTION_PERIOD_SUMMARY)
+	const [periodSummary, setPeriodSummary] = useState<TransactionPeriodSummary>(
+		DEFAULT_TRANSACTION_PERIOD_SUMMARY
+	)
 
 	useEffect(() => {
 		props.get("categories", props.setCategories, "categories")
@@ -146,8 +155,8 @@ export default function TransactionsIndex() {
 
 			{/* Transactions Content Section Start */}
 			<div className="flex flex-1 justify-center sm:p-4">
-				<div className="w-full max-w-4xl space-y-1 pb-24 md:pb-8">
-					<div className="flex flex-col items-center justify-between gap-2">
+				<SwipeableDateView className="w-full max-w-4xl space-y-1">
+					<div className="flex flex-col items-center justify-between gap-2 mb-2">
 						<DateFilterSheet />
 					</div>
 
@@ -177,10 +186,8 @@ export default function TransactionsIndex() {
 						</CardContent>
 					</Card>
 
-					<div className="flex justify-end items-end gap-2 space-y-1">
-						<p className="text-xs text-muted-foreground uppercase">
-							Total
-						</p>
+					<div className="flex items-end justify-end gap-2 space-y-1">
+						<p className="text-xs text-muted-foreground uppercase">Total</p>
 						<p className={`text-base font-semibold ${summaryTone}`}>
 							{periodSummary.total >= 0 ? "+" : "-"}
 							{periodSummary.currency}{" "}
@@ -273,14 +280,26 @@ export default function TransactionsIndex() {
 														{/* Notes End */}
 													</div>
 													{/* Title and Notes Start */}
-													{/* Amount Start */}
-													<div
-														className={`text-md shrink-0 items-end font-semibold ${amountTone}`}>
-														{transaction.categoryType === "income" ? "+" : "-"}{" "}
-														{transaction.currency}{" "}
-														{transaction.amount.formatted}
+													{/* Amount and Date Start */}
+													<div className="flex flex-col items-end justify-between">
+														{/* Amount Start */}
+														<div
+															className={`text-md shrink-0 items-end font-semibold ${amountTone}`}>
+															{transaction.categoryType === "income"
+																? "+"
+																: "-"}{" "}
+															{transaction.currency}{" "}
+															{transaction.amount.formatted}
+														</div>
+														{/* Amount End */}
+														{/* Date Start */}
+														<div
+															className={`text-xs  items-end font-medium text-muted-foreground me-1`}>
+															{transaction.createdAtFormatted}
+														</div>
+														{/* Date End */}
 													</div>
-													{/* Amount End */}
+													{/* Amount and Date Start */}
 												</div>
 												{/* Data End */}
 											</CardContent>
@@ -320,7 +339,13 @@ export default function TransactionsIndex() {
 					)}
 
 					{/* Floating Section Start */}
-					<div className="fixed right-4 bottom-26 z-30 md:right-6 md:bottom-6">
+					<div
+						className="fixed right-4 bottom-26 z-30 md:right-(--fab-right-offset) md:bottom-6"
+						style={
+							{
+								"--fab-right-offset": desktopFabOffset,
+							} as React.CSSProperties
+						}>
 						{/* Filters Button Start */}
 						<div className="mb-2">
 							<TransactionFilterSheet
@@ -380,7 +405,7 @@ export default function TransactionsIndex() {
 						redirectTo="/transactions"
 					/>
 					{/* Transaction Sheet Section End */}
-				</div>
+				</SwipeableDateView>
 			</div>
 			{/* Transactions Content Section End */}
 		</>

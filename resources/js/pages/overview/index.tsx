@@ -3,6 +3,7 @@ import { CircleDollarSign, TrendingDown, TrendingUp } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import Heading from "@/components/heading"
 import DateFilterSheet from "@/components/categories/date-filter-sheet"
+import SwipeableDateView from "@/components/swipeable-date-view"
 import type { Category } from "@/types/category"
 import type { OverviewTotals } from "@/types/overview"
 import type { Transaction } from "@/types/transaction"
@@ -144,7 +145,7 @@ export default function OverviewIndex() {
 			<Head title="Overview" />
 
 			<div className="flex flex-1 justify-center sm:p-4">
-				<div className="w-full max-w-4xl space-y-4">
+				<SwipeableDateView className="w-full max-w-4xl space-y-4">
 					{/* Overview Header Start */}
 					<div className="relative overflow-hidden rounded-2xl border bg-card px-4 py-4 shadow-xs sm:px-5">
 						<div className="pointer-events-none absolute inset-0 bg-linear-to-br from-primary/8 via-transparent to-transparent" />
@@ -164,7 +165,7 @@ export default function OverviewIndex() {
 					<DateFilterSheet />
 
 					{/* Summary Cards Start */}
-					<div className="grid grid-cols-3 gap-3 mt-4">
+					<div className="mt-4 grid grid-cols-3 gap-3">
 						{/* Expenses Card Start */}
 						<div className="rounded-xl border bg-card p-4">
 							<div className="flex items-center justify-between">
@@ -402,7 +403,7 @@ export default function OverviewIndex() {
 							</div>
 						</SheetContent>
 					</Sheet>
-				</div>
+				</SwipeableDateView>
 			</div>
 		</>
 	)

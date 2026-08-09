@@ -20,5 +20,6 @@ export type Transaction = {
 	categoryType?: "expense" | "income" | string
 	categoryColor?: string | null
 	categoryIcon?: string | null
+	createdAtFormatted: string
 	[key: string]: unknown
 }
