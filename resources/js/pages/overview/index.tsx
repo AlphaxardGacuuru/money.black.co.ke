@@ -3,6 +3,7 @@ import { CircleDollarSign, TrendingDown, TrendingUp } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import Heading from "@/components/heading"
 import DateFilterSheet from "@/components/categories/date-filter-sheet"
+import LucideIconDisplay from "@/components/lucide-icon-display"
 import SwipeableDateView from "@/components/swipeable-date-view"
 import type { Category } from "@/types/category"
 import type { OverviewTotals } from "@/types/overview"
@@ -17,6 +18,7 @@ import {
 	SheetTitle,
 } from "@/components/ui/sheet"
 import { useApp } from "@/contexts/AppContext"
+import { useInitials } from "@/hooks/use-initials"
 import { buildFilterQuery } from "@/lib/date-filter"
 import Axios from "@/lib/axios"
 
@@ -36,6 +38,7 @@ function formatAmount(value: number | string | null | undefined): string {
 
 export default function OverviewIndex() {
 	const props = useApp()
+	const getInitials = useInitials()
 	const [activeType, setActiveType] = useState<"expense" | "income">("expense")
 	const [selectedCategory, setSelectedCategory] = useState<Category | null>(
 		null
@@ -256,42 +259,66 @@ export default function OverviewIndex() {
 											onClick={() => handleCategoryClick(category)}
 											className="w-full rounded-xl border border-border/70 bg-background p-3 text-left transition-colors hover:bg-accent/10 sm:p-4">
 											{/* Category Total Item Start */}
-											{/* Category Total Item Header Start */}
-											<div className="flex items-center justify-between gap-3">
-												<p className="truncate text-sm font-medium">
-													{category.name}
-												</p>
-												<div className="flex items-center gap-2">
-													<Badge
-														variant="outline"
-														className="capitalize">
-														{activeType}
-													</Badge>
-													<span className="text-sm font-semibold">
-														{formatAmount(category.numericTotal)}
-													</span>
-												</div>
-											</div>
-											{/* Category Total Item Header End */}
-
-											{/* Category Progress Start */}
-											<div className="mt-3 space-y-2">
-												<div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-													<div
-														className={`h-full rounded-full ${
-															activeType === "expense"
-																? "bg-rose-500/80"
-																: "bg-emerald-500/80"
-														}`}
-														style={{ width: `${category.categoryPercent}%` }}
+											<div className="flex items-center gap-3">
+												{/* Category Icon Start */}
+												<div
+													className="flex size-14 shrink-0 items-center justify-center rounded-4xl border border-border/60 text-white shadow-sm"
+													style={{
+														backgroundColor: category.color ?? "#0f172a",
+													}}>
+													<LucideIconDisplay
+														icon={category.icon}
+														className="size-8"
+														fallback={
+															<span className="text-xs font-semibold">
+																{getInitials(category.name)}
+															</span>
+														}
 													/>
 												</div>
-												<div className="flex items-center justify-between text-xs text-muted-foreground">
-													<span>Share of {activeType} total</span>
-													<span>{category.categoryPercent}%</span>
+												{/* Category Icon End */}
+
+												<div className="min-w-0 flex-1">
+													{/* Category Total Item Header Start */}
+													<div className="flex items-center justify-between gap-3">
+														<p className="truncate text-sm font-medium">
+															{category.name}
+														</p>
+														<div className="flex items-center gap-2">
+															<Badge
+																variant="outline"
+																className="capitalize">
+																{activeType}
+															</Badge>
+															<span className="text-sm font-semibold">
+																{formatAmount(category.numericTotal)}
+															</span>
+														</div>
+													</div>
+													{/* Category Total Item Header End */}
+
+													{/* Category Progress Start */}
+													<div className="mt-3 space-y-2">
+														<div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+															<div
+																className={`h-full rounded-full ${
+																	activeType === "expense"
+																		? "bg-rose-500/80"
+																		: "bg-emerald-500/80"
+																}`}
+																style={{
+																	width: `${category.categoryPercent}%`,
+																}}
+															/>
+														</div>
+														<div className="flex items-center justify-between text-xs text-muted-foreground">
+															<span>Share of {activeType} total</span>
+															<span>{category.categoryPercent}%</span>
+														</div>
+													</div>
+													{/* Category Progress End */}
 												</div>
 											</div>
-											{/* Category Progress End */}
 											{/* Category Total Item End */}
 										</button>
 									))}
@@ -333,13 +360,28 @@ export default function OverviewIndex() {
 							side="bottom"
 							className="max-h-[85vh] rounded-t-3xl">
 							<SheetHeader>
-								<SheetTitle>
-									{selectedCategory?.name ?? "Category"} transactions
-								</SheetTitle>
-								<SheetDescription>
-									Transactions for this category using the current overview date
-									filter.
-								</SheetDescription>
+								<div className="flex items-end justify-between gap-3">
+									<div>
+										<SheetTitle>
+											{selectedCategory?.name ?? "Category"} transactions
+										</SheetTitle>
+										<SheetDescription>
+											Transactions for this category using the current overview
+											date filter.
+										</SheetDescription>
+									</div>
+
+									<p
+										className={`shrink-0 pr-6 text-base font-semibold ${
+											selectedCategory?.type === "income"
+												? "text-emerald-600 dark:text-emerald-400"
+												: "text-rose-600 dark:text-rose-400"
+										}`}>
+										KES{" "}
+										{selectedCategory?.total?.formatted ??
+											formatAmount(selectedCategory?.total?.amount)}
+									</p>
+								</div>
 							</SheetHeader>
 
 							<div className="space-y-3 overflow-y-auto px-4 pb-6">
