@@ -1,7 +1,7 @@
 import { Link } from "@/components/ui/link"
 import { Head } from "@/lib/spa"
 import { ArrowUpLeft, Plus, ArrowUpDown } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { buildFilterQuery } from "@/lib/date-filter"
 import AddTransactionSheet from "@/components/add-transaction-sheet"
 import LucideIconDisplay from "@/components/lucide-icon-display"
@@ -133,6 +133,21 @@ export default function TransactionsIndex() {
 		setSelectedCategory(null)
 		setIsSheetOpen(true)
 	}
+
+	const sheetTransaction = useMemo(
+		() =>
+			selectedTransaction
+				? {
+						id: selectedTransaction.id,
+						amount: selectedTransaction.amount.amount,
+						notes: selectedTransaction.notes,
+						transactionDate: selectedTransaction.transactionDateInput,
+						accountId: selectedTransaction.accountId,
+						categoryId: selectedTransaction.categoryId,
+					}
+				: null,
+		[selectedTransaction]
+	)
 
 	function handleEditTransaction(transaction: Transaction): void {
 		setSelectedTransaction(transaction)
@@ -390,18 +405,7 @@ export default function TransactionsIndex() {
 						onSelectedCategoryChange={setSelectedCategory}
 						categories={props.categories}
 						accounts={props.accounts}
-						transaction={
-							selectedTransaction
-								? {
-										id: selectedTransaction.id,
-										amount: selectedTransaction.amount.amount,
-										notes: selectedTransaction.notes,
-										transactionDate: selectedTransaction.transactionDateInput,
-										accountId: selectedTransaction.accountId,
-										categoryId: selectedTransaction.categoryId,
-									}
-								: null
-						}
+						transaction={sheetTransaction}
 						redirectTo="/transactions"
 					/>
 					{/* Transaction Sheet Section End */}

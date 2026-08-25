@@ -555,7 +555,7 @@ export default function CategoryGrid({
 
 			{/* Transaction Entry Sheet Section Start */}
 			<AddTransactionSheet
-				key={`${selectedCategory ? String(selectedCategory.id) : "none"}-${isEntrySheetOpen ? "open" : "closed"}`}
+				key={isEntrySheetOpen ? "open" : "closed"}
 				open={isEntrySheetOpen}
 				onOpenChange={setIsEntrySheetOpen}
 				selectedCategory={selectedCategory}

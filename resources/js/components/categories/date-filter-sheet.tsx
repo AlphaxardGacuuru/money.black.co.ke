@@ -83,7 +83,7 @@ function getFilterDateDetail(filters: DateFilterParams): string | null {
 			const end = parseDateInput(filters.endDate)
 
 			if (start && end) {
-				return `${format(start, "EEE, dd MMM yyyy")} - ${format(end, "EEE, dd MMM yyyy")}`
+				return `${format(start, "EEE, dd MMM yyyy")}\n${format(end, "EEE, dd MMM yyyy")}`
 			}
 
 			if (start) {
@@ -180,9 +180,11 @@ export default function DateFilterSheet() {
 					<Button
 						variant={isActive ? "default" : "outline"}
 						size="lg"
-						className="gap-2 rounded-3xl px-4 py-2 text-sm">
-						{getFilterLabel(filters)}
-						<ChevronDownIcon className="size-4 opacity-60" />
+						className="h-auto gap-2 rounded-3xl px-4 py-2 text-sm">
+						<span className="whitespace-pre-line text-center leading-tight">
+							{getFilterLabel(filters)}
+						</span>
+						<ChevronDownIcon className="size-4 shrink-0 opacity-60" />
 					</Button>
 					{/* Date Filter End */}
 				</SheetTrigger>

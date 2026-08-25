@@ -177,6 +177,8 @@ export default function AddTransactionSheet({
 	// State Section End
 
 	// Synchronization Effect Section Start
+	// Only re-sync when the sheet transitions to open, so picking a
+	// category/account while it's already open doesn't clear the form.
 	useEffect(() => {
 		if (!open) {
 			return
@@ -191,7 +193,7 @@ export default function AddTransactionSheet({
 		setErrors({})
 		setIsProcessing(false)
 		setIsDeleting(false)
-	}, [accounts, open, transaction, props.dateFilters])
+	}, [open])
 	// Synchronization Effect Section End
 
 	// Delete Transaction Section Start
