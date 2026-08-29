@@ -21,6 +21,7 @@ class TransactionService extends Service
 
         $transactions = $query
             ->orderBy('transaction_date', 'DESC')
+            ->orderBy('created_at', 'DESC')
             ->get();
 
         $summary = $this->buildPeriodSummary($request);
