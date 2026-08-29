@@ -37,8 +37,6 @@ class TransactionResource extends JsonResource
             'notes' => $this->notes,
             'transactionDateHuman' => $this->transaction_date->format('d M Y'),
             'transactionDateInput' => $this->transaction_date->toDateString(),
-            'createdAt' => $this->created_at->toIso8601String(),
-            'createdAtFormatted' => $this->created_at->format('d M Y'),
         ];
     }
 }

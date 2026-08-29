@@ -310,7 +310,7 @@ export default function TransactionsIndex() {
 														{/* Date Start */}
 														<div
 															className={`text-xs  items-end font-medium text-muted-foreground me-1`}>
-															{transaction.createdAtFormatted}
+															{transaction.transactionDateHuman}
 														</div>
 														{/* Date End */}
 													</div>

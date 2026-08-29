@@ -8,6 +8,7 @@ use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class OneMoneyImportService
 {
@@ -64,9 +65,15 @@ class OneMoneyImportService
                     $notes = $notes . ' [Tags: ' . $tags . ']';
                 }
 
-                $transactionDate = $this->parseDate($this->pick($row, ['DATE', 'TRANSACTIONDATE']));
+                $transactionDate = $this->pick($row, ['DATE', 'TRANSACTIONDATE']);
+                $transactionDate = $this->parseDate($transactionDate);
 
-                if ($fromAccount === '' || $toAccount === '' || $amount <= 0 || $transactionDate === null) {
+                if (
+                    $fromAccount === '' ||
+                    $toAccount === '' ||
+                    $amount <= 0 ||
+                    $transactionDate === null
+                ) {
                     $skipped++;
 
                     continue;
@@ -191,32 +198,33 @@ class OneMoneyImportService
         fwrite($stream, $normalized);
         rewind($stream);
 
-        $rows = [];
-        $headers = [];
+        $rows = collect();
+        $headers = collect();
 
         while (($line = fgetcsv($stream, 0, $delimiter)) !== false) {
-            if ($headers === []) {
-                $headers = array_map(fn($value): string => $this->normalizeHeader((string) $value), $line);
+            if ($headers->isEmpty()) {
+                $headers = collect($line)
+                    ->map(fn($value): string => $this->normalizeHeader((string) $value));
 
                 continue;
             }
 
-            if (count(array_filter($line, fn($value): bool => trim((string) $value) !== '')) === 0) {
+            if (collect($line)->every(fn($value): bool => trim((string) $value) === '')) {
                 continue;
             }
 
-            $row = [];
+            $row = $headers
+                ->mapWithKeys(fn(string $header, int $index): array => [
+                    $header => trim((string) ($line[$index] ?? '')),
+                ])
+                ->all();
 
-            foreach ($headers as $index => $header) {
-                $row[$header] = isset($line[$index]) ? trim((string) $line[$index]) : '';
-            }
-
-            $rows[] = $row;
+            $rows->push($row);
         }
 
         fclose($stream);
 
-        return $rows;
+        return $rows->all();
     }
 
     private function detectDelimiter(string $line): string
@@ -238,31 +246,39 @@ class OneMoneyImportService
 
     private function normalizeHeader(string $header): string
     {
-        $cleaned = preg_replace('/^\xEF\xBB\xBF/', '', $header) ?? $header;
+        $cleaned = Str::of($header)
+            ->replaceFirst("\xEF\xBB\xBF", '')
+            ->toString();
 
         return $this->key($cleaned);
     }
 
     private function key(string $value): string
     {
-        return strtoupper((string) preg_replace('/[^A-Za-z0-9]/', '', trim($value)));
+        return Str::of($value)
+            ->trim()
+            ->replaceMatches('/[^A-Za-z0-9]/', '')
+            ->upper()
+            ->toString();
     }
 
     private function pick(array $row, array $candidateKeys): string
     {
+        $values = collect($row);
+
         foreach ($candidateKeys as $candidateKey) {
-            if (isset($row[$candidateKey]) && $row[$candidateKey] !== '') {
-                return (string) $row[$candidateKey];
+            $exact = $values->get($candidateKey);
+
+            if (is_string($exact) && trim($exact) !== '') {
+                return trim($exact);
             }
 
-            foreach ($row as $header => $value) {
-                if ($value === '') {
-                    continue;
-                }
+            $match = $values
+                ->filter(fn($value): bool => is_string($value) && trim($value) !== '')
+                ->first(fn($value, $header): bool => Str::startsWith((string) $header, $candidateKey));
 
-                if (str_starts_with($header, $candidateKey)) {
-                    return (string) $value;
-                }
+            if (is_string($match) && trim($match) !== '') {
+                return trim($match);
             }
         }
 
@@ -282,9 +298,12 @@ class OneMoneyImportService
 
     private function normalizeType(string $type): string
     {
-        $normalized = strtolower(trim($type));
+        $normalized = Str::of($type)
+            ->trim()
+            ->lower()
+            ->toString();
 
-        if (str_contains($normalized, 'income')) {
+        if (Str::contains($normalized, 'income')) {
             return 'income';
         }
 
