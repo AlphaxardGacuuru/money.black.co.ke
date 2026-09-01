@@ -10,10 +10,9 @@ import {
 } from "lucide-react"
 import AppLogo from "@/components/app-logo"
 import { useApp } from "@/contexts/AppContext"
+import { getHomePageHref } from "@/lib/home-page"
 import { toUrl } from "@/lib/utils"
 import { login, register } from "@/routes"
-
-const DASHBOARD_URL = "/accounts"
 
 type WelcomeProps = {
 	canRegister?: boolean
@@ -70,7 +69,7 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
 					<nav className="flex items-center gap-2 sm:gap-3">
 						{auth ? (
 							<Link
-								href="/accounts"
+								href={getHomePageHref(auth.home_page)}
 								variant="unstyled"
 								size="none"
 								className="inline-flex items-center gap-2 rounded-md border border-border/80 bg-card/70 px-4 py-2 text-sm font-medium shadow-xs backdrop-blur transition-colors hover:bg-accent">
@@ -119,7 +118,7 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
 
 						<div className="flex flex-wrap items-center gap-3 pt-2">
 							<Link
-								href={auth ? DASHBOARD_URL : toUrl(login())}
+								href={auth ? getHomePageHref(auth.home_page) : toUrl(login())}
 								variant="unstyled"
 								size="none"
 								className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-transform hover:-translate-y-0.5 hover:bg-primary/90">

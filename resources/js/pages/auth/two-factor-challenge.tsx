@@ -12,7 +12,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { OTP_MAX_LENGTH } from "@/hooks/use-two-factor-auth"
 import { store } from "@/actions/App/Http/Controllers/Auth/TwoFactorChallengeController"
 import { useApp } from "@/contexts/AppContext"
-import { invalidateAuth } from "@/middleware/auth"
+import { invalidateAuth, resolveHomeHref } from "@/middleware/auth"
 
 export default function TwoFactorChallenge() {
 	const { setLocalStorage } = useApp()
@@ -75,7 +75,7 @@ export default function TwoFactorChallenge() {
 				setLocalStorage("sanctumToken", response.data.data)
 				invalidateAuth()
 				toast.success(response.data.message ?? "Logged in")
-				navigate({ to: "/accounts" })
+				resolveHomeHref().then((homeHref) => navigate({ to: homeHref }))
 			})
 			.catch((err: unknown) => {
 				const e = err as {

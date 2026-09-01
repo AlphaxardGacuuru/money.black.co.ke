@@ -124,11 +124,13 @@ const tanstackRoutes = discoveredRoutes.map((discoveredRoute) => {
 		getParentRoute: () => rootRoute,
 		path: routePath,
 		component,
-		beforeLoad: GUEST_ONLY.has(discoveredRoute.componentName)
-			? requireGuest
-			: PUBLIC.has(discoveredRoute.componentName)
-				? undefined
-				: requireAuth,
+		beforeLoad:
+			GUEST_ONLY.has(discoveredRoute.componentName) ||
+			discoveredRoute.componentName === "welcome"
+				? requireGuest
+				: PUBLIC.has(discoveredRoute.componentName)
+					? undefined
+					: requireAuth,
 	})
 
 	return route

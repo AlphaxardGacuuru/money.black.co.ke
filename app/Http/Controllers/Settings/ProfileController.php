@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
+use App\Models\User;
 use App\Support\Spa;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 
 class ProfileController extends Controller
@@ -22,6 +24,7 @@ class ProfileController extends Controller
         return Spa::render('settings/profile', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
+            'homePage' => $request->user()->homePage(),
         ]);
     }
 
@@ -30,11 +33,18 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $validated = $request->validated();
+        $homePage = Arr::pull($validated, 'home_page') ?: User::DEFAULT_HOME_PAGE;
+
+        $request->user()->fill($validated);
 
         if ($request->user()->isDirty('email')) {
             $request->user()->email_verified_at = null;
         }
+
+        $settings = $request->user()->settings ?? new \stdClass;
+        $settings->home_page = $homePage;
+        $request->user()->settings = $settings;
 
         $request->user()->save();
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { toast } from "@/lib/toast"
 import { useApp } from "@/contexts/AppContext"
-import { invalidateAuth } from "@/middleware/auth"
+import { invalidateAuth, resolveHomeHref } from "@/middleware/auth"
 import { CheckCircle2, Circle, Loader2 } from "lucide-react"
 
 type StepStatus = "pending" | "active" | "done"
@@ -62,7 +62,7 @@ export default function SocialiteCallback() {
 				setLocalStorage("sanctumToken", token)
 				invalidateAuth()
 				toast.success(message ?? "Logged in")
-				navigate({ to: "/accounts" })
+				resolveHomeHref().then((homeHref) => navigate({ to: homeHref }))
 				return
 			}
 

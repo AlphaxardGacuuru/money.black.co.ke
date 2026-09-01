@@ -7,7 +7,9 @@ import Heading from "@/components/heading"
 import InputError from "@/components/input-error"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { SelectField, SelectItem } from "@/components/ui/select"
 import axios from "@/lib/axios"
+import { DEFAULT_HOME_PAGE, HOME_PAGE_OPTIONS } from "@/lib/home-page"
 import { edit } from "@/routes/profile"
 import { send } from "@/routes/verification"
 import { Spinner } from "@/components/ui/spinner"
@@ -15,9 +17,11 @@ import { Spinner } from "@/components/ui/spinner"
 export default function Profile({
 	mustVerifyEmail = false,
 	status,
+	homePage = DEFAULT_HOME_PAGE,
 }: {
 	mustVerifyEmail: boolean
 	status?: string
+	homePage?: string
 }) {
 	const { auth } = useApp()
 	const user = {
@@ -27,6 +31,7 @@ export default function Profile({
 	}
 	const [processing, setProcessing] = useState(false)
 	const [errors, setErrors] = useState<Record<string, string>>({})
+	const [selectedHomePage, setSelectedHomePage] = useState(homePage)
 
 	function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault()
@@ -121,6 +126,31 @@ export default function Profile({
 							className="mt-2"
 							message={errors.email}
 						/>
+					</div>
+
+					<div className="grid gap-2">
+						<SelectField
+							name="home_page"
+							value={selectedHomePage}
+							onValueChange={setSelectedHomePage}
+							label="Home page"
+							error={errors.home_page}>
+							{HOME_PAGE_OPTIONS.map((option) => (
+								<SelectItem
+									key={option.value}
+									value={option.value}>
+									{option.label}
+								</SelectItem>
+							))}
+						</SelectField>
+
+						<InputError
+							className="mt-2"
+							message={errors.home_page}
+						/>
+						<p className="text-xs text-muted-foreground">
+							The page you land on when you open the app.
+						</p>
 					</div>
 
 					{mustVerifyEmail && user.email_verified_at === null && (

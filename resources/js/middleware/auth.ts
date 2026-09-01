@@ -1,5 +1,6 @@
 import { redirect } from "@tanstack/react-router"
 import { queryClient } from "@/lib/query-client"
+import { getHomePageHref } from "@/lib/home-page"
 import Axios from "@/lib/axios"
 import type { User } from "@/types"
 
@@ -35,7 +36,17 @@ export async function requireAuth() {
 export async function requireGuest() {
     const auth = await getAuth()
     if (auth) {
-        throw redirect({ to: "/accounts" })
+        throw redirect({ to: getHomePageHref(auth.home_page) })
+    }
+}
+
+/** Fetch the freshest auth data and resolve the user's preferred home route. Call after login. */
+export async function resolveHomeHref(): Promise<string> {
+    try {
+        const auth = await queryClient.fetchQuery({ ...AUTH_QUERY, staleTime: 0 })
+        return getHomePageHref(auth?.home_page)
+    } catch {
+        return getHomePageHref()
     }
 }
 

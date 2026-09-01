@@ -61,6 +61,48 @@ class ProfileUpdateTest extends TestCase
         $this->assertNotNull($user->refresh()->email_verified_at);
     }
 
+    public function test_home_page_defaults_to_categories()
+    {
+        $user = User::factory()->create();
+
+        $this->assertSame('categories', $user->homePage());
+    }
+
+    public function test_home_page_preference_can_be_updated()
+    {
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->patch(route('profile.update'), [
+                'name' => $user->name,
+                'email' => $user->email,
+                'home_page' => 'accounts',
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('profile.edit'));
+
+        $this->assertSame('accounts', $user->refresh()->homePage());
+    }
+
+    public function test_home_page_preference_must_be_a_valid_option()
+    {
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->patch(route('profile.update'), [
+                'name' => $user->name,
+                'email' => $user->email,
+                'home_page' => 'not-a-real-page',
+            ]);
+
+        $response->assertSessionHasErrors('home_page');
+        $this->assertSame('categories', $user->refresh()->homePage());
+    }
+
     public function test_user_can_delete_their_account()
     {
         $user = User::factory()->create();

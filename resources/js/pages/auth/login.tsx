@@ -15,7 +15,7 @@ import { store } from "@/routes/login"
 import { request } from "@/routes/password"
 import { toast } from "@/lib/toast"
 import { useApp } from "@/contexts/AppContext"
-import { invalidateAuth } from "@/middleware/auth"
+import { invalidateAuth, resolveHomeHref } from "@/middleware/auth"
 
 type Props = {
 	status?: string
@@ -84,9 +84,12 @@ export default function Login({
 						props.setLocalStorage("sanctumToken", response.data.data)
 						invalidateAuth()
 
-						navigate({
-							to: tenantLogin ? "/tenant/dashboard" : "/accounts",
-						})
+						if (tenantLogin) {
+							navigate({ to: "/tenant/dashboard" })
+							return
+						}
+
+						resolveHomeHref().then((homeHref) => navigate({ to: homeHref }))
 					})
 					.catch((err: unknown) => {
 						const e = err as {

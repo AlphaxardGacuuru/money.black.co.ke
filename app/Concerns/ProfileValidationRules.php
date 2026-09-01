@@ -17,6 +17,7 @@ trait ProfileValidationRules
         return [
             'name' => $this->nameRules(),
             'email' => $this->emailRules($userId),
+            'home_page' => $this->homePageRules(),
         ];
     }
 
@@ -46,5 +47,15 @@ trait ProfileValidationRules
                 ? Rule::unique(User::class)
                 : Rule::unique(User::class)->ignore($userId),
         ];
+    }
+
+    /**
+     * Get the validation rules used to validate the user's preferred home page.
+     *
+     * @return array<int, \Illuminate\Contracts\Validation\Rule|array<mixed>|string>
+     */
+    protected function homePageRules(): array
+    {
+        return ['nullable', 'string', Rule::in(User::HOME_PAGE_OPTIONS)];
     }
 }
