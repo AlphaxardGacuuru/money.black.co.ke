@@ -19,6 +19,7 @@ import AppLayout from "@/layouts/app-layout"
 import AuthLayout from "@/layouts/auth-layout"
 import SettingsLayout from "@/layouts/settings/layout"
 import { AppProvider } from "@/contexts/AppContext"
+import InstallAppOnboardingModal from "@/components/install-app-onboarding-modal"
 import { discoverPageRoutes } from "@/router/page-routes"
 import NotFound from "@/components/not-found"
 
@@ -65,6 +66,7 @@ function RootLayout() {
 					<Outlet />
 				</TooltipProvider>
 				<Toaster />
+				<InstallAppOnboardingModal />
 			</AppProvider>
 		</QueryClientProvider>
 	)
@@ -125,8 +127,7 @@ const tanstackRoutes = discoveredRoutes.map((discoveredRoute) => {
 		path: routePath,
 		component,
 		beforeLoad:
-			GUEST_ONLY.has(discoveredRoute.componentName) ||
-			discoveredRoute.componentName === "welcome"
+			GUEST_ONLY.has(discoveredRoute.componentName)
 				? requireGuest
 				: PUBLIC.has(discoveredRoute.componentName)
 					? undefined

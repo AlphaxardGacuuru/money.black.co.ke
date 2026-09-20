@@ -22,5 +22,14 @@ class PwaTest extends TestCase
         $this->assertFileExists(public_path('sw.js'));
         $this->assertFileExists(public_path('android-chrome-192x192.png'));
         $this->assertFileExists(public_path('android-chrome-512x512.png'));
+
+        $manifest = json_decode(
+            file_get_contents(public_path('manifest.webmanifest')),
+            true,
+            512,
+            JSON_THROW_ON_ERROR,
+        );
+
+        $this->assertSame('/accounts', $manifest['start_url']);
     }
 }
