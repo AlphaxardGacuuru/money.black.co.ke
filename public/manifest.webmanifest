@@ -2,7 +2,7 @@
 	"name": "Money Black",
 	"short_name": "Black Money",
 	"description": "Track accounts, categories, transactions, and budget totals from one installable app.",
-	"start_url": "/accounts",
+	"start_url": "/categories",
 	"scope": "/",
 	"display": "standalone",
 	"background_color": "#C8FF3D",
