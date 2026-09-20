@@ -1,6 +1,6 @@
 {
 	"name": "Money Black",
-	"short_name": "Money",
+	"short_name": "Black Money",
 	"description": "Track accounts, categories, transactions, and budget totals from one installable app.",
 	"start_url": "/accounts",
 	"scope": "/",
