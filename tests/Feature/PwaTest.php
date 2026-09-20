@@ -30,6 +30,6 @@ class PwaTest extends TestCase
             JSON_THROW_ON_ERROR,
         );
 
-        $this->assertSame('/accounts', $manifest['start_url']);
+        $this->assertSame('/categories', $manifest['start_url']);
     }
 }
