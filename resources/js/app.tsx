@@ -9,10 +9,12 @@ import {
 	createRouter,
 } from "@tanstack/react-router"
 import { QueryClientProvider } from "@tanstack/react-query"
+import { Workbox } from "workbox-window"
 import { queryClient } from "@/lib/query-client"
 import { requireAuth, requireGuest } from "@/middleware/auth"
 import { AppPageProvider, useLayoutProps, usePage } from "@/lib/spa"
 import { Toaster, FlashToastHandler } from "@/components/ui/sonner"
+import toast from "@/lib/toast"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { initializeTheme } from "@/hooks/use-appearance"
 import AppLayout from "@/layouts/app-layout"
@@ -230,10 +232,28 @@ rootedContainer._reactRoot.render(
 )
 
 if ("serviceWorker" in navigator) {
-	window.addEventListener("load", () => {
-		navigator.serviceWorker.register("/sw.js").catch(() => {
-			// Ignore registration failures and keep the web app functional.
+	const wb = new Workbox("/sw.js")
+
+	// A new service worker is installed and waiting — don't force a reload
+	// mid-session (that can drop an in-progress draft or scroll position).
+	// Let the user pick the moment via the toast instead.
+	wb.addEventListener("waiting", () => {
+		toast("A new version is available", {
+			duration: Infinity,
+			action: {
+				label: "Refresh",
+				onClick: () => {
+					wb.addEventListener("controlling", () => {
+						window.location.reload()
+					})
+					wb.messageSkipWaiting()
+				},
+			},
 		})
+	})
+
+	wb.register().catch(() => {
+		// Ignore registration failures and keep the web app functional.
 	})
 }
 
