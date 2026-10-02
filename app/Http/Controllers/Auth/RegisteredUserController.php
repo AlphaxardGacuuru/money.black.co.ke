@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Auth;
 use App\Events\UserCreatedEvent;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
+
 class RegisteredUserController extends Controller
 {
     /**
@@ -41,8 +43,9 @@ class RegisteredUserController extends Controller
         $token = $user
             ->createToken($request->device_name)
             ->plainTextToken;
-            
-            UserCreatedEvent::dispatch($user);
+
+        UserCreatedEvent::dispatch($user);
+        event(new Registered($user));
 
         return response([
             "status" => "success",
