@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog"
 import { Spinner } from "@/components/ui/spinner"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { markPwaInstallStepResolved } from "@/hooks/use-onboarding-sequence"
 import { usePwaInstall } from "@/hooks/use-pwa-install"
 import toast from "@/lib/toast"
 
@@ -33,11 +34,16 @@ export default function InstallAppOnboardingModal() {
 		}
 
 		if (isInstalled || !canInstall) {
+			markPwaInstallStepResolved()
 			setOpen(false)
 			return
 		}
 
 		setOpen(isMobile)
+
+		if (!isMobile) {
+			markPwaInstallStepResolved()
+		}
 	}, [isInstalled, canInstall, isMobile])
 
 	async function handleInstall() {
@@ -55,12 +61,14 @@ export default function InstallAppOnboardingModal() {
 			setOpen(false)
 		} finally {
 			setProcessing(false)
+			markPwaInstallStepResolved()
 		}
 	}
 
 	function handleSkip() {
 		sessionStorage.setItem(DISMISSED_KEY, "1")
 		setOpen(false)
+		markPwaInstallStepResolved()
 	}
 
 	return (
@@ -79,8 +87,8 @@ export default function InstallAppOnboardingModal() {
 					<DialogHeader className="items-center gap-2">
 						<DialogTitle>Install Black Money</DialogTitle>
 						<DialogDescription>
-							Install the app for quick access to your money from your
-							home screen, in a window of its own.
+							Install the app for quick access to your money from your home
+							screen, in a window of its own.
 						</DialogDescription>
 					</DialogHeader>
 				</div>

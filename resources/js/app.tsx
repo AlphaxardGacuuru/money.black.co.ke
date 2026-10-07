@@ -22,6 +22,7 @@ import AuthLayout from "@/layouts/auth-layout"
 import SettingsLayout from "@/layouts/settings/layout"
 import { AppProvider } from "@/contexts/AppContext"
 import InstallAppOnboardingModal from "@/components/install-app-onboarding-modal"
+import PermissionsOnboardingModal from "@/components/permissions-onboarding-modal"
 import { discoverPageRoutes } from "@/router/page-routes"
 import NotFound from "@/components/not-found"
 
@@ -69,6 +70,7 @@ function RootLayout() {
 				</TooltipProvider>
 				<Toaster />
 				<InstallAppOnboardingModal />
+				<PermissionsOnboardingModal />
 			</AppProvider>
 		</QueryClientProvider>
 	)

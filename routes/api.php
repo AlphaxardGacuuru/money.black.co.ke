@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\OneMoneyImportController;
 use App\Http\Controllers\OverviewController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Route;
@@ -18,4 +20,9 @@ Route::middleware(['auth:sanctum'])->group(function() {
     Route::apiResource('overview', OverviewController::class)->names(['index' => 'api.overview.index']);
     Route::post('imports/one-money', [OneMoneyImportController::class, 'store'])
         ->name('imports.one-money.store');
+
+    Route::post('push-subscriptions', [PushSubscriptionController::class, 'store']);
+    Route::delete('push-subscriptions', [PushSubscriptionController::class, 'destroy']);
+
+    Route::post('onboarding/permissions', [OnboardingController::class, 'completePermissions']);
 });

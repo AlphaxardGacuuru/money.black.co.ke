@@ -106,3 +106,58 @@ self.addEventListener("fetch", (event) => {
 		})
 	)
 })
+
+
+// ─── Web push notifications ───────────────────────────────────────────────────
+
+self.addEventListener("push", (event) => {
+	if (!event.data) {
+		return
+	}
+
+	const payload = event.data.json()
+
+	const options = {
+		body: payload.body,
+		icon: payload.icon ?? "/notification-badge-192x192.png",
+		badge: payload.badge ?? "/notification-badge-192x192.png",
+		tag: payload.tag,
+		renotify: payload.renotify,
+		data: payload.data,
+	}
+
+	event.waitUntil(
+		self.registration.showNotification(payload.title ?? "New notification", options)
+	)
+})
+
+// Opens the notification's target URL, or focuses it if already open in
+// some tab, so a click never opens a duplicate window for the same page.
+function openNotificationTarget(url) {
+	return self.clients
+		.matchAll({ type: "window", includeUncontrolled: true })
+		.then((clients) => {
+			const targetPath = new URL(url, self.location.origin).pathname
+			const existing = clients.find(
+				(client) => new URL(client.url).pathname === targetPath
+			)
+
+			if (existing) {
+				return existing.focus()
+			}
+
+			return self.clients.openWindow(new URL(url, self.location.origin).href)
+		})
+}
+
+self.addEventListener("notificationclick", (event) => {
+	event.notification.close()
+
+	const data = event.notification.data
+
+	if (!data?.url) {
+		return
+	}
+
+	event.waitUntil(openNotificationTarget(data.url))
+})
