@@ -1,4 +1,5 @@
 import { Head } from "@/lib/spa"
+import { Fingerprint } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import axios from "@/lib/axios"
@@ -12,6 +13,13 @@ import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
 import { register } from "@/routes"
 import { store } from "@/routes/login"
+import { login as passkeyLogin, loginOptions as passkeyLoginOptions } from "@/routes/passkey"
+import {
+	getPasskey,
+	isPasskeyCancellation,
+	passkeysSupported,
+	type RequestOptionsJSON,
+} from "@/lib/passkeys"
 import { request } from "@/routes/password"
 import { toast } from "@/lib/toast"
 import { useApp } from "@/contexts/AppContext"
@@ -42,13 +50,74 @@ export default function Login({
 	const [email, setEmail] = useState("")
 	const [password, setPassword] = useState("")
 	const [processing, setProcessing] = useState(false)
+	const [passkeyProcessing, setPasskeyProcessing] = useState(false)
 	const [errors, setErrors] = useState<Record<string, string>>({})
+	const canUsePasskey = passkeysSupported()
 
 	useEffect(() => {
 		if (oauthError) {
 			toast.error(oauthError)
 		}
 	}, [oauthError])
+
+	function completeLogin(token: string, message: string) {
+		toast.success(message)
+
+		props.setLocalStorage("sanctumToken", token)
+		invalidateAuth()
+
+		if (tenantLogin) {
+			navigate({ to: "/tenant/dashboard" })
+			return
+		}
+
+		resolveHomeHref().then((homeHref) => navigate({ to: homeHref }))
+	}
+
+	async function handlePasskeyLogin() {
+		setPasskeyProcessing(true)
+		setErrors({})
+
+		try {
+			await axios.get("/sanctum/csrf-cookie")
+
+			const { data } = await axios.get<{
+				options: RequestOptionsJSON
+				challenge_token: string
+			}>(passkeyLoginOptions().url)
+
+			const credential = await getPasskey(data.options)
+
+			const { url, method } = passkeyLogin()
+			const response = await axios.request<{ message: string; data: string }>({
+				url,
+				method,
+				data: {
+					challenge_token: data.challenge_token,
+					device_name: "web",
+					credential,
+				},
+			})
+
+			completeLogin(response.data.data, response.data.message)
+		} catch (err: unknown) {
+			if (isPasskeyCancellation(err)) {
+				return
+			}
+
+			const e = err as {
+				response?: { data?: { errors?: Record<string, string[]> } }
+			}
+			const message =
+				e.response?.data?.errors?.credential?.[0] ??
+				"Biometric sign-in failed. Please try again or use your password."
+
+			setErrors({ passkey: message })
+			toast.error(message)
+		} finally {
+			setPasskeyProcessing(false)
+		}
+	}
 
 	function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault()
@@ -79,17 +148,7 @@ export default function Login({
 							return
 						}
 
-						toast.success(response.data.message)
-
-						props.setLocalStorage("sanctumToken", response.data.data)
-						invalidateAuth()
-
-						if (tenantLogin) {
-							navigate({ to: "/tenant/dashboard" })
-							return
-						}
-
-						resolveHomeHref().then((homeHref) => navigate({ to: homeHref }))
+						completeLogin(response.data.data, response.data.message)
 					})
 					.catch((err: unknown) => {
 						const e = err as {
@@ -240,11 +299,27 @@ export default function Login({
 						type="submit"
 						className="mt-4 w-full"
 						tabIndex={4}
-						disabled={processing}
+						disabled={processing || passkeyProcessing}
 						data-test="login-button">
 						Log in
 						{processing && <Spinner />}
 					</Button>
+
+					{canUsePasskey && (
+						<div className="grid gap-2">
+							<Button
+								type="button"
+								variant="transparent"
+								className="w-full"
+								disabled={processing || passkeyProcessing}
+								onClick={handlePasskeyLogin}
+								data-test="passkey-login-button">
+								{passkeyProcessing ? <Spinner /> : <Fingerprint />}
+								Sign in with biometrics
+							</Button>
+							<InputError message={errors.passkey} />
+						</div>
+					)}
 				</div>
 
 				{canRegister && (

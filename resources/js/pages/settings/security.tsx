@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import SecurityController from "@/actions/App/Http/Controllers/Settings/SecurityController"
 import Heading from "@/components/heading"
 import InputError from "@/components/input-error"
+import PasskeysManager from "@/components/passkeys-manager"
 import PasswordInput from "@/components/password-input"
 import TwoFactorRecoveryCodes from "@/components/two-factor-recovery-codes"
 import TwoFactorSetupModal from "@/components/two-factor-setup-modal"
@@ -203,6 +204,8 @@ export default function Security({
 					</div>
 				</form>
 			</div>
+
+			<PasskeysManager />
 
 			<div className="space-y-6">
 					<Heading
