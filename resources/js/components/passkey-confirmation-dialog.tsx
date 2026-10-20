@@ -157,9 +157,14 @@ export default function PasskeyConfirmationDialog({ isOpen, onClose, onContinue 
 								? `Enter the 6-digit code we sent to ${maskedEmail}.`
 								: "For your security, verify your identity before changing biometric login."}
 					</DialogDescription>
+					{step === "choose" && maskedEmail && (
+						<p className="text-sm break-all text-muted-foreground">
+							Codes are sent to {maskedEmail}
+						</p>
+					)}
 				</DialogHeader>
 
-				<div className="flex flex-col items-stretch gap-3">
+				<div className="flex min-w-0 flex-col items-stretch gap-3">
 					{step === "loading" && (
 						<div className="flex justify-center py-4">
 							<Spinner />
@@ -183,7 +188,7 @@ export default function PasskeyConfirmationDialog({ isOpen, onClose, onContinue 
 								disabled={processing}
 								onClick={handleSendCode}>
 								{processing && !canUsePasskey ? <Spinner /> : <Mail />}
-								Email me a code{maskedEmail && ` at ${maskedEmail}`}
+								Email me a code
 							</Button>
 						</>
 					)}
