@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\PasskeyLoginRequest;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Laravel\Passkeys\Actions\GenerateVerificationOptions;
@@ -45,6 +46,9 @@ class PasskeyLoginController extends Controller
 
         /** @var User $user */
         $user = $passkey->user;
+
+        Auth::guard('web')->login($user);
+        $request->session()->regenerate();
 
         $token = $user->createToken($request->input('device_name') ?: 'web')->plainTextToken;
 

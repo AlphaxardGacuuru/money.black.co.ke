@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\User;
 use App\Notifications\WelcomeNotification;
+use App\Support\CurrentAccessToken;
 use Exception;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
@@ -27,9 +28,9 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * Obtain the user information from a social provider and issue a Sanctum token.
+     * Obtain the user information from a social provider, start a web session and issue a Sanctum token.
      */
-    public function handleProviderCallback(string $website): RedirectResponse
+    public function handleProviderCallback(Request $request, string $website): RedirectResponse
     {
         try {
             $socialUser = Socialite::driver($website)->stateless()->user();
@@ -69,17 +70,20 @@ class AuthenticatedSessionController extends Controller
             }
         } else {
             $dbUser = User::create([
-                'name'              => $socialUser->getName() ?: 'Google User',
-                'email'             => $socialUser->getEmail(),
-                'google_id'         => $socialUser->getId(),
-                'avatar'            => $avatarUrl,
+                'name' => $socialUser->getName() ?: 'Google User',
+                'email' => $socialUser->getEmail(),
+                'google_id' => $socialUser->getId(),
+                'avatar' => $avatarUrl,
                 'email_verified_at' => now(),
-                'password'          => Str::random(40),
+                'password' => Str::random(40),
             ]);
 
             $dbUser->notify(new WelcomeNotification);
             event(new Registered($dbUser));
         }
+
+        Auth::guard('web')->login($dbUser);
+        $request->session()->regenerate();
 
         $token = $dbUser->createToken('web')->plainTextToken;
 
@@ -100,20 +104,16 @@ class AuthenticatedSessionController extends Controller
         $user = User::query()->where('email', $request->email)->first();
 
         if (! $user) {
-            throw ValidationException::withMessages([
-                "email" => ["The Provided Email Doesn't Exist."]
-            ]);
+            throw ValidationException::withMessages(["email" => ["The Provided Email Doesn't Exist."]]);
         }
 
         if (! Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'password' => ['The provided password is incorrect.']
-            ]);
+            throw ValidationException::withMessages(['password' => ['The provided password is incorrect.']]);
         }
 
         if ($user->hasTwoFactorEnabled()) {
             $pendingToken = Str::uuid();
-            
+
             Cache::put("2fa_pending:{$pendingToken}", $user->id, now()->addMinutes(5));
 
             return response([
@@ -122,6 +122,9 @@ class AuthenticatedSessionController extends Controller
                 'data' => $pendingToken,
             ], 200);
         }
+
+        Auth::guard('web')->login($user);
+        $request->session()->regenerate();
 
         $token = $user
             ->createToken("$request->device_name")
@@ -146,12 +149,12 @@ class AuthenticatedSessionController extends Controller
             return response(["message" => "No active authenticated user found"], 401);
         }
 
+        CurrentAccessToken::for($user, $request)?->delete();
+
         if (Auth::guard('web')->check()) {
             Auth::guard('web')->logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
-        } else {
-            $user->currentAccessToken()->delete();
         }
 
         return response(["message" => "Logged Out"], 200);

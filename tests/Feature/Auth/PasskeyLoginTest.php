@@ -5,6 +5,7 @@ namespace Tests\Feature\Auth;
 use App\Http\Controllers\Auth\PasskeyLoginController;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Laravel\Passkeys\Actions\VerifyPasskey;
 use Laravel\Passkeys\Passkey;
@@ -113,6 +114,10 @@ class PasskeyLoginTest extends TestCase
         $payload = ['challenge_token' => $challengeToken, 'credential' => $this->fakeAssertionCredential()];
 
         $this->postJson(route('passkey.login'), $payload)->assertOk();
+
+        // Login starts a web session; end it so the replay reaches the challenge check rather than the guest middleware.
+        Auth::guard('web')->logout();
+
         $this->postJson(route('passkey.login'), $payload)->assertUnprocessable();
     }
 

@@ -7,7 +7,6 @@ use App\Notifications\PasskeyConfirmationCodeNotification;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
-use Laravel\Sanctum\PersonalAccessToken;
 
 /**
  * Tracks the short-lived "identity confirmed" state required before a user may
@@ -93,12 +92,12 @@ class PasskeyActionConfirmation
     }
 
     /**
-     * Scope state to the current API token so confirming on one device does not unlock another.
+     * Scope state to the current API token (or web session) so confirming on one device does not unlock another.
      */
     private function key(string $suffix): string
     {
-        $token = $this->user->currentAccessToken();
-        $scope = $token instanceof PersonalAccessToken ? "token:{$token->getKey()}" : 'session';
+        $token = CurrentAccessToken::for($this->user);
+        $scope = $token ? "token:{$token->getKey()}" : 'session:' . request()->session()->getId();
 
         return "passkey_action:{$this->user->getKey()}:{$scope}:{$suffix}";
     }
