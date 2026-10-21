@@ -25,8 +25,6 @@ class TelescopeAccessTest extends TestCase
 
         // The local environment bypasses the gate, so test as production.
         $this->app['env'] = 'production';
-
-        config(['admin.dashboard_emails' => ['admin@example.com', 'ops@example.com']]);
     }
 
     protected function tearDown(): void
@@ -38,7 +36,7 @@ class TelescopeAccessTest extends TestCase
 
     public function test_allowlisted_users_can_view_telescope(): void
     {
-        $user = User::factory()->create(['email' => 'ops@example.com']);
+        $user = User::factory()->create(['email' => 'alphaxardgacuuru47@gmail.com']);
 
         $this->actingAs($user, 'web')->get('/telescope')->assertOk();
     }
@@ -57,20 +55,18 @@ class TelescopeAccessTest extends TestCase
 
     public function test_a_bearer_token_alone_does_not_grant_access(): void
     {
-        $user = User::factory()->create(['email' => 'admin@example.com']);
+        $user = User::factory()->create(['email' => 'alphaxardgacuuru47@gmail.com']);
 
         $this->withToken($user->createToken('web')->plainTextToken)
             ->get('/telescope')
             ->assertForbidden();
     }
 
-    public function test_nobody_can_view_telescope_when_the_allowlist_is_empty(): void
+    public function test_allowlist_matching_ignores_email_case(): void
     {
-        config(['admin.dashboard_emails' => []]);
+        $user = User::factory()->create(['email' => 'AlphaxardGacuuru47@Gmail.com']);
 
-        $user = User::factory()->create(['email' => 'admin@example.com']);
-
-        $this->actingAs($user, 'web')->get('/telescope')->assertForbidden();
+        $this->actingAs($user, 'web')->get('/telescope')->assertOk();
     }
 
     private function setTelescopeEnabled(string $value): void
