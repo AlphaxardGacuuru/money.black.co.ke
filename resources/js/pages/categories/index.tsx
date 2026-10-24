@@ -1,13 +1,12 @@
-import { Link } from "@/components/ui/link"
 import { Head } from "@/lib/spa"
-import { Plus, Tags } from "lucide-react"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import CategoryGrid from "@/components/categories/category-grid"
+import CategorySuggestionsCard from "@/components/categories/category-suggestions-card"
+import StarterCategories from "@/components/categories/starter-categories"
 import DateFilterSheet from "@/components/categories/date-filter-sheet"
 import SwipeableDateView from "@/components/swipeable-date-view"
 import { useApp } from "@/contexts/AppContext"
-import { Button } from "@/components/ui/button"
-import { PlaceholderPattern } from "@/components/ui/placeholder-pattern"
+import { Spinner } from "@/components/ui/spinner"
 import { buildFilterQuery } from "@/lib/date-filter"
 
 export default function CategoriesIndex() {
@@ -17,9 +16,18 @@ export default function CategoriesIndex() {
 		props.get("accounts", props.setAccounts, "accounts")
 	}, [])
 
-	useEffect(() => {
+	const [categoriesLoaded, setCategoriesLoaded] = useState(props.categories.length > 0)
+
+	function refreshCategories() {
 		const query = buildFilterQuery(props.dateFilters)
-		props.get(`categories${query}`, props.setCategories, "categories")
+
+		return Promise.resolve(props.get(`categories${query}`, props.setCategories, "categories")).finally(() =>
+			setCategoriesLoaded(true)
+		)
+	}
+
+	useEffect(() => {
+		refreshCategories()
 	}, [props.dateFilters])
 
 	return (
@@ -34,38 +42,22 @@ export default function CategoriesIndex() {
 					</div>
 					{props.categories.length > 0 ? (
 						/* Category Grid Section Start */
-						<CategoryGrid
-							categories={props.categories}
-							accounts={props.accounts}
-						/>
-					) : (
+						<>
+							<CategorySuggestionsCard onChanged={refreshCategories} />
+							<CategoryGrid
+								categories={props.categories}
+								accounts={props.accounts}
+							/>
+						</>
+					) : categoriesLoaded ? (
 						/* Category Grid Section End */
 						/* Empty State Section Start */
-						<div className="relative overflow-hidden rounded-2xl border border-dashed bg-card">
-							<PlaceholderPattern className="absolute inset-0 size-full stroke-muted-foreground/15" />
-							<div className="relative flex min-h-72 flex-col items-center justify-center gap-4 p-6 text-center">
-								<div className="flex size-14 items-center justify-center rounded-full border bg-background shadow-sm">
-									<Tags className="size-6 text-muted-foreground" />
-								</div>
-								<div className="space-y-2">
-									<h2 className="text-lg font-semibold">No categories yet</h2>
-									<p className="max-w-md text-sm text-muted-foreground">
-										Create your first category to start organizing spending and
-										income like a real budget app.
-									</p>
-								</div>
-								<Button asChild>
-									<Link
-										href={`/categories/create?type=expense`}
-										variant="unstyled"
-										size="none">
-										<Plus className="size-4" />
-										Create category
-									</Link>
-								</Button>
-							</div>
-						</div>
+						<StarterCategories onCreated={refreshCategories} />
+					) : (
 						/* Empty State Section End */
+						<div className="flex justify-center py-12">
+							<Spinner />
+						</div>
 					)}
 				</SwipeableDateView>
 			</div>

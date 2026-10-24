@@ -1,4 +1,8 @@
-const CACHE_NAME = "money-black-v2-mvmqm432"
+const CACHE_NAME = "money-black-v2-mvmxhyrq"
+// Files shared to the app (Web Share Target) wait here until the Receipts page uploads them.
+// Kept out of the versioned cache so a new deploy doesn't discard them.
+const SHARED_RECEIPTS_CACHE = "shared-receipts"
+const SHARE_TARGET_PATH = "/receipts/share"
 const ASSETS_TO_CACHE = [
 	"/",
 	"/manifest.webmanifest",
@@ -32,7 +36,7 @@ self.addEventListener("activate", (event) => {
 			.then((keys) =>
 				Promise.all(
 					keys
-						.filter((key) => key !== CACHE_NAME)
+						.filter((key) => key !== CACHE_NAME && key !== SHARED_RECEIPTS_CACHE)
 						.map((key) => caches.delete(key))
 				)
 			)
@@ -42,11 +46,22 @@ self.addEventListener("activate", (event) => {
 })
 
 self.addEventListener("fetch", (event) => {
+	const url = new URL(event.request.url)
+
+	if (
+		event.request.method === "POST" &&
+		url.origin === self.location.origin &&
+		url.pathname === SHARE_TARGET_PATH
+	) {
+		event.respondWith(storeSharedReceipts(event.request))
+
+		return
+	}
+
 	if (event.request.method !== "GET") {
 		return
 	}
 
-	const url = new URL(event.request.url)
 	const isApiRequest =
 		url.origin === self.location.origin && url.pathname.startsWith("/api/")
 	const isXhrRequest =
@@ -107,6 +122,47 @@ self.addEventListener("fetch", (event) => {
 	)
 })
 
+
+// ─── Share target ─────────────────────────────────────────────────────────────
+
+/**
+ * Receive files shared from another app (e.g. a receipt PDF from an email),
+ * hold them in Cache Storage, and hand off to the Receipts page, which uploads
+ * them with the user's API token (the service worker has no access to it).
+ */
+async function storeSharedReceipts(request) {
+	try {
+		const formData = await request.formData()
+		const files = formData
+			.getAll("receipt")
+			.filter((file) => file instanceof File && file.size > 0)
+
+		if (files.length === 0) {
+			return Response.redirect("/receipts?share=empty", 303)
+		}
+
+		const cache = await caches.open(SHARED_RECEIPTS_CACHE)
+		const batch = Date.now()
+
+		await Promise.all(
+			files.map((file, index) =>
+				cache.put(
+					`/shared-receipts/${batch}-${index}`,
+					new Response(file, {
+						headers: {
+							"Content-Type": file.type || "application/octet-stream",
+							"X-File-Name": encodeURIComponent(file.name || "shared-receipt"),
+						},
+					})
+				)
+			)
+		)
+
+		return Response.redirect("/receipts?shared=1", 303)
+	} catch {
+		return Response.redirect("/receipts?share=failed", 303)
+	}
+}
 
 // ─── Web push notifications ───────────────────────────────────────────────────
 

@@ -3,14 +3,12 @@ import { Camera, Upload } from "lucide-react"
 import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
-import Axios from "@/lib/axios"
 import {
 	ACCEPTED_RECEIPT_TYPES,
-	MAX_RECEIPT_BYTES,
-	prepareReceiptFile,
+	receiptUploadErrorMessage,
+	uploadReceiptFile,
 } from "@/lib/receipts"
 import { toast } from "@/lib/toast"
-import { store } from "@/routes/api/receipts"
 import type { Receipt } from "@/types/receipt"
 
 type Props = {
@@ -34,43 +32,13 @@ export default function ReceiptUploadButtons({ onUploaded }: Props) {
 		setUploading(true)
 
 		try {
-			const file = await prepareReceiptFile(selected)
+			const { receipt, message } = await uploadReceiptFile(selected)
 
-			if (file.size > MAX_RECEIPT_BYTES) {
-				toast.error("The file must be 10 MB or smaller.")
-
-				return
-			}
-
-			const formData = new FormData()
-			formData.append("file", file)
-
-			const { url, method } = store()
-			const response = await Axios.request<{ data: Receipt; message: string }>({
-				url,
-				method,
-				data: formData,
-				headers: { "Content-Type": "multipart/form-data" },
-			})
-
-			toast.success(response.data.message)
-			onUploaded?.(response.data.data)
-			navigate({ to: `/receipts/${response.data.data.id}` })
+			toast.success(message)
+			onUploaded?.(receipt)
+			navigate({ to: `/receipts/${receipt.id}` })
 		} catch (error: unknown) {
-			const e = error as {
-				response?: {
-					status?: number
-					data?: { message?: string; errors?: Record<string, string[]> }
-				}
-			}
-
-			toast.error(
-				e.response?.status === 429
-					? "Too many uploads. Please wait a minute."
-					: (e.response?.data?.errors?.file?.[0] ??
-							e.response?.data?.message ??
-							"Upload failed. Please try again.")
-			)
+			toast.error(receiptUploadErrorMessage(error))
 		} finally {
 			setUploading(false)
 		}

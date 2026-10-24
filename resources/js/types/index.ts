@@ -1,6 +1,7 @@
 export type * from "./auth"
 export type * from "./account"
 export type * from "./category"
+export type * from "./category-suggestion"
 export type * from "./navigation"
 export type * from "./overview"
 export type * from "./payment"

@@ -7,6 +7,35 @@
 	"display": "standalone",
 	"background_color": "#C8FF3D",
 	"theme_color": "#171717",
+	"share_target": {
+		"action": "/receipts/share",
+		"method": "POST",
+		"enctype": "multipart/form-data",
+		"params": {
+			"title": "title",
+			"text": "text",
+			"url": "url",
+			"files": [
+				{
+					"name": "receipt",
+					"accept": [
+						"image/jpeg",
+						"image/png",
+						"image/webp",
+						"image/heic",
+						"image/heif",
+						"application/pdf",
+						".jpg",
+						".jpeg",
+						".png",
+						".webp",
+						".heic",
+						".pdf"
+					]
+				}
+			]
+		}
+	},
 	"icons": [
 		{
 			"src": "/android-chrome-192x192.png",

@@ -18,6 +18,8 @@ import {
 	SheetTitle,
 } from "@/components/ui/sheet"
 import { Spinner } from "@/components/ui/spinner"
+import CalculatorKeypad, { calculatorActionClass } from "@/components/calculator-keypad"
+import { applyCalculatorKey, evaluateExpression, type CalculatorKey } from "@/lib/calculator"
 
 import type { Account } from "@/types/account"
 import type { Category } from "@/types/category"
@@ -302,78 +304,15 @@ export default function AddTransactionSheet({
 	}
 	// Submit Transaction Section End
 
-	// Calculator Logic Section Start
-	function safeEval(expr: string): number {
-		const tokens = expr.match(/[\d]+|[+\-*/]/g) ?? []
-		let i = 0
-
-		function parseExpr(): number {
-			let left = parseTerm()
-
-			while (i < tokens.length && (tokens[i] === "+" || tokens[i] === "-")) {
-				const op = tokens[i++]
-				const right = parseTerm()
-				left = op === "+" ? left + right : left - right
-			}
-
-			return left
-		}
-
-		function parseTerm(): number {
-			let left = parseNum()
-
-			while (i < tokens.length && (tokens[i] === "*" || tokens[i] === "/")) {
-				const op = tokens[i++]
-				const right = parseNum()
-				left = op === "*" ? left * right : right !== 0 ? left / right : 0
-			}
-
-			return left
-		}
-
-		function parseNum(): number {
-			const tok = tokens[i++]
-
-			return isNaN(Number(tok)) ? 0 : Number(tok)
-		}
-
-		return parseExpr()
-	}
-	// Calculator Logic Section End
-
 	// Calculator Input Handler Section Start
-	function handleCalcKey(key: string): void {
-		const operators = ["+", "-", "*", "/"]
-
-		setCalcDisplay((prev) => {
-			if (key === "⌫") {
-				return prev.slice(0, -1)
-			}
-
-			if (operators.includes(key)) {
-				if (!prev) {
-					return prev
-				}
-
-				if (operators.includes(prev.slice(-1))) {
-					return prev.slice(0, -1) + key
-				}
-
-				return prev + key
-			}
-
-			if (prev === "0") {
-				return key
-			}
-
-			return (prev || "") + key
-		})
+	function handleCalcKey(key: CalculatorKey): void {
+		setCalcDisplay((prev) => applyCalculatorKey(prev, key))
 	}
 	// Calculator Input Handler Section End
 
 	// Derived Form State Section Start
 	const resolvedAmount = calcDisplay
-		? Math.max(0, Math.trunc(safeEval(calcDisplay)))
+		? Math.max(0, Math.trunc(evaluateExpression(calcDisplay)))
 		: 0
 	const canSubmit = Boolean(
 		selectedCategory && selectedAccount && resolvedAmount > 0
@@ -632,108 +571,28 @@ export default function AddTransactionSheet({
 								/>
 								{/* Notes Section End */}
 
-								<div className="grid grid-cols-5 gap-1">
-									{/* Calculator Controls Section Start */}
-									<button
-										type="button"
-										onClick={() => handleCalcKey("/")}
-										className="flex h-14 items-center justify-center rounded-4xl bg-primary/50 text-2xl font-light text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
-										÷
-									</button>
-
-									{["7", "8", "9"].map((d) => (
+								{/* Calculator Controls Section Start */}
+								<CalculatorKeypad
+									onKey={handleCalcKey}
+									sideSlot={
+										<DatePicker
+											label="Date"
+											value={transactionDate}
+											onChange={(nextValue) => setTransactionDate(nextValue)}
+											error={errors.transaction_date}
+											helperText=""
+										/>
+									}
+									actionSlot={
 										<button
-											key={d}
-											type="button"
-											onClick={() => handleCalcKey(d)}
-											className="flex h-14 items-center justify-center rounded-4xl bg-muted text-2xl font-light transition-all hover:bg-muted/70 active:scale-[0.95]">
-											{d}
+											type="submit"
+											disabled={isProcessing || !canSubmit}
+											className={calculatorActionClass}>
+											{isProcessing ? <Spinner /> : <Check className="size-8" />}
 										</button>
-									))}
-
-									<button
-										type="button"
-										onClick={() => handleCalcKey("⌫")}
-										className="flex h-14 items-center justify-center rounded-4xl bg-muted/50 text-2xl font-light transition-all hover:bg-muted active:scale-[0.95]">
-										⌫
-									</button>
-
-									<button
-										type="button"
-										onClick={() => handleCalcKey("*")}
-										className="flex h-14 items-center justify-center rounded-4xl bg-primary/50 text-2xl font-light text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
-										×
-									</button>
-
-									{["4", "5", "6"].map((d) => (
-										<button
-											key={d}
-											type="button"
-											onClick={() => handleCalcKey(d)}
-											className="flex h-14 items-center justify-center rounded-4xl bg-muted text-2xl font-light transition-all hover:bg-muted/70 active:scale-[0.95]">
-											{d}
-										</button>
-									))}
-
-									<DatePicker
-										label="Date"
-										value={transactionDate}
-										onChange={(nextValue) => setTransactionDate(nextValue)}
-										error={errors.transaction_date}
-										helperText=""
-									/>
-
-									<button
-										type="button"
-										onClick={() => handleCalcKey("-")}
-										className="flex h-14 items-center justify-center rounded-4xl bg-primary/50 text-2xl font-light text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
-										−
-									</button>
-
-									{["1", "2", "3"].map((d) => (
-										<button
-											key={d}
-											type="button"
-											onClick={() => handleCalcKey(d)}
-											className="flex h-14 items-center justify-center rounded-4xl bg-muted text-2xl font-light transition-all hover:bg-muted/70 active:scale-[0.95]">
-											{d}
-										</button>
-									))}
-
-									<button
-										type="submit"
-										disabled={isProcessing || !canSubmit}
-										className="row-span-2 flex items-center justify-center rounded-4xl bg-primary text-sm font-light text-primary-foreground transition-all hover:bg-primary/80 active:scale-[0.95] disabled:cursor-not-allowed disabled:opacity-50">
-										{isProcessing ? <Spinner /> : <Check className="size-8" />}
-									</button>
-
-									<button
-										type="button"
-										onClick={() => handleCalcKey("+")}
-										className="flex h-14 items-center justify-center rounded-4xl bg-primary/50 text-2xl font-light text-primary transition-all hover:bg-primary/20 active:scale-[0.95]">
-										+
-									</button>
-
-									<button
-										type="button"
-										className="flex h-14 items-center justify-center rounded-4xl bg-muted text-2xl font-light transition-all hover:bg-muted/70 active:scale-[0.95]">
-										
-									</button>
-
-									<button
-										type="button"
-										onClick={() => handleCalcKey("0")}
-										className="flex h-14 items-center justify-center rounded-4xl bg-muted text-2xl font-light transition-all hover:bg-muted/70 active:scale-[0.95]">
-										0
-									</button>
-
-									<button
-										type="button"
-										className="flex h-14 items-center justify-center rounded-4xl bg-muted text-2xl font-light transition-all hover:bg-muted/70 active:scale-[0.95]">
-										
-									</button>
-									{/* Calculator Controls Section End */}
-								</div>
+									}
+								/>
+								{/* Calculator Controls Section End */}
 							</div>
 							{/* Amount and Date Section End */}
 

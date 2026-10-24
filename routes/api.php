@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CategorySuggestionController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\OneMoneyImportController;
 use App\Http\Controllers\OverviewController;
@@ -16,6 +17,10 @@ Route::middleware(['auth:sanctum'])->group(function() {
         ->name('api.auth.show');
 
     Route::apiResource('accounts', AccountController::class)->names(['index' => 'api.accounts.index']);
+    Route::get('category-suggestions', [CategorySuggestionController::class, 'index'])->name('api.category-suggestions.index');
+    Route::post('category-suggestions/starter', [CategorySuggestionController::class, 'storeStarter'])->name('api.category-suggestions.starter');
+    Route::post('category-suggestions/{suggestion}/accept', [CategorySuggestionController::class, 'accept'])->name('api.category-suggestions.accept');
+    Route::post('category-suggestions/{suggestion}/dismiss', [CategorySuggestionController::class, 'dismiss'])->name('api.category-suggestions.dismiss');
     Route::apiResource('categories', CategoryController::class)->names(['index' => 'api.categories.index']);
     Route::apiResource('transactions', TransactionController::class)->names(['index' => 'api.transactions.index']);
     Route::apiResource('overview', OverviewController::class)->names(['index' => 'api.overview.index']);

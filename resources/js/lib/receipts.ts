@@ -1,4 +1,6 @@
-import type { ReceiptStatus } from "@/types/receipt"
+import Axios from "@/lib/axios"
+import { store } from "@/routes/api/receipts"
+import type { Receipt, ReceiptStatus } from "@/types/receipt"
 
 export const ACCEPTED_RECEIPT_TYPES =
 	"image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf"
@@ -98,4 +100,49 @@ export function allocateTotal(
 	}
 
 	return allocated
+}
+
+/**
+ * Shrink (if needed) and upload a receipt file. Throws on failure; use
+ * receiptUploadErrorMessage() to turn the error into something readable.
+ */
+export async function uploadReceiptFile(selected: File): Promise<{ receipt: Receipt; message: string }> {
+	const file = await prepareReceiptFile(selected)
+
+	if (file.size > MAX_RECEIPT_BYTES) {
+		throw new Error("The file must be 10 MB or smaller.")
+	}
+
+	const formData = new FormData()
+	formData.append("file", file)
+
+	const { url, method } = store()
+	const response = await Axios.request<{ data: Receipt; message: string }>({
+		url,
+		method,
+		data: formData,
+		headers: { "Content-Type": "multipart/form-data" },
+	})
+
+	return { receipt: response.data.data, message: response.data.message }
+}
+
+export function receiptUploadErrorMessage(error: unknown): string {
+	const e = error as {
+		message?: string
+		response?: {
+			status?: number
+			data?: { message?: string; errors?: Record<string, string[]> }
+		}
+	}
+
+	if (!e.response) {
+		return e.message ?? "Upload failed. Please try again."
+	}
+
+	if (e.response.status === 429) {
+		return "Too many uploads. Please wait a minute."
+	}
+
+	return e.response.data?.errors?.file?.[0] ?? e.response.data?.message ?? "Upload failed. Please try again."
 }

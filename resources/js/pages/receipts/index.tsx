@@ -3,6 +3,7 @@ import { FileText, ReceiptText } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import Heading from "@/components/heading"
 import ReceiptUploadButtons from "@/components/receipts/receipt-upload-buttons"
+import { useSharedReceiptImport } from "@/hooks/use-shared-receipt-import"
 import { Badge } from "@/components/ui/badge"
 import { Link } from "@/components/ui/link"
 import { Spinner } from "@/components/ui/spinner"
@@ -32,6 +33,8 @@ export default function ReceiptsPage() {
 		fetchReceipts()
 	}, [fetchReceipts])
 
+	const { importing } = useSharedReceiptImport(fetchReceipts)
+
 	const hasProcessing = receipts.some((receipt) => receipt.status === "processing")
 
 	useEffect(() => {
@@ -55,6 +58,11 @@ export default function ReceiptsPage() {
 						description="Scan or upload a receipt and we'll read the items and sort them into your categories. You review everything before it's added."
 					/>
 					<ReceiptUploadButtons />
+					{importing && (
+						<p className="flex items-center gap-2 text-sm text-muted-foreground">
+							<Spinner /> Uploading the receipt you shared…
+						</p>
+					)}
 				</div>
 
 				{loading ? (

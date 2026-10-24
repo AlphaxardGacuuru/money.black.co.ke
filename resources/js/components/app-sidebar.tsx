@@ -1,6 +1,7 @@
 import { Link } from "@inertiajs/react"
 import {
 	ArrowUpDown,
+	Calculator,
 	ChartColumnIncreasing,
 	FileSpreadsheet,
 	ReceiptText,
@@ -48,6 +49,11 @@ export const mainNavItems: NavItem[] = [
 		title: "Receipts",
 		href: "/receipts",
 		icon: ReceiptText,
+	},
+	{
+		title: "Tools",
+		href: "/tools",
+		icon: Calculator,
 	},
 ]
 
