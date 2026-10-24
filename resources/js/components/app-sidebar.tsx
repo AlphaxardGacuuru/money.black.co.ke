@@ -3,6 +3,7 @@ import {
 	ArrowUpDown,
 	ChartColumnIncreasing,
 	FileSpreadsheet,
+	ReceiptText,
 	Tags,
 	Wallet,
 } from "lucide-react"
@@ -42,6 +43,11 @@ export const mainNavItems: NavItem[] = [
 		title: "Overview",
 		href: "/overview",
 		icon: ChartColumnIncreasing,
+	},
+	{
+		title: "Receipts",
+		href: "/receipts",
+		icon: ReceiptText,
 	},
 ]
 

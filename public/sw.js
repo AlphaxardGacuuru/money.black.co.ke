@@ -1,4 +1,4 @@
-const CACHE_NAME = "money-black-v2"
+const CACHE_NAME = "money-black-v2-mvmqm432"
 const ASSETS_TO_CACHE = [
 	"/",
 	"/manifest.webmanifest",

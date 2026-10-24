@@ -25,7 +25,7 @@ class TransactionService extends Service
             ->get();
 
         $summary = $this->buildPeriodSummary($request);
-        
+
         $summary['total'] = $transactions->sum(function(Transaction $transaction): int {
             return $transaction->category?->type === 'income'
                 ? (int) $transaction->amount
@@ -123,23 +123,49 @@ class TransactionService extends Service
             $account = Account::where('user_id', auth()->id())
                 ->findOrFail($request->account_id);
 
-            $transaction = new Transaction;
-            $transaction->user_id = auth()->id();
-            $transaction->category_id = $category->id;
-            $transaction->account_id = $account->id;
-            $transaction->amount = (int) $request->amount;
-            $transaction->currency = $account->currency ?? 'KES';
-            $transaction->notes = $request->input('notes');
-            $transaction->transaction_date = $request->transaction_date;
-            $saved = $transaction->save();
+            $transaction = $this->createTransaction(
+                $category,
+                $account,
+                (int) $request->amount,
+                $request->input('notes'),
+                $request->transaction_date,
+            );
 
-            $this->applyTransactionImpact($category, $account, $transaction->amount);
-
-            $category->save();
-            $account->save();
-
-            return [$saved, 'Transaction Added Successfully', $transaction];
+            return [true, 'Transaction Added Successfully', $transaction];
         });
+    }
+
+    /**
+     * Record a transaction and apply its impact on the category total and account balance.
+     *
+     * Callers must check that the category and account belong to the user and
+     * wrap the call in a database transaction.
+     */
+    public function createTransaction(
+        Category $category,
+        Account $account,
+        int $amount,
+        ?string $notes,
+        mixed $transactionDate,
+        ?string $receiptId = null,
+    ): Transaction {
+        $transaction = new Transaction;
+        $transaction->user_id = $category->user_id;
+        $transaction->category_id = $category->id;
+        $transaction->account_id = $account->id;
+        $transaction->receipt_id = $receiptId;
+        $transaction->amount = $amount;
+        $transaction->currency = $account->currency ?? 'KES';
+        $transaction->notes = $notes;
+        $transaction->transaction_date = $transactionDate;
+        $transaction->save();
+
+        $this->applyTransactionImpact($category, $account, $amount);
+
+        $category->save();
+        $account->save();
+
+        return $transaction;
     }
 
     public function update(Request $request, Transaction $transaction): array
