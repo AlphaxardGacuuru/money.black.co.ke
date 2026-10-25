@@ -24,8 +24,10 @@ class PasskeyLoginController extends Controller
     {
         $options = $generate();
         $challengeToken = (string) Str::uuid();
+        $cacheKey = self::cacheKey($challengeToken);
+        $optionsJson = WebAuthn::toJson($options);
 
-        Cache::put(self::cacheKey($challengeToken), WebAuthn::toJson($options), now()->addMinutes(5));
+        Cache::put($cacheKey, $optionsJson, now()->addMinutes(5));
 
         return response()->json([
             'options' => WebAuthn::toBrowserArray($options),
@@ -36,8 +38,10 @@ class PasskeyLoginController extends Controller
     /**
      * Verify the signed challenge and issue a Sanctum token.
      */
-    public function store(PasskeyLoginRequest $request, VerifyPasskey $verify): JsonResponse
-    {
+    public function store(
+        PasskeyLoginRequest $request,
+        VerifyPasskey $verify
+    ): JsonResponse {
         $passkey = $verify($request->credential(), $request->verificationOptions());
 
         if (! Passkeys::allowsLogin($request, $passkey)) {
@@ -50,7 +54,9 @@ class PasskeyLoginController extends Controller
         Auth::guard('web')->login($user);
         $request->session()->regenerate();
 
-        $token = $user->createToken($request->input('device_name') ?: 'web')->plainTextToken;
+        $token = $user
+            ->createToken($request->input('device_name') ?: 'web')
+            ->plainTextToken;
 
         return response()->json([
             'message' => 'Logged in',

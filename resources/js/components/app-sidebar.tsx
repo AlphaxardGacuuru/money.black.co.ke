@@ -36,6 +36,11 @@ export const mainNavItems: NavItem[] = [
 		icon: Tags,
 	},
 	{
+		title: "Receipts",
+		href: "/receipts",
+		icon: ReceiptText,
+	},
+	{
 		title: "Transactions",
 		href: "/transactions",
 		icon: ArrowUpDown,
@@ -45,19 +50,14 @@ export const mainNavItems: NavItem[] = [
 		href: "/overview",
 		icon: ChartColumnIncreasing,
 	},
-	{
-		title: "Receipts",
-		href: "/receipts",
-		icon: ReceiptText,
-	},
+]
+
+const footerNavItems: NavItem[] = [
 	{
 		title: "Tools",
 		href: "/tools",
 		icon: Calculator,
 	},
-]
-
-const footerNavItems: NavItem[] = [
 	{
 		title: "Import 1Money",
 		href: "/imports/one-money",

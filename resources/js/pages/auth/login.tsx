@@ -142,7 +142,7 @@ export default function Login({
 					.then((response) => {
 						if (response.data.two_factor) {
 							navigate({
-								to: "/auth/two-factor-challenge",
+								to: "/two-factor-challenge",
 								search: { pending_token: response.data.data },
 							})
 							return

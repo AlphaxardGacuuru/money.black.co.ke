@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import SecurityController from "@/actions/App/Http/Controllers/Settings/SecurityController"
 import Heading from "@/components/heading"
 import InputError from "@/components/input-error"
+import PasskeyConfirmationDialog from "@/components/passkey-confirmation-dialog"
 import PasskeysManager from "@/components/passkeys-manager"
 import PasswordInput from "@/components/password-input"
 import TwoFactorRecoveryCodes from "@/components/two-factor-recovery-codes"
@@ -12,6 +13,8 @@ import { Button } from "@/components/ui/button"
 import { useTwoFactorAuth } from "@/hooks/use-two-factor-auth"
 import axios from "@/lib/axios"
 import { useApp } from "@/contexts/AppContext"
+import { invalidateAuth } from "@/middleware/auth"
+import { toast } from "@/lib/toast"
 import { edit } from "@/routes/security"
 import { disable, enable } from '@/routes/two-factor'
 import { Spinner } from "@/components/ui/spinner"
@@ -48,6 +51,7 @@ export default function Security({
 	)
 
 	const [disable2faProcessing, setDisable2faProcessing] = useState(false)
+	const [confirmBeforeDisable2fa, setConfirmBeforeDisable2fa] = useState(false)
 	const [enable2faProcessing, setEnable2faProcessing] = useState(false)
 
 	useEffect(() => {
@@ -127,7 +131,21 @@ export default function Security({
 		setDisable2faProcessing(true)
 		const { url, method } = disable()
 		axios
-			.request({ url, method })
+			.request<{ message: string }>({ url, method })
+			.then((response) => {
+				toast.success(response.data.message)
+				invalidateAuth()
+			})
+			.catch((error: unknown) => {
+				// Turning 2FA off needs a fresh "confirm it's you", like passkey changes.
+				if ((error as { response?: { status?: number } }).response?.status === 423) {
+					setConfirmBeforeDisable2fa(true)
+
+					return
+				}
+
+				toast.error("Couldn't turn off two-factor authentication.")
+			})
 			.finally(() => setDisable2faProcessing(false))
 	}
 
@@ -264,6 +282,15 @@ export default function Security({
 							</div>
 						</div>
 					)}
+
+					<PasskeyConfirmationDialog
+						isOpen={confirmBeforeDisable2fa}
+						onClose={() => setConfirmBeforeDisable2fa(false)}
+						onContinue={() => {
+							setConfirmBeforeDisable2fa(false)
+							handleDisable2fa()
+						}}
+					/>
 
 					<TwoFactorSetupModal
 						isOpen={showSetupModal}

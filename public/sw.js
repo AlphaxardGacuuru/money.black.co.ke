@@ -1,4 +1,4 @@
-const CACHE_NAME = "money-black-v2-mvmxhyrq"
+const CACHE_NAME = "money-black-v2-mvnr08sx"
 // Files shared to the app (Web Share Target) wait here until the Receipts page uploads them.
 // Kept out of the versioned cache so a new deploy doesn't discard them.
 const SHARED_RECEIPTS_CACHE = "shared-receipts"

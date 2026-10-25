@@ -82,6 +82,10 @@ class AuthenticatedSessionController extends Controller
             event(new Registered($dbUser));
         }
 
+        if ($dbUser->hasTwoFactorEnabled()) {
+            return redirect('/two-factor-challenge?pending_token=' . urlencode($this->startTwoFactorChallenge($dbUser)));
+        }
+
         Auth::guard('web')->login($dbUser);
         $request->session()->regenerate();
 
@@ -112,14 +116,10 @@ class AuthenticatedSessionController extends Controller
         }
 
         if ($user->hasTwoFactorEnabled()) {
-            $pendingToken = Str::uuid();
-
-            Cache::put("2fa_pending:{$pendingToken}", $user->id, now()->addMinutes(5));
-
             return response([
                 'message' => 'Two-factor authentication required',
                 'two_factor' => true,
-                'data' => $pendingToken,
+                'data' => $this->startTwoFactorChallenge($user),
             ], 200);
         }
 
@@ -134,6 +134,19 @@ class AuthenticatedSessionController extends Controller
             "message" => "Logged in",
             "data" => $token,
         ], 200);
+    }
+
+    /**
+     * Park a login that still needs its two-factor code and return the token the
+     * challenge screen exchanges for a real session (see TwoFactorChallengeController).
+     */
+    private function startTwoFactorChallenge(User $user): string
+    {
+        $pendingToken = (string) Str::uuid();
+
+        Cache::put("2fa_pending:{$pendingToken}", $user->id, now()->addMinutes(5));
+
+        return $pendingToken;
     }
 
     /**

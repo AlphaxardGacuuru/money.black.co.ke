@@ -152,10 +152,10 @@ export default function PasskeyConfirmationDialog({ isOpen, onClose, onContinue 
 					</DialogTitle>
 					<DialogDescription>
 						{step === "confirmed"
-							? "You can now change biometric login for the next 10 minutes."
+							? "You can now change your security settings for the next 10 minutes."
 							: step === "email-sent"
 								? `Enter the 6-digit code we sent to ${maskedEmail}.`
-								: "For your security, verify your identity before changing biometric login."}
+								: "For your security, verify your identity before changing your security settings."}
 					</DialogDescription>
 					{step === "choose" && maskedEmail && (
 						<p className="text-sm break-all text-muted-foreground">

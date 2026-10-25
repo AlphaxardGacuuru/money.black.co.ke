@@ -10,7 +10,7 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Tracks the short-lived "identity confirmed" state required before a user may
- * add or remove passkeys. Accounts sign in via Google, so there is no password
+ * add or remove passkeys or turn off two-factor authentication. Accounts sign in via Google, so there is no password
  * to re-enter; users confirm with an existing passkey or an emailed code instead.
  */
 class PasskeyActionConfirmation

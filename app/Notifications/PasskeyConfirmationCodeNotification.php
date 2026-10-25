@@ -28,7 +28,7 @@ class PasskeyConfirmationCodeNotification extends Notification
         return (new MailMessage)
             ->subject(__('Your :app security code', ['app' => config('app.name')]))
             ->greeting(__('Hello :name,', ['name' => $notifiable->name]))
-            ->line(__('Use this code to confirm it\'s you before changing biometric login on your account:'))
+            ->line(__('Use this code to confirm it\'s you before changing the security settings on your account:'))
             ->line("**{$this->code}**")
             ->line(__('This code expires in :minutes minutes.', ['minutes' => $this->expiresInMinutes]))
             ->line(__('If you didn\'t request this, you can ignore this email. Someone may be trying to access your account.'));

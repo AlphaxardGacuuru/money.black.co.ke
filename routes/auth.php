@@ -81,6 +81,7 @@ Route::middleware('auth:sanctum')->group(function() {
         ->name('two-factor.confirm');
 
     Route::post('two-factor/disable', [TwoFactorController::class, 'disable'])
+        ->middleware(EnsurePasskeyActionConfirmed::class)
         ->name('two-factor.disable');
 
     Route::get('two-factor/qr-code', [TwoFactorController::class, 'qrCode'])

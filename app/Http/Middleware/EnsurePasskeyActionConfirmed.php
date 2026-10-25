@@ -10,7 +10,8 @@ use Symfony\Component\HttpFoundation\Response;
 class EnsurePasskeyActionConfirmed
 {
     /**
-     * Require a recent identity confirmation before passkeys can be added or removed.
+     * Require a recent identity confirmation before sensitive security changes
+     * (adding or removing passkeys, turning off two-factor authentication).
      *
      * @param  Closure(Request): (Response)  $next
      */
@@ -20,7 +21,7 @@ class EnsurePasskeyActionConfirmed
 
         if (! PasskeyActionConfirmation::for($user)->isConfirmed()) {
             return response()->json([
-                'message' => __('Please confirm it\'s you before changing biometric login.'),
+                'message' => __('Please confirm it\'s you before changing your security settings.'),
                 'confirmation_required' => true,
                 'methods' => $user->hasPasskeysEnabled() ? ['passkey', 'email'] : ['email'],
             ], 423);
