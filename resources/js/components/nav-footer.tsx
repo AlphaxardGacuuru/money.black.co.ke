@@ -40,7 +40,7 @@ export function NavFooter({
 						<SidebarMenuItem key={item.title}>
 							<SidebarMenuButton
 								asChild
-								className="justify-end text-right text-neutral-600 group-data-[collapsible=icon]:justify-center hover:text-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100">
+								className="justify-start text-right text-neutral-600 group-data-[collapsible=icon]:justify-center hover:text-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100">
 								<Link
 									href={toUrl(item.href)}
 									rel="noopener noreferrer"
