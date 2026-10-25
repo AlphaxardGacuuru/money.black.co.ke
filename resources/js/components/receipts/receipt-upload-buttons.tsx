@@ -45,7 +45,7 @@ export default function ReceiptUploadButtons({ onUploaded }: Props) {
 	}
 
 	return (
-		<div className="flex flex-wrap gap-3">
+		<div className="flex justify-center flex-wrap gap-3">
 			<input
 				ref={cameraInput}
 				type="file"

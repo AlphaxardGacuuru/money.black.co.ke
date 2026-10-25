@@ -51,7 +51,7 @@ export default function ReceiptsPage() {
 		<>
 			<Head title="Receipts" />
 
-			<div className="flex flex-1 flex-col gap-6 p-4">
+			<div className="flex flex-1 flex-col gap-6">
 				<div className="space-y-4 rounded-xl border bg-card p-6 shadow-sm">
 					<Heading
 						title="Receipts"
