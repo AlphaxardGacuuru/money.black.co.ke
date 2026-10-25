@@ -13,7 +13,7 @@ class OverviewControllerTest extends TestCase
 
     public function test_guests_cannot_access_the_overview()
     {
-        $this->getJson(route('api.overview.index'))->assertUnauthorized();
+        $this->getJson(route('overview.index'))->assertUnauthorized();
     }
 
     public function test_it_totals_income_and_expense_categories_separately()
@@ -24,7 +24,7 @@ class OverviewControllerTest extends TestCase
         Category::factory()->for($user)->expense()->create(['total' => 200]);
         Category::factory()->for($user)->income()->create(['total' => 1000]);
 
-        $response = $this->actingAs($user)->getJson(route('api.overview.index'));
+        $response = $this->actingAs($user)->getJson(route('overview.index'));
 
         $response->assertOk();
         $response->assertJsonPath('totals.expense', 500);
@@ -41,7 +41,7 @@ class OverviewControllerTest extends TestCase
         Category::factory()->for($user)->expense()->create(['total' => 100]);
         Category::factory()->for($otherUser)->expense()->create(['total' => 900]);
 
-        $response = $this->actingAs($user)->getJson(route('api.overview.index'));
+        $response = $this->actingAs($user)->getJson(route('overview.index'));
 
         $response->assertOk();
         $response->assertJsonPath('totals.expense', 100);
@@ -55,7 +55,7 @@ class OverviewControllerTest extends TestCase
         Category::factory()->for($user)->expense()->create(['name' => 'Small', 'total' => 50]);
         Category::factory()->for($user)->expense()->create(['name' => 'Large', 'total' => 500]);
 
-        $response = $this->actingAs($user)->getJson(route('api.overview.index'));
+        $response = $this->actingAs($user)->getJson(route('overview.index'));
 
         $response->assertOk();
         $response->assertJsonPath('data.0.name', 'Large');

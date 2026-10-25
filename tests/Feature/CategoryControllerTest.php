@@ -21,7 +21,7 @@ class CategoryControllerTest extends TestCase
 
     public function test_guests_cannot_access_categories()
     {
-        $this->getJson(route('api.categories.index'))->assertUnauthorized();
+        $this->getJson(route('categories.index'))->assertUnauthorized();
     }
 
     public function test_it_lists_only_the_authenticated_users_categories()
@@ -32,7 +32,7 @@ class CategoryControllerTest extends TestCase
         Category::factory()->for($user)->create(['name' => 'Mine']);
         Category::factory()->for($otherUser)->create(['name' => 'Not Mine']);
 
-        $response = $this->actingAs($user)->getJson(route('api.categories.index'));
+        $response = $this->actingAs($user)->getJson(route('categories.index'));
 
         $response->assertOk();
         $response->assertJsonCount(1, 'data');
@@ -46,7 +46,7 @@ class CategoryControllerTest extends TestCase
         $second = Category::factory()->for($user)->create(['position' => 2, 'name' => 'Second']);
         $first = Category::factory()->for($user)->create(['position' => 1, 'name' => 'First']);
 
-        $response = $this->actingAs($user)->getJson(route('api.categories.index'));
+        $response = $this->actingAs($user)->getJson(route('categories.index'));
 
         $response->assertOk();
         $response->assertJsonPath('data.0.name', 'First');
@@ -59,7 +59,7 @@ class CategoryControllerTest extends TestCase
 
         Category::factory()->for($user)->create(['name' => 'Food']);
 
-        $response = $this->actingAs($user)->getJson(route('api.categories.index', ['idAndName' => 1]));
+        $response = $this->actingAs($user)->getJson(route('categories.index', ['idAndName' => 1]));
 
         $response->assertOk();
         $response->assertJsonStructure(['data' => [['id', 'name']]]);

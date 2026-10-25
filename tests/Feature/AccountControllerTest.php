@@ -20,7 +20,7 @@ class AccountControllerTest extends TestCase
 
     public function test_guests_cannot_access_accounts()
     {
-        $this->getJson(route('api.accounts.index'))->assertUnauthorized();
+        $this->getJson(route('accounts.index'))->assertUnauthorized();
     }
 
     public function test_it_lists_only_the_authenticated_users_accounts()
@@ -31,7 +31,7 @@ class AccountControllerTest extends TestCase
         Account::factory()->for($user)->create(['name' => 'Mine']);
         Account::factory()->for($otherUser)->create(['name' => 'Not Mine']);
 
-        $response = $this->actingAs($user)->getJson(route('api.accounts.index'));
+        $response = $this->actingAs($user)->getJson(route('accounts.index'));
 
         $response->assertOk();
         $response->assertJsonCount(1, 'data');
@@ -45,7 +45,7 @@ class AccountControllerTest extends TestCase
         Account::factory()->for($user)->create(['name' => 'Bank']);
         Account::factory()->for($user)->create(['name' => 'Cash']);
 
-        $response = $this->actingAs($user)->getJson(route('api.accounts.index', ['name' => 'Ban']));
+        $response = $this->actingAs($user)->getJson(route('accounts.index', ['name' => 'Ban']));
 
         $response->assertOk();
         $response->assertJsonCount(1, 'data');
@@ -58,7 +58,7 @@ class AccountControllerTest extends TestCase
 
         Account::factory()->for($user)->create(['name' => 'Bank']);
 
-        $response = $this->actingAs($user)->getJson(route('api.accounts.index', ['idAndName' => 1]));
+        $response = $this->actingAs($user)->getJson(route('accounts.index', ['idAndName' => 1]));
 
         $response->assertOk();
         $response->assertJsonStructure(['data' => [['id', 'name']]]);

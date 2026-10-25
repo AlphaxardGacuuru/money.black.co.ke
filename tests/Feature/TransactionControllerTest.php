@@ -22,7 +22,7 @@ class TransactionControllerTest extends TestCase
 
     public function test_guests_cannot_access_transactions()
     {
-        $this->getJson(route('api.transactions.index'))->assertUnauthorized();
+        $this->getJson(route('transactions.index'))->assertUnauthorized();
     }
 
     public function test_it_lists_only_the_authenticated_users_transactions()
@@ -33,7 +33,7 @@ class TransactionControllerTest extends TestCase
         Transaction::factory()->for($user)->create(['user_id' => $user->id]);
         Transaction::factory()->for($otherUser)->create(['user_id' => $otherUser->id]);
 
-        $response = $this->actingAs($user)->getJson(route('api.transactions.index'));
+        $response = $this->actingAs($user)->getJson(route('transactions.index'));
 
         $response->assertOk();
         $response->assertJsonCount(1, 'data');
@@ -53,7 +53,7 @@ class TransactionControllerTest extends TestCase
 
         Transaction::factory()->for($user)->create(['user_id' => $user->id]);
 
-        $response = $this->actingAs($user)->getJson(route('api.transactions.index', [
+        $response = $this->actingAs($user)->getJson(route('transactions.index', [
             'accountId' => $account->id,
             'categoryId' => $category->id,
         ]));
@@ -77,7 +77,7 @@ class TransactionControllerTest extends TestCase
             'transaction_date' => now()->subDays(7)->toDateString(),
         ]);
 
-        $response = $this->actingAs($user)->getJson(route('api.transactions.index'));
+        $response = $this->actingAs($user)->getJson(route('transactions.index'));
 
         $response->assertOk();
         $response->assertJsonPath('data.0.id', $newer->id);
@@ -127,7 +127,7 @@ class TransactionControllerTest extends TestCase
             'transaction_date' => '2026-03-01',
         ]);
 
-        $response = $this->actingAs($user)->getJson(route('api.transactions.index', [
+        $response = $this->actingAs($user)->getJson(route('transactions.index', [
             'filter' => 'month',
             'date' => '2026-01-15',
         ]));
@@ -174,7 +174,7 @@ class TransactionControllerTest extends TestCase
             'transaction_date' => now()->toDateString(),
         ]);
 
-        $response = $this->actingAs($user)->getJson(route('api.transactions.index', [
+        $response = $this->actingAs($user)->getJson(route('transactions.index', [
             'notes' => 'salary',
         ]));
 

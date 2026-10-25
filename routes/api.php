@@ -16,14 +16,17 @@ Route::middleware(['auth:sanctum'])->group(function() {
     Route::get('auth', fn () => UserResource::make(request()->user()))
         ->name('api.auth.show');
 
-    Route::apiResource('accounts', AccountController::class)->names(['index' => 'api.accounts.index']);
+    Route::apiResources([
+        'accounts' => AccountController::class,
+        'categories' => CategoryController::class,
+        'transactions' => TransactionController::class,
+        'overview' => OverviewController::class,
+    ]);
+
     Route::get('category-suggestions', [CategorySuggestionController::class, 'index'])->name('api.category-suggestions.index');
     Route::post('category-suggestions/starter', [CategorySuggestionController::class, 'storeStarter'])->name('api.category-suggestions.starter');
     Route::post('category-suggestions/{suggestion}/accept', [CategorySuggestionController::class, 'accept'])->name('api.category-suggestions.accept');
     Route::post('category-suggestions/{suggestion}/dismiss', [CategorySuggestionController::class, 'dismiss'])->name('api.category-suggestions.dismiss');
-    Route::apiResource('categories', CategoryController::class)->names(['index' => 'api.categories.index']);
-    Route::apiResource('transactions', TransactionController::class)->names(['index' => 'api.transactions.index']);
-    Route::apiResource('overview', OverviewController::class)->names(['index' => 'api.overview.index']);
     Route::post('imports/one-money', [OneMoneyImportController::class, 'store'])
         ->name('imports.one-money.store');
 
