@@ -11,6 +11,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Notifications\CategorySuggestionsReady;
 use App\Support\CategoryCatalog;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
@@ -116,7 +117,7 @@ class CategorySuggestionTest extends TestCase
         $user = User::factory()->create();
         $transport = Category::factory()->for($user)->expense()->create(['name' => 'Transport']);
         $misc = Category::factory()->for($user)->expense()->create(['name' => 'Misc']);
-        $othersCategory = Category::factory()->expense()->create();
+        $othersCategory = Category::factory()->expense()->create(['name' => 'Another Users Private Category']);
         $this->createTransactions($user, 6, '2026-09-15', $transport, 'Shell petrol Westlands');
 
         CategorySuggestion::factory()->for($user)->dismissed()->create(['action' => 'add', 'name' => 'Gym']);
@@ -276,7 +277,11 @@ class CategorySuggestionTest extends TestCase
 
     public function test_the_review_is_scheduled_monthly(): void
     {
-        $this->artisan('schedule:list')->expectsOutputToContain('0 7 1 * *  php artisan categories:suggest');
+        $event = collect(app(Schedule::class)->events())
+            ->first(fn ($event): bool => str_contains((string) $event->command, 'categories:suggest'));
+
+        $this->assertNotNull($event, 'categories:suggest is not scheduled.');
+        $this->assertSame('0 7 1 * *', $event->expression);
     }
 
     private function createTransactions(User $user, int $count, string $date, ?Category $category = null, ?string $notes = null): void

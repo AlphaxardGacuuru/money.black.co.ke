@@ -9,6 +9,7 @@ import {
 	Wallet,
 } from "lucide-react"
 import AppLogo from "@/components/app-logo"
+import { NavAdmin } from "@/components/nav-admin"
 import { NavFooter } from "@/components/nav-footer"
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
@@ -95,6 +96,7 @@ export function AppSidebar() {
 			</SidebarContent>
 
 			<SidebarFooter>
+				<NavAdmin />
 				<NavFooter
 					items={footerNavItems}
 					className="mt-auto"

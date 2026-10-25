@@ -12,3 +12,6 @@ Schedule::command('categories:suggest')
     ->monthlyOn(1, '07:00')
     ->withoutOverlapping()
     ->onOneServer();
+
+// Records queue throughput and wait times for the Horizon metrics graphs.
+Schedule::command('horizon:snapshot')->everyFiveMinutes();

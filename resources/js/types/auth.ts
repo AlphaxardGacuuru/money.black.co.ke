@@ -11,6 +11,8 @@ export type User = {
 	email_verified_at: string | null
 	twoFactorEnabled?: boolean
 	home_page?: string
+	can_view_telescope?: boolean
+	can_view_horizon?: boolean
 	settings?: UserSettings | null
 	created_at: string
 	updated_at: string
