@@ -48,14 +48,14 @@ export const mainNavItems: NavItem[] = [
 	{
 		title: "Overview",
 		href: "/overview",
-		icon: ChartColumnIncreasing,
+		icon: ChartColumnIncreasing, 
 	},
 ]
 
 const footerNavItems: NavItem[] = [
 	{
-		title: "Tools",
-		href: "/tools",
+		title: "Calculator",
+		href: "/calculator",
 		icon: Calculator,
 	},
 	{
