@@ -53,7 +53,7 @@ export function AppBottomNav() {
 									)}>
 									{Icon ? <Icon className="size-10" /> : null}
 								</span>
-								<span className="truncate">{item.title}</span>
+								<span className="truncate text-[0.6rem]">{item.title}</span>
 							</span>
 						</Link>
 					)
