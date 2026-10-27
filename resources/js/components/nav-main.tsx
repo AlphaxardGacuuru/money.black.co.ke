@@ -42,6 +42,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
 						<SidebarMenuButton
 							asChild
 							isActive={isCurrentOrParentUrl(item.href)}
+							className="justify-start"
 							tooltip={{ children: item.title }}>
 							<Link
 								href={toUrl(item.href)}

@@ -36,16 +36,15 @@ export function NavAdmin() {
 						<SidebarMenuItem>
 							<CollapsibleTrigger asChild>
 								<SidebarMenuButton
-									tooltip={{ children: "Admin" }}
-									className="justify-center text-center text-neutral-600 hover:text-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100">
-									<ChevronDown className="size-4 transition-transform group-data-[state=open]/admin:rotate-180" />
-									<span>Admin</span>
+									tooltip={{ children: "Admin" }}>
 									<ShieldCheck className="h-5 w-5" />
+									<span>Admin</span>
+									<ChevronDown className="ms-auto size-4 transition-transform group-data-[state=open]/admin:rotate-180" />
 								</SidebarMenuButton>
 							</CollapsibleTrigger>
 
 							<CollapsibleContent>
-								<SidebarMenuSub className="mr-3.5 ml-0 border-r border-l-0 pr-2.5 pl-0">
+								<SidebarMenuSub>
 									{items.map((item) => (
 										<SidebarMenuSubItem key={item.title}>
 											{/* Full page loads: these dashboards are served by Laravel, not the SPA. */}
@@ -53,9 +52,9 @@ export function NavAdmin() {
 												href={item.href}
 												target="_blank"
 												rel="noopener"
-												className="justify-center">
-												<span>{item.title}</span>
+												className="justify-start">
 												<item.icon />
+												<span>{item.title}</span>
 											</SidebarMenuSubButton>
 										</SidebarMenuSubItem>
 									))}
