@@ -37,7 +37,7 @@ export function NavAdmin() {
 							<CollapsibleTrigger asChild>
 								<SidebarMenuButton
 									tooltip={{ children: "Admin" }}
-									className="justify-end text-right text-neutral-600 group-data-[collapsible=icon]:justify-center hover:text-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100">
+									className="justify-center text-center text-neutral-600 hover:text-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100">
 									<ChevronDown className="size-4 transition-transform group-data-[state=open]/admin:rotate-180" />
 									<span>Admin</span>
 									<ShieldCheck className="h-5 w-5" />
@@ -53,7 +53,7 @@ export function NavAdmin() {
 												href={item.href}
 												target="_blank"
 												rel="noopener"
-												className="justify-end">
+												className="justify-center">
 												<span>{item.title}</span>
 												<item.icon />
 											</SidebarMenuSubButton>

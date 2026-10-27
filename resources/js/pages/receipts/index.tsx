@@ -51,13 +51,15 @@ export default function ReceiptsPage() {
 		<>
 			<Head title="Receipts" />
 
-			<div className="flex flex-1 flex-col gap-6">
+			<ReceiptUploadButtons />
+
+			{/* Bottom padding keeps the last receipt clear of the floating buttons. */}
+			<div className="flex flex-1 flex-col gap-6 pb-48 md:pb-28">
 				<div className="space-y-4 rounded-xl border bg-card p-6 shadow-sm">
 					<Heading
 						title="Receipts"
 						description="Scan or upload a receipt and we'll read the items and sort them into your categories. You review everything before it's added."
 					/>
-					<ReceiptUploadButtons />
 					{importing && (
 						<p className="flex items-center gap-2 text-sm text-muted-foreground">
 							<Spinner /> Uploading the receipt you shared…
@@ -72,7 +74,7 @@ export default function ReceiptsPage() {
 				) : receipts.length === 0 ? (
 					<div className="flex flex-col items-center gap-2 rounded-xl border border-dashed p-10 text-center text-muted-foreground">
 						<ReceiptText className="size-8" />
-						<p className="text-sm">No receipts yet. Scan your first one above.</p>
+						<p className="text-sm">No receipts yet. Tap the camera button to scan your first one.</p>
 					</div>
 				) : (
 					<ul className="divide-y rounded-xl border bg-card shadow-sm">
