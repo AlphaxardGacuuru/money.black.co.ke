@@ -1,4 +1,5 @@
 import Axios from "@/lib/axios"
+import { cacheReceipt } from "@/lib/receipt-queries"
 import { store } from "@/routes/api/receipts"
 import type { Receipt, ReceiptProcessingStep, ReceiptStatus } from "@/types/receipt"
 
@@ -220,6 +221,9 @@ export async function uploadReceiptFile(selected: File): Promise<{ receipt: Rece
 		data: formData,
 		headers: { "Content-Type": "multipart/form-data" },
 	})
+
+	// Lets the receipt page show it straight away, without another request.
+	cacheReceipt(response.data.data)
 
 	return { receipt: response.data.data, message: response.data.message }
 }

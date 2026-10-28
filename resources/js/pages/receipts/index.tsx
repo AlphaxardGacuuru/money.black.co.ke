@@ -1,6 +1,6 @@
 import { Head } from "@/lib/spa"
 import { FileText, ReceiptText } from "lucide-react"
-import { useCallback, useEffect, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 import Heading from "@/components/heading"
 import { ReceiptProgressSummary } from "@/components/receipts/receipt-progress"
 import ReceiptUploadButtons from "@/components/receipts/receipt-upload-buttons"
@@ -9,10 +9,10 @@ import { Badge } from "@/components/ui/badge"
 import { Link } from "@/components/ui/link"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
-import Axios from "@/lib/axios"
+import { queryClient } from "@/lib/query-client"
+import { receiptKeys, receiptListQuery } from "@/lib/receipt-queries"
 import { formatAmount, receiptStatusLabels } from "@/lib/receipts"
-import { index } from "@/routes/api/receipts"
-import type { Receipt, ReceiptStatus } from "@/types/receipt"
+import type { ReceiptStatus } from "@/types/receipt"
 
 const statusVariants: Record<ReceiptStatus, "default" | "secondary" | "destructive" | "outline"> = {
 	processing: "secondary",
@@ -21,33 +21,16 @@ const statusVariants: Record<ReceiptStatus, "default" | "secondary" | "destructi
 	failed: "destructive",
 }
 
+function refreshReceipts() {
+	queryClient.invalidateQueries({ queryKey: receiptKeys.list() })
+}
+
 export default function ReceiptsPage() {
-	const [receipts, setReceipts] = useState<Receipt[]>([])
-	const [loading, setLoading] = useState(true)
+	// Shows the cached list straight away and refreshes it in the background;
+	// polls while any receipt is still being read.
+	const { data: receipts = [], isPending: loading } = useQuery(receiptListQuery())
 
-	const fetchReceipts = useCallback(() => {
-		return Axios.get<{ data: Receipt[] }>(index().url)
-			.then((response) => setReceipts(response.data.data))
-			.finally(() => setLoading(false))
-	}, [])
-
-	useEffect(() => {
-		fetchReceipts()
-	}, [fetchReceipts])
-
-	const { importing } = useSharedReceiptImport(fetchReceipts)
-
-	const hasProcessing = receipts.some((receipt) => receipt.status === "processing")
-
-	useEffect(() => {
-		if (!hasProcessing) {
-			return
-		}
-
-		const timer = window.setInterval(fetchReceipts, 3000)
-
-		return () => window.clearInterval(timer)
-	}, [hasProcessing, fetchReceipts])
+	const { importing } = useSharedReceiptImport(refreshReceipts)
 
 	return (
 		<>
@@ -100,9 +83,8 @@ export default function ReceiptsPage() {
 							<li key={receipt.id}>
 								<Link
 									href={`/receipts/${receipt.id}`}
-									variant="text"
-									size="none"
-									className="flex w-full items-center justify-between gap-4 p-4 text-left hover:bg-accent/50">
+									variant="unstyled"
+									className="flex w-full items-center justify-between gap-4 p-4 text-left transition-colors hover:bg-accent/50">
 									<div className="flex min-w-0 items-center gap-3">
 										{receipt.isPdf ? (
 											<FileText className="size-5 shrink-0 text-muted-foreground" />

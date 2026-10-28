@@ -79,7 +79,7 @@ export default function ReceiptUploadButtons({ onUploaded }: Props) {
 				onClick={() => fileInput.current?.click()}
 				aria-label="Upload photo or PDF"
 				title="Upload photo or PDF"
-				className="h-12 min-w-12 rounded-full bg-background px-3.5 shadow-lg sm:px-5"
+				className="h-14 min-w-14 rounded-full bg-background px-4 shadow-lg sm:px-5"
 				data-test="upload-receipt-button">
 				<Upload className="size-5" />
 				<span className="hidden sm:inline">Upload photo or PDF</span>

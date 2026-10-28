@@ -2,9 +2,12 @@ import { Link } from "@/components/ui/link"
 import { Head } from "@/lib/spa"
 import {
 	ArrowRight,
+	Calculator,
 	CheckCircle2,
 	CircleDollarSign,
-	ShieldCheck,
+	Fingerprint,
+	ScanLine,
+	Share2,
 	Sparkles,
 	Wallet,
 } from "lucide-react"
@@ -33,16 +36,34 @@ const features: FeatureItem[] = [
 		icon: Wallet,
 	},
 	{
+		title: "Scan Your Receipts",
+		description:
+			"Snap a photo or upload a PDF. AI reads the shop, items and totals and sorts them into your categories for you to check.",
+		icon: ScanLine,
+	},
+	{
+		title: "Share From Any App",
+		description:
+			"Install the app on Android and share receipts straight from your gallery, email or WhatsApp.",
+		icon: Share2,
+	},
+	{
 		title: "Category Intelligence",
 		description:
-			"See where your money goes with visual category totals and monthly trends.",
+			"Start with ready-made categories, see monthly totals and trends, and get suggestions each month as your spending changes.",
 		icon: CircleDollarSign,
 	},
 	{
-		title: "Reliable by Design",
+		title: "Passkeys and 2FA",
 		description:
-			"Secure authentication, resilient data flows, and predictable performance.",
-		icon: ShieldCheck,
+			"Sign in with Google, then unlock with your fingerprint or face. Add an authenticator app for extra protection.",
+		icon: Fingerprint,
+	},
+	{
+		title: "Handy Tools",
+		description:
+			"A calculator, length and area converters, a BMI calculator, and import from 1Money to bring your history along.",
+		icon: Calculator,
 	},
 ]
 
@@ -114,8 +135,8 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
 
 						<p className="max-w-xl text-base text-muted-foreground sm:text-lg">
 							Black Money gives you instant visibility across accounts,
-							categories, and spending patterns so your next move is always
-							intentional.
+							categories, and spending patterns. Snap a receipt and it's read,
+							split into categories and ready to add in seconds.
 						</p>
 
 						<div className="flex flex-wrap items-center gap-3 pt-2">
@@ -179,6 +200,19 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
 									</div>
 								</div>
 
+								<div className="flex items-center gap-3 rounded-xl border border-border/70 bg-background/90 p-4">
+									<div className="inline-flex rounded-lg bg-primary/10 p-2 text-primary">
+										<ScanLine className="size-5" />
+									</div>
+									<div className="min-w-0 flex-1">
+										<p className="text-sm font-semibold">Receipt scanned</p>
+										<p className="truncate text-sm text-muted-foreground">
+											6 items sorted into Groceries, Household and Snacks
+										</p>
+									</div>
+									<CheckCircle2 className="size-5 shrink-0 text-emerald-600 dark:text-emerald-300" />
+								</div>
+
 								<div className="grid gap-3 sm:grid-cols-2">
 									<div className="rounded-xl border border-border/70 bg-background/90 p-4">
 										<p className="text-xs tracking-[0.14em] text-muted-foreground uppercase">
@@ -211,7 +245,7 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
 				</main>
 
 				<section className="relative mx-auto w-full max-w-7xl px-6 pb-14 lg:px-10">
-					<div className="grid gap-4 md:grid-cols-3">
+					<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 						{features.map((feature, index) => {
 							const Icon = feature.icon
 

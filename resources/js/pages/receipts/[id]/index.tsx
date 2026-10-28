@@ -1,7 +1,8 @@
+import { useQuery } from "@tanstack/react-query"
 import { useNavigate, useParams } from "@tanstack/react-router"
 import { Head } from "@/lib/spa"
 import { AlertCircle, ArrowLeft, CircleCheck, PencilLine, RotateCcw, Trash2 } from "lucide-react"
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import Heading from "@/components/heading"
 import ReceiptPreview from "@/components/receipts/receipt-preview"
 import ReceiptProgress from "@/components/receipts/receipt-progress"
@@ -20,53 +21,55 @@ import { Link } from "@/components/ui/link"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import Axios from "@/lib/axios"
+import {
+	cacheReceipt,
+	forgetReceipt,
+	receiptAccountsQuery,
+	receiptCategoriesQuery,
+	receiptQuery,
+} from "@/lib/receipt-queries"
 import { formatAmount } from "@/lib/receipts"
 import { toast } from "@/lib/toast"
-import { index as accountsIndex } from "@/routes/accounts"
-import { index as categoriesIndex } from "@/routes/categories"
-import { destroy, retry, show } from "@/routes/api/receipts"
-import type { Account } from "@/types/account"
-import type { Category } from "@/types/category"
+import { destroy, retry } from "@/routes/api/receipts"
 import type { Receipt } from "@/types/receipt"
+
+function ReceiptDetailsSkeleton() {
+	return (
+		<div
+			className="space-y-4"
+			aria-busy="true"
+			aria-label="Loading receipt">
+			<Skeleton className="h-5 w-1/2" />
+			<Skeleton className="h-4 w-3/4" />
+			<Skeleton className="h-10 w-full" />
+			<Skeleton className="h-10 w-full" />
+			<Skeleton className="h-10 w-2/3" />
+		</div>
+	)
+}
 
 export default function ReceiptReviewPage() {
 	const { id } = useParams({ strict: false }) as { id: string }
 	const navigate = useNavigate()
 
-	const [receipt, setReceipt] = useState<Receipt | null>(null)
-	const [accounts, setAccounts] = useState<Account[]>([])
-	const [categories, setCategories] = useState<Category[]>([])
+	// Starts from the list's copy (if any) and refreshes in the background.
+	const { data: receipt, isError } = useQuery(receiptQuery(id))
+	const { data: accounts = [] } = useQuery(receiptAccountsQuery())
+	const { data: categories = [] } = useQuery(receiptCategoriesQuery())
+
 	const [enteringManually, setEnteringManually] = useState(false)
 	const [retrying, setRetrying] = useState(false)
 	const [deleting, setDeleting] = useState(false)
 
-	const fetchReceipt = useCallback(() => {
-		return Axios.get<{ data: Receipt }>(show(id).url)
-			.then((response) => setReceipt(response.data.data))
-			.catch(() => {
-				toast.error("Receipt not found.")
-				navigate({ to: "/receipts" })
-			})
-	}, [id, navigate])
-
 	useEffect(() => {
-		fetchReceipt()
-
-		Axios.get<{ data: Account[] }>(accountsIndex().url).then((response) => setAccounts(response.data.data))
-		Axios.get<{ data: Category[] }>(categoriesIndex().url).then((response) =>
-			setCategories(response.data.data.filter((category) => category.type === "expense"))
-		)
-	}, [fetchReceipt])
-
-	useEffect(() => {
-		if (receipt?.status !== "processing") {
+		if (!isError) {
 			return
 		}
 
-		const timer = window.setInterval(fetchReceipt, 2000)
-
-		return () => window.clearInterval(timer)
-	}, [receipt?.status, fetchReceipt])
+		toast.error("Receipt not found.")
+		forgetReceipt(id)
+		navigate({ to: "/receipts" })
+	}, [isError, id, navigate])
 
 	function handleRetry() {
 		if (!receipt) {
@@ -79,7 +82,7 @@ export default function ReceiptReviewPage() {
 		Axios.request<{ data: Receipt }>({ url, method })
 			.then((response) => {
 				setEnteringManually(false)
-				setReceipt(response.data.data)
+				cacheReceipt(response.data.data)
 			})
 			.catch(() => toast.error("Couldn't retry. Please wait a minute and try again."))
 			.finally(() => setRetrying(false))
@@ -96,6 +99,7 @@ export default function ReceiptReviewPage() {
 		Axios.request<{ message: string }>({ url, method })
 			.then((response) => {
 				toast.success(response.data.message)
+				forgetReceipt(receipt.id)
 				navigate({ to: "/receipts" })
 			})
 			.catch(() => {
@@ -104,41 +108,28 @@ export default function ReceiptReviewPage() {
 			})
 	}
 
-	if (!receipt) {
-		return (
-			<div
-				className="flex flex-1 flex-col gap-6 p-4"
-				aria-busy="true"
-				aria-label="Loading receipt">
-				<Skeleton className="h-5 w-24" />
-				<div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-					<Skeleton className="h-80 rounded-xl" />
-					<div className="space-y-4 rounded-xl border bg-card p-6 shadow-sm">
-						<Skeleton className="h-5 w-1/2" />
-						<Skeleton className="h-4 w-3/4" />
-						<Skeleton className="h-1.5 w-full" />
-						<Skeleton className="h-4 w-2/3" />
-						<Skeleton className="h-4 w-1/2" />
-						<Skeleton className="h-4 w-3/5" />
-					</div>
-				</div>
-			</div>
-		)
-	}
-
-	const showForm = receipt.status === "review" || (receipt.status === "failed" && enteringManually)
+	// The list's copy has no line items, so the form and the added
+	// transactions wait for the full receipt.
+	const hasDetails = receipt?.items !== undefined
+	const showForm =
+		hasDetails && (receipt.status === "review" || (receipt.status === "failed" && enteringManually))
+	const isLoadingDetails =
+		!receipt ||
+		(!hasDetails &&
+			(receipt.status === "review" ||
+				receipt.status === "confirmed" ||
+				(receipt.status === "failed" && enteringManually)))
 
 	return (
 		<>
-			<Head title={receipt.merchant ?? "Receipt"} />
+			<Head title={receipt?.merchant ?? "Receipt"} />
 
 			<div className="flex flex-1 flex-col gap-6 p-4">
 				<div className="flex items-center justify-between gap-4">
 					<Link
 						href="/receipts"
-						variant="text"
-						size="none"
-						className="flex items-center gap-1 text-sm">
+						variant="unstyled"
+						className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground">
 						<ArrowLeft className="size-4" />
 						Receipts
 					</Link>
@@ -149,7 +140,7 @@ export default function ReceiptReviewPage() {
 								type="button"
 								variant="ghost"
 								size="sm"
-								disabled={deleting}>
+								disabled={deleting || !receipt}>
 								<Trash2 />
 								Delete
 							</Button>
@@ -158,7 +149,7 @@ export default function ReceiptReviewPage() {
 							<DialogTitle>Delete this receipt?</DialogTitle>
 							<DialogDescription>
 								The receipt image is deleted.
-								{receipt.status === "confirmed" &&
+								{receipt?.status === "confirmed" &&
 									" Transactions already added from it stay in your records."}
 							</DialogDescription>
 							<DialogFooter className="gap-2">
@@ -180,15 +171,18 @@ export default function ReceiptReviewPage() {
 				<div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
 					<div className="rounded-xl border bg-card p-4 shadow-sm">
 						<ReceiptPreview
-							receipt={receipt}
-							scanning={receipt.status === "processing"}
+							receiptId={id}
+							originalName={receipt?.originalName}
+							scanning={receipt?.status === "processing"}
 						/>
 					</div>
 
 					<div className="min-w-0 rounded-xl border bg-card p-6 shadow-sm">
-						{receipt.status === "processing" && <ReceiptProgress receipt={receipt} />}
+						{isLoadingDetails && <ReceiptDetailsSkeleton />}
 
-						{receipt.status === "failed" && !enteringManually && (
+						{receipt?.status === "processing" && <ReceiptProgress receipt={receipt} />}
+
+						{receipt?.status === "failed" && !enteringManually && (
 							<div className="flex flex-col items-start gap-4">
 								<div className="flex items-start gap-3">
 									<AlertCircle className="mt-0.5 size-5 shrink-0 text-destructive" />
@@ -229,13 +223,13 @@ export default function ReceiptReviewPage() {
 										receipt={receipt}
 										accounts={accounts}
 										categories={categories}
-										onConfirmed={setReceipt}
+										onConfirmed={cacheReceipt}
 									/>
 								</div>
 							</>
 						)}
 
-						{receipt.status === "confirmed" && (
+						{receipt?.status === "confirmed" && hasDetails && (
 							<div className="space-y-4">
 								<div className="flex items-center gap-2">
 									<CircleCheck className="size-5 text-green-600" />
@@ -257,9 +251,8 @@ export default function ReceiptReviewPage() {
 								</ul>
 								<Link
 									href="/transactions"
-									variant="text"
-									size="none"
-									className="text-sm">
+									variant="unstyled"
+									className="text-sm font-medium text-primary transition-colors hover:text-primary/80">
 									View transactions
 								</Link>
 							</div>
