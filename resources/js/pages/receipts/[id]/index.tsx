@@ -4,6 +4,7 @@ import { AlertCircle, ArrowLeft, CircleCheck, PencilLine, RotateCcw, Trash2 } fr
 import { useCallback, useEffect, useState } from "react"
 import Heading from "@/components/heading"
 import ReceiptPreview from "@/components/receipts/receipt-preview"
+import ReceiptProgress from "@/components/receipts/receipt-progress"
 import ReceiptReviewForm from "@/components/receipts/receipt-review-form"
 import { Button } from "@/components/ui/button"
 import {
@@ -16,6 +17,7 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog"
 import { Link } from "@/components/ui/link"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import Axios from "@/lib/axios"
 import { formatAmount } from "@/lib/receipts"
@@ -104,8 +106,22 @@ export default function ReceiptReviewPage() {
 
 	if (!receipt) {
 		return (
-			<div className="flex flex-1 items-center justify-center p-8">
-				<Spinner />
+			<div
+				className="flex flex-1 flex-col gap-6 p-4"
+				aria-busy="true"
+				aria-label="Loading receipt">
+				<Skeleton className="h-5 w-24" />
+				<div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+					<Skeleton className="h-80 rounded-xl" />
+					<div className="space-y-4 rounded-xl border bg-card p-6 shadow-sm">
+						<Skeleton className="h-5 w-1/2" />
+						<Skeleton className="h-4 w-3/4" />
+						<Skeleton className="h-1.5 w-full" />
+						<Skeleton className="h-4 w-2/3" />
+						<Skeleton className="h-4 w-1/2" />
+						<Skeleton className="h-4 w-3/5" />
+					</div>
+				</div>
 			</div>
 		)
 	}
@@ -163,19 +179,14 @@ export default function ReceiptReviewPage() {
 
 				<div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
 					<div className="rounded-xl border bg-card p-4 shadow-sm">
-						<ReceiptPreview receipt={receipt} />
+						<ReceiptPreview
+							receipt={receipt}
+							scanning={receipt.status === "processing"}
+						/>
 					</div>
 
 					<div className="min-w-0 rounded-xl border bg-card p-6 shadow-sm">
-						{receipt.status === "processing" && (
-							<div className="flex flex-col items-center gap-3 py-12 text-center">
-								<Spinner className="size-6" />
-								<p className="font-medium">Reading your receipt…</p>
-								<p className="text-sm text-muted-foreground">
-									This usually takes a few seconds. You can leave this page and come back.
-								</p>
-							</div>
-						)}
+						{receipt.status === "processing" && <ReceiptProgress receipt={receipt} />}
 
 						{receipt.status === "failed" && !enteringManually && (
 							<div className="flex flex-col items-start gap-4">

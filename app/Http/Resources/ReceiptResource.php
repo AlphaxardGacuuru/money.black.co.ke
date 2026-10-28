@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Receipt;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -17,6 +18,9 @@ class ReceiptResource extends JsonResource
         return [
             'id' => $this->id,
             'status' => $this->status,
+            'processingStep' => $this->status === Receipt::STATUS_PROCESSING ? $this->processing_step : null,
+            'processingAttempt' => $this->status === Receipt::STATUS_PROCESSING ? $this->processing_attempt : null,
+            'processingStepAt' => $this->status === Receipt::STATUS_PROCESSING ? $this->processing_step_at : null,
             'merchant' => $this->merchant,
             'receiptDate' => $this->receipt_date?->toDateString(),
             'currency' => $this->currency,

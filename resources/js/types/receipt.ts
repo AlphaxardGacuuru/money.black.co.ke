@@ -1,5 +1,7 @@
 export type ReceiptStatus = "processing" | "review" | "confirmed" | "failed"
 
+export type ReceiptProcessingStep = "queued" | "preparing" | "reading" | "sorting" | "retrying"
+
 export type ReceiptItem = {
 	id?: string
 	description: string
@@ -18,6 +20,9 @@ export type ReceiptTransaction = {
 export type Receipt = {
 	id: string
 	status: ReceiptStatus
+	processingStep: ReceiptProcessingStep | null
+	processingAttempt: number | null
+	processingStepAt: string | null
 	merchant: string | null
 	receiptDate: string | null
 	currency: string

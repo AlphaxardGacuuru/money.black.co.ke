@@ -1,6 +1,6 @@
 import Axios from "@/lib/axios"
 import { store } from "@/routes/api/receipts"
-import type { Receipt, ReceiptStatus } from "@/types/receipt"
+import type { Receipt, ReceiptProcessingStep, ReceiptStatus } from "@/types/receipt"
 
 export const ACCEPTED_RECEIPT_TYPES =
 	"image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf"
@@ -14,6 +14,103 @@ export const receiptStatusLabels: Record<ReceiptStatus, string> = {
 	review: "Needs review",
 	confirmed: "Added",
 	failed: "Couldn't read",
+}
+
+/** Matches ProcessReceipt::$tries. */
+export const MAX_SCAN_ATTEMPTS = 3
+
+type ProcessingStepDetails = {
+	step: Exclude<ReceiptProcessingStep, "retrying">
+	label: string
+	title: string
+	description: string
+	/** Seconds on this step before we reassure the user that it's still going. */
+	slowAfterSeconds: number
+	slowMessage: string
+}
+
+/** The scan steps in order, as reported by the ProcessReceipt job. */
+export const receiptProcessingSteps: ProcessingStepDetails[] = [
+	{
+		step: "queued",
+		label: "Waiting to start",
+		title: "Waiting to start",
+		description: "Your receipt is saved and next in line to be read.",
+		slowAfterSeconds: 45,
+		slowMessage: "It's busy right now. Your receipt is saved and will start on its own.",
+	},
+	{
+		step: "preparing",
+		label: "Preparing the file",
+		title: "Preparing your receipt",
+		description: "Loading the file and your categories.",
+		slowAfterSeconds: 20,
+		slowMessage: "Large files take a little longer to load.",
+	},
+	{
+		step: "reading",
+		label: "Reading with AI",
+		title: "Reading your receipt",
+		description: "Picking out the shop, date, items and totals. This usually takes 5 to 20 seconds.",
+		slowAfterSeconds: 40,
+		slowMessage: "Still reading. Long or blurry receipts take a little longer.",
+	},
+	{
+		step: "sorting",
+		label: "Sorting into categories",
+		title: "Sorting the items",
+		description: "Matching each item to one of your categories.",
+		slowAfterSeconds: 20,
+		slowMessage: "Almost there.",
+	},
+]
+
+/**
+ * Where a processing receipt is in the scan. A retry is shown on the reading
+ * step, since that's the step that failed.
+ */
+export function receiptProgress(receipt: Receipt) {
+	const isRetrying = receipt.processingStep === "retrying"
+	const step = isRetrying ? "reading" : (receipt.processingStep ?? "queued")
+	const index = Math.max(
+		0,
+		receiptProcessingSteps.findIndex((details) => details.step === step)
+	)
+
+	return {
+		index,
+		details: receiptProcessingSteps[index],
+		isRetrying,
+		attempt: receipt.processingAttempt ?? 1,
+	}
+}
+
+/**
+ * A rough percentage for the progress bar. Reading creeps forward over time
+ * so the bar keeps moving while we wait on the AI.
+ */
+export function receiptProgressPercent(receipt: Receipt, secondsOnStep: number): number {
+	const { details, isRetrying } = receiptProgress(receipt)
+
+	switch (details.step) {
+		case "queued":
+			return 10
+		case "preparing":
+			return 25
+		case "reading":
+			return isRetrying ? 30 : Math.min(85, 30 + secondsOnStep * 3)
+		case "sorting":
+			return 92
+	}
+}
+
+export function secondsSince(timestamp: string | null, now: number): number {
+	if (!timestamp) {
+		return 0
+	}
+
+	// Clamp, since the server and device clocks can disagree slightly.
+	return Math.max(0, Math.floor((now - Date.parse(timestamp)) / 1000))
 }
 
 export function formatAmount(amount: number | null | undefined, currency = "KES") {

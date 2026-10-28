@@ -35,6 +35,31 @@ class Receipt extends Model
     public const STATUS_FAILED = 'failed';
 
     /**
+     * Uploaded and waiting for a queue worker to pick it up.
+     */
+    public const STEP_QUEUED = 'queued';
+
+    /**
+     * Loading the file and the user's categories.
+     */
+    public const STEP_PREPARING = 'preparing';
+
+    /**
+     * Waiting on the AI provider to read the receipt.
+     */
+    public const STEP_READING = 'reading';
+
+    /**
+     * Matching the extracted items to categories and saving them.
+     */
+    public const STEP_SORTING = 'sorting';
+
+    /**
+     * An attempt failed and the job will run again after a short wait.
+     */
+    public const STEP_RETRYING = 'retrying';
+
+    /**
      * The disk receipt files are stored on (private, not web-accessible).
      */
     public const DISK = 'local';
@@ -47,6 +72,9 @@ class Receipt extends Model
         'mime_type',
         'file_hash',
         'status',
+        'processing_step',
+        'processing_attempt',
+        'processing_step_at',
         'merchant',
         'receipt_date',
         'currency',
@@ -70,6 +98,8 @@ class Receipt extends Model
             'discount' => 'integer',
             'extraction' => 'array',
             'confirmed_at' => 'datetime',
+            'processing_attempt' => 'integer',
+            'processing_step_at' => 'datetime',
         ];
     }
 
@@ -81,6 +111,18 @@ class Receipt extends Model
     public function isEditable(): bool
     {
         return in_array($this->status, [self::STATUS_REVIEW, self::STATUS_FAILED], true);
+    }
+
+    /**
+     * Record which step of the scan the receipt has reached, so the app can show progress.
+     */
+    public function moveToStep(string $step, ?int $attempt = null): void
+    {
+        $this->update([
+            'processing_step' => $step,
+            'processing_attempt' => $attempt ?? $this->processing_attempt,
+            'processing_step_at' => now(),
+        ]);
     }
 
     /*

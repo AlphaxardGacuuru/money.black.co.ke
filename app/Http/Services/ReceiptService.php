@@ -12,6 +12,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -52,6 +53,8 @@ class ReceiptService extends Service
             'mime_type' => $file->getMimeType(),
             'file_hash' => $fileHash,
             'status' => Receipt::STATUS_PROCESSING,
+            'processing_step' => Receipt::STEP_QUEUED,
+            'processing_step_at' => now(),
         ]);
 
         ProcessReceipt::dispatch($receipt);
@@ -66,6 +69,9 @@ class ReceiptService extends Service
     {
         $receipt->update([
             'status' => Receipt::STATUS_PROCESSING,
+            'processing_step' => Receipt::STEP_QUEUED,
+            'processing_attempt' => null,
+            'processing_step_at' => now(),
             'failure_reason' => null,
         ]);
 
@@ -76,18 +82,35 @@ class ReceiptService extends Service
 
     /**
      * Read the receipt with the AI scanner and save the extracted line items for review.
+     *
+     * @throws Throwable when the AI provider fails, so the job can retry.
      */
-    public function process(Receipt $receipt): void
+    public function process(Receipt $receipt, int $attempt = 1): void
     {
+        $receipt->moveToStep(Receipt::STEP_PREPARING, $attempt);
+
         $categories = $this->expenseCategoriesFor($receipt->user_id);
 
         $attachment = $receipt->isPdf()
             ? Document::fromStorage($receipt->path, Receipt::DISK)
             : Image::fromStorage($receipt->path, Receipt::DISK);
 
-        $extraction = (new ReceiptScanner($categories))
-            ->prompt('Extract the details of this receipt.', attachments: [$attachment])
-            ->toArray();
+        $receipt->moveToStep(Receipt::STEP_READING);
+
+        try {
+            $extraction = (new ReceiptScanner($categories))
+                ->prompt('Extract the details of this receipt.', attachments: [$attachment])
+                ->toArray();
+        } catch (Throwable $exception) {
+            Log::error('Receipt scan: the AI request failed.', [
+                ...$this->logContext($receipt),
+                'exception' => $exception,
+            ]);
+
+            throw $exception;
+        }
+
+        $receipt->moveToStep(Receipt::STEP_SORTING);
 
         $allowedCategoryIds = array_column($categories, 'id');
 
@@ -108,6 +131,7 @@ class ReceiptService extends Service
         if (! ($extraction['is_receipt'] ?? false) || ($items->isEmpty() && $total <= 0)) {
             $receipt->update([
                 'status' => Receipt::STATUS_FAILED,
+                'processing_step' => null,
                 'extraction' => $extraction,
                 'failure_reason' => __("This doesn't look like a readable receipt. Try a clearer photo, or enter the items manually."),
             ]);
@@ -124,6 +148,7 @@ class ReceiptService extends Service
 
             $receipt->update([
                 'status' => Receipt::STATUS_REVIEW,
+                'processing_step' => null,
                 'merchant' => filled($extraction['merchant'] ?? null) ? Str::limit(trim($extraction['merchant']), 250, '') : null,
                 'receipt_date' => $this->toReceiptDate($extraction['date'] ?? null),
                 'currency' => $this->toCurrency($extraction['currency'] ?? null) ?? $receipt->currency,
@@ -141,12 +166,14 @@ class ReceiptService extends Service
      */
     public function markFailed(Receipt $receipt, ?Throwable $exception = null): void
     {
-        if ($exception) {
-            report($exception);
-        }
+        Log::error('Receipt scan: gave up after the last attempt.', [
+            ...$this->logContext($receipt),
+            'exception' => $exception,
+        ]);
 
         $receipt->update([
             'status' => Receipt::STATUS_FAILED,
+            'processing_step' => null,
             'failure_reason' => __("We couldn't read this receipt right now. Try again, or enter the items manually."),
         ]);
     }
@@ -275,6 +302,23 @@ class ReceiptService extends Service
         }
 
         return $allocated;
+    }
+
+    /**
+     * Details logged with scan failures so they can be traced in Telescope.
+     *
+     * @return array{receipt_id: string, user_id: string, step: string|null, attempt: int|null, mime_type: string, model: mixed}
+     */
+    private function logContext(Receipt $receipt): array
+    {
+        return [
+            'receipt_id' => (string) $receipt->id,
+            'user_id' => (string) $receipt->user_id,
+            'step' => $receipt->processing_step,
+            'attempt' => $receipt->processing_attempt,
+            'mime_type' => $receipt->mime_type,
+            'model' => config('ai.providers.gemini.models.text.default'),
+        ];
     }
 
     /**

@@ -13,6 +13,18 @@
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
 
+    --animate-receipt-scan: receipt-scan 2.2s ease-in-out infinite alternate;
+
+    @keyframes receipt-scan {
+        from {
+            top: -4rem;
+        }
+
+        to {
+            top: 100%;
+        }
+    }
+
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
     --radius-sm: calc(var(--radius) - 4px);

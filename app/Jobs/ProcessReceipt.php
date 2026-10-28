@@ -40,7 +40,25 @@ class ProcessReceipt implements ShouldQueue
             return;
         }
 
-        $service->process($this->receipt);
+        try {
+            $service->process($this->receipt, $this->attempts());
+        } catch (Throwable $exception) {
+            if ($this->attempts() < $this->tries) {
+                $this->receipt->moveToStep(Receipt::STEP_RETRYING);
+            }
+
+            throw $exception;
+        }
+    }
+
+    /**
+     * Tags for finding this receipt's runs in Horizon and Telescope.
+     *
+     * @return array<int, string>
+     */
+    public function tags(): array
+    {
+        return ['receipt:' . $this->receipt->id, 'user:' . $this->receipt->user_id];
     }
 
     public function failed(?Throwable $exception): void
