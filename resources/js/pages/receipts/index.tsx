@@ -1,17 +1,28 @@
 import { Head } from "@/lib/spa"
-import { FileText, ReceiptText } from "lucide-react"
+import { Camera, FileText, ReceiptText, Upload } from "lucide-react"
+import { useRef, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
+import { useNavigate } from "@tanstack/react-router"
 import Heading from "@/components/heading"
 import { ReceiptProgressSummary } from "@/components/receipts/receipt-progress"
-import ReceiptUploadButtons from "@/components/receipts/receipt-upload-buttons"
 import { useSharedReceiptImport } from "@/hooks/use-shared-receipt-import"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Link } from "@/components/ui/link"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import { queryClient } from "@/lib/query-client"
 import { receiptKeys, receiptListQuery } from "@/lib/receipt-queries"
-import { formatAmount, receiptStatusLabels } from "@/lib/receipts"
+import {
+	ACCEPTED_RECEIPT_TYPES,
+	formatAmount,
+	receiptStatusLabels,
+	receiptUploadErrorMessage,
+	uploadReceiptFile,
+} from "@/lib/receipts"
+import { toast } from "@/lib/toast"
+import { cn } from "@/lib/utils"
+import { useFabPosition } from "@/hooks/use-fab-position"
 import type { ReceiptStatus } from "@/types/receipt"
 
 const statusVariants: Record<ReceiptStatus, "default" | "secondary" | "destructive" | "outline"> = {
@@ -32,24 +43,99 @@ export default function ReceiptsPage() {
 
 	const { importing } = useSharedReceiptImport(refreshReceipts)
 
+	const navigate = useNavigate()
+	const cameraInput = useRef<HTMLInputElement>(null)
+	const fileInput = useRef<HTMLInputElement>(null)
+	const [uploading, setUploading] = useState(false)
+	const fabPosition = useFabPosition()
+
+	async function handleFile(event: React.ChangeEvent<HTMLInputElement>) {
+		const selected = event.target.files?.[0]
+		event.target.value = ""
+
+		if (!selected) {
+			return
+		}
+
+		setUploading(true)
+
+		try {
+			const { receipt, message } = await uploadReceiptFile(selected)
+
+			toast.success(message)
+			navigate({ to: `/receipts/${receipt.id}` })
+		} catch (error: unknown) {
+			toast.error(receiptUploadErrorMessage(error))
+		} finally {
+			setUploading(false)
+		}
+	}
+
 	return (
 		<>
 			<Head title="Receipts" />
 
-			<ReceiptUploadButtons />
+			{/* Floating Section Start */}
+			<div
+				className={cn(fabPosition.className, "flex flex-col items-end gap-2")}
+				style={fabPosition.style}>
+				<input
+					ref={cameraInput}
+					type="file"
+					accept="image/*"
+					capture="environment"
+					className="hidden"
+					onChange={handleFile}
+				/>
+				<input
+					ref={fileInput}
+					type="file"
+					accept={ACCEPTED_RECEIPT_TYPES}
+					className="hidden"
+					onChange={handleFile}
+				/>
+
+				<Button
+					type="button"
+					disabled={uploading}
+					onClick={() => fileInput.current?.click()}
+					aria-label="Upload photo or PDF"
+					title="Upload photo or PDF"
+					className="h-14 min-w-14 rounded-full px-4 shadow-lg sm:px-5"
+					data-test="upload-receipt-button">
+					<Upload className="size-5" />
+					<span className="hidden sm:inline">Upload photo or PDF</span>
+				</Button>
+				<Button
+					type="button"
+					disabled={uploading}
+					onClick={() => cameraInput.current?.click()}
+					aria-label="Scan receipt"
+					title="Scan receipt"
+					className="h-14 min-w-14 rounded-full px-4 shadow-lg sm:px-6"
+					data-test="scan-receipt-button">
+					{uploading ? <Spinner /> : <Camera className="size-6" />}
+					<span className="hidden sm:inline">Scan receipt</span>
+				</Button>
+			</div>
+			{/* Floating Section End */}
 
 			{/* Bottom padding keeps the last receipt clear of the floating buttons. */}
 			<div className="flex flex-1 flex-col gap-6 pb-48 md:pb-28">
-				<div className="space-y-4 rounded-xl border bg-card p-6 shadow-sm">
-					<Heading
-						title="Receipts"
-						description="Scan or upload a receipt and we'll read the items and sort them into your categories. You review everything before it's added."
-					/>
-					{importing && (
-						<p className="flex items-center gap-2 text-sm text-muted-foreground">
-							<Spinner /> Uploading the receipt you shared…
-						</p>
-					)}
+				<div className="relative overflow-hidden rounded-2xl border bg-card px-4 py-4 shadow-xs sm:px-5">
+					<div className="pointer-events-none absolute inset-0 bg-linear-to-br from-primary/8 via-transparent to-transparent" />
+
+					<div className="relative space-y-4">
+						<Heading
+							title="Receipts"
+							description="Scan or upload a receipt and we'll read the items and sort them into your categories. You review everything before it's added."
+						/>
+						{importing && (
+							<p className="flex items-center gap-2 text-sm text-muted-foreground">
+								<Spinner /> Uploading the receipt you shared…
+							</p>
+						)}
+					</div>
 				</div>
 
 				{loading ? (

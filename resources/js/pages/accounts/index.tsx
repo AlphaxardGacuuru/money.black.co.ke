@@ -6,6 +6,7 @@ import LucideIconDisplay from "@/components/lucide-icon-display"
 import { useInitials } from "@/hooks/use-initials"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { useFabPosition } from "@/hooks/use-fab-position"
 import {
 	Card,
 	CardContent,
@@ -21,6 +22,7 @@ export default function AccountsIndex() {
 	const props = useApp()
 
 	const getInitials = useInitials()
+	const fabPosition = useFabPosition()
 
 	useEffect(() => {
 		props.get("accounts", props.setAccounts, "accounts")
@@ -30,25 +32,38 @@ export default function AccountsIndex() {
 		<>
 			<Head title="Accounts" />
 
-			<div className="flex flex-1 flex-col gap-2">
-				{/* Page Header Section Start */}
-				<div className="flex flex-col rounded-xl border bg-card p-6 shadow-sm sm:flex-row sm:items-start sm:justify-between">
-					<Heading
-						title="Accounts"
-						description="Track the wallets, banks, and cash accounts that power the rest of your bookkeeping."
-					/>
+			{/* Floating Section Start */}
+			<div {...fabPosition}>
+				<Button
+					asChild
+					className="h-14 min-w-14 rounded-full px-4 shadow-lg sm:px-6">
+					<Link
+						href="/accounts/create"
+						variant="unstyled"
+						aria-label="Create account"
+						title="Create account">
+						<Plus
+							className="size-8"
+							strokeWidth={1.3}
+						/>
+						<span className="hidden sm:inline">Create account</span>
+					</Link>
+				</Button>
+			</div>
+			{/* Floating Section End */}
 
-					<Button
-						asChild
-						className="sm:self-start">
-						<Link
-							href="/accounts/create"
-							variant="unstyled"
-							size="none">
-							<Plus />
-							Create account
-						</Link>
-					</Button>
+			{/* Bottom padding keeps the last account clear of the floating button. */}
+			<div className="flex flex-1 flex-col gap-2 pb-32 md:pb-24">
+				{/* Page Header Section Start */}
+				<div className="relative overflow-hidden rounded-2xl border bg-card px-4 py-4 shadow-xs sm:px-5">
+					<div className="pointer-events-none absolute inset-0 bg-linear-to-br from-primary/8 via-transparent to-transparent" />
+
+					<div className="relative">
+						<Heading
+							title="Accounts"
+							description="Track the wallets, banks, and cash accounts that power the rest of your bookkeeping."
+						/>
+					</div>
 				</div>
 				{/* Page Header Section End */}
 

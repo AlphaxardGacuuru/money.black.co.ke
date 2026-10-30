@@ -64,11 +64,13 @@ export default function TransactionFilterSheet({
 			onOpenChange={handleOpenChange}>
 			<SheetTrigger asChild>
 				<Button
-					variant="secondary"
-					className="h-14 w-14 rounded-full px-5 shadow-lg">
-					<FilterIcon className="size-4" />
+					aria-label="Filters"
+					title="Filters"
+					className="h-14 min-w-14 rounded-full px-4 shadow-lg sm:px-5">
+					<FilterIcon className="size-5" />
+					<span className="hidden sm:inline">Filters</span>
 					{activeCount > 0 && (
-						<span className="flex size-5 items-center justify-center rounded-full bg-primary p-2 text-[10px] font-semibold text-primary-foreground">
+						<span className="flex size-5 items-center justify-center rounded-full bg-primary-foreground p-2 text-[10px] font-semibold text-primary">
 							{activeCount}
 						</span>
 					)}

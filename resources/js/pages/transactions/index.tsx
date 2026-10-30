@@ -16,7 +16,8 @@ import { useApp } from "@/contexts/AppContext"
 import Axios from "@/lib/axios"
 import DateFilterSheet from "@/components/categories/date-filter-sheet"
 import SwipeableDateView from "@/components/swipeable-date-view"
-import { useSidebar } from "@/components/ui/sidebar"
+import { useFabPosition } from "@/hooks/use-fab-position"
+import { cn } from "@/lib/utils"
 import TransactionFilterSheet from "@/components/transactions/transaction-filter-sheet"
 import type { TransactionFilters } from "@/components/transactions/transaction-filter-sheet"
 
@@ -62,12 +63,7 @@ export default function TransactionsIndex() {
 	const props = useApp()
 
 	const getInitials = useInitials()
-	const { state: sidebarState } = useSidebar()
-
-	const desktopFabOffset =
-		sidebarState === "collapsed"
-			? "calc(var(--sidebar-width-icon) + 2rem)"
-			: "calc(var(--sidebar-width) + 2rem)"
+	const fabPosition = useFabPosition()
 
 	const [isSheetOpen, setIsSheetOpen] = useState(false)
 	const [selectedTransaction, setSelectedTransaction] =
@@ -355,36 +351,29 @@ export default function TransactionsIndex() {
 
 					{/* Floating Section Start */}
 					<div
-						className="fixed right-4 bottom-26 z-30 md:right-(--fab-right-offset) md:bottom-6"
-						style={
-							{
-								"--fab-right-offset": desktopFabOffset,
-							} as React.CSSProperties
-						}>
+						className={cn(fabPosition.className, "flex flex-col items-end gap-2")}
+						style={fabPosition.style}>
 						{/* Filters Button Start */}
-						<div className="mb-2">
-							<TransactionFilterSheet
-								filters={txFilters}
-								accounts={props.accounts}
-								categories={props.categories}
-								onApply={setTxFilters}
+						<TransactionFilterSheet
+							filters={txFilters}
+							accounts={props.accounts}
+							categories={props.categories}
+							onApply={setTxFilters}
+						/>
+						{/* Filters Button End */}
+						{/* Add Transaction Button Start */}
+						<Button
+							type="button"
+							onClick={handleCreateTransaction}
+							aria-label="Add transaction"
+							title="Add transaction"
+							className="h-14 min-w-14 rounded-full px-4 shadow-lg sm:px-6">
+							<Plus
+								className="size-8"
+								strokeWidth={1.3}
 							/>
-						</div>
-						<div>
-							{/* Filters Button End */}
-							{/* Add Transaction Button Start */}
-							<Button
-								type="button"
-								variant="secondary"
-								onClick={handleCreateTransaction}
-								className="h-14 w-14 rounded-full px-5 shadow-lg">
-								<Plus
-									className="size-8"
-									strokeWidth={1.3}
-								/>
-								<span className="hidden sm:inline">Add transaction</span>
-							</Button>
-						</div>
+							<span className="hidden sm:inline">Add transaction</span>
+						</Button>
 						{/* Add Transaction Button End */}
 					</div>
 					{/* Floating Section End */}

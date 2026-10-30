@@ -69,6 +69,8 @@
     --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
     --color-sidebar-accent: var(--sidebar-accent);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-hover: var(--sidebar-hover);
+    --color-sidebar-hover-foreground: var(--sidebar-hover-foreground);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
 }
@@ -109,6 +111,8 @@
     --sidebar-primary-foreground: #F9FAFB;
     --sidebar-accent: color-mix(in oklab, var(--brand-lime) 32%, white 68%);
     --sidebar-accent-foreground: #111827;
+    --sidebar-hover: color-mix(in oklab, var(--brand-indigo) 9%, white 91%);
+    --sidebar-hover-foreground: var(--brand-indigo);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: var(--brand-blend);
 }
@@ -148,6 +152,8 @@
     --sidebar-primary-foreground: #111827;
     --sidebar-accent: color-mix(in oklab, var(--brand-indigo) 78%, white 22%);
     --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-hover: color-mix(in oklab, var(--brand-indigo) 40%, oklch(0.205 0 0) 60%);
+    --sidebar-hover-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(0.269 0 0);
     --sidebar-ring: var(--brand-blend);
 }
