@@ -65,7 +65,7 @@ class CategorySuggestionService extends Service
      */
     public function generateMonthlySuggestions(User $user, string $period): int
     {
-        $month = CarbonImmutable::createFromFormat('Y-m', $period)->startOfMonth();
+        $month = CarbonImmutable::createFromFormat('!Y-m', $period)->startOfMonth();
 
         $transactions = Transaction::query()
             ->where('user_id', $user->id)

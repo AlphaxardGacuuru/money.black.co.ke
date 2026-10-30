@@ -112,6 +112,20 @@ class CategorySuggestionTest extends TestCase
         CategoryAdvisor::assertNeverPrompted();
     }
 
+    public function test_the_month_is_read_correctly_on_days_it_does_not_have(): void
+    {
+        $this->travelTo('2026-10-31 09:00');
+
+        $user = User::factory()->create();
+        $this->createTransactions($user, 5, '2026-09-10');
+
+        CategoryAdvisor::fake([['suggestions' => []]]);
+
+        app(CategorySuggestionService::class)->generateMonthlySuggestions($user, '2026-09');
+
+        CategoryAdvisor::assertPrompted(fn ($prompt): bool => str_contains($prompt->prompt, 'Month: September 2026'));
+    }
+
     public function test_monthly_review_saves_only_new_valid_suggestions(): void
     {
         $user = User::factory()->create();

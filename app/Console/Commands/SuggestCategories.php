@@ -17,7 +17,7 @@ class SuggestCategories extends Command
     public function handle(): int
     {
         $month = $this->option('month')
-            ? CarbonImmutable::createFromFormat('Y-m', $this->option('month'))->startOfMonth()
+            ? CarbonImmutable::createFromFormat('!Y-m', $this->option('month'))->startOfMonth()
             : CarbonImmutable::now()->subMonthNoOverflow()->startOfMonth();
 
         $period = $month->format('Y-m');
