@@ -3,6 +3,7 @@
 namespace App\Http\Services;
 
 use App\Ai\Agents\CategoryAdvisor;
+use App\Models\AiUsage;
 use App\Models\Category;
 use App\Models\CategorySuggestion;
 use App\Models\Transaction;
@@ -27,6 +28,8 @@ class CategorySuggestionService extends Service
      * How many transaction notes are sent to the AI, newest first.
      */
     public const MAX_NOTES = 60;
+
+    public function __construct(protected AiUsageService $aiUsageService) {}
 
     /**
      * Create the chosen starter categories, skipping any the user already has.
@@ -82,6 +85,8 @@ class CategorySuggestionService extends Service
 
         $response = (new CategoryAdvisor($categories->pluck('id')->map(fn ($id): string => (string) $id)->all()))
             ->prompt($this->buildReviewPrompt($month, $categories, $transactions));
+
+        $this->aiUsageService->record($user->id, AiUsage::FEATURE_CATEGORY_REVIEW, $response);
 
         $suggestions = $this->filterSuggestions($user, $categories, $response['suggestions'] ?? []);
 

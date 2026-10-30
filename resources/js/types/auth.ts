@@ -13,6 +13,7 @@ export type User = {
 	home_page?: string
 	can_view_telescope?: boolean
 	can_view_horizon?: boolean
+	can_view_ai_usage?: boolean
 	settings?: UserSettings | null
 	created_at: string
 	updated_at: string

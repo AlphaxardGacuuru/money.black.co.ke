@@ -5,6 +5,7 @@ namespace App\Http\Services;
 use App\Ai\Agents\ReceiptScanner;
 use App\Jobs\ProcessReceipt;
 use App\Models\Account;
+use App\Models\AiUsage;
 use App\Models\Category;
 use App\Models\Receipt;
 use App\Models\User;
@@ -21,7 +22,7 @@ use Throwable;
 
 class ReceiptService extends Service
 {
-    public function __construct(protected TransactionService $transactionService) {}
+    public function __construct(protected TransactionService $transactionService, protected AiUsageService $aiUsageService) {}
 
     /**
      * Store an uploaded receipt and queue it for scanning.
@@ -97,9 +98,8 @@ class ReceiptService extends Service
         $receipt->moveToStep(Receipt::STEP_READING);
 
         try {
-            $extraction = (new ReceiptScanner($categories))
-                ->prompt('Extract the details of this receipt.', attachments: [$attachment])
-                ->toArray();
+            $response = (new ReceiptScanner($categories))
+                ->prompt('Extract the details of this receipt.', attachments: [$attachment]);
         } catch (Throwable $exception) {
             Log::error('Receipt scan: the AI request failed.', [
                 ...$this->logContext($receipt),
@@ -108,6 +108,10 @@ class ReceiptService extends Service
 
             throw $exception;
         }
+
+        $this->aiUsageService->record($receipt->user_id, AiUsage::FEATURE_RECEIPT_SCAN, $response, $receipt, $attempt);
+
+        $extraction = $response->toArray();
 
         $receipt->moveToStep(Receipt::STEP_SORTING);
 

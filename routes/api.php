@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AiUsageController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CategorySuggestionController;
 use App\Http\Controllers\OnboardingController;
@@ -44,6 +45,10 @@ Route::middleware(['auth:sanctum'])->group(function() {
 
     Route::post('push-subscriptions', [PushSubscriptionController::class, 'store']);
     Route::delete('push-subscriptions', [PushSubscriptionController::class, 'destroy']);
+
+    Route::get('admin/ai-usage', [AiUsageController::class, 'index'])
+        ->middleware('can:viewAiUsage')
+        ->name('api.admin.ai-usage.index');
 
     Route::post('onboarding/permissions', [OnboardingController::class, 'completePermissions']);
 });

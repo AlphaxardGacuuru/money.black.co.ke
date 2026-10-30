@@ -4,8 +4,8 @@ namespace App\Providers;
 
 use App\Models\User;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -30,12 +30,13 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * The Pulse dashboard (/pulse) is for the same people as Telescope, so
+     * The Pulse dashboard (/pulse) and the AI usage page are for the same people as Telescope, so
      * there's one admin list to maintain (see TelescopeServiceProvider).
      */
     protected function configurePulse(): void
     {
         Gate::define('viewPulse', fn (?User $user = null): bool => Gate::forUser($user)->allows('viewTelescope'));
+        Gate::define('viewAiUsage', fn (?User $user = null): bool => Gate::forUser($user)->allows('viewTelescope'));
     }
 
     /**
@@ -49,7 +50,8 @@ class AppServiceProvider extends ServiceProvider
             app()->isProduction(),
         );
 
-        Password::defaults(fn (): ?Password => app()->isProduction()
+        Password::defaults(
+            fn (): ?Password => app()->isProduction()
             ? Password::min(12)
                 ->mixedCase()
                 ->letters()

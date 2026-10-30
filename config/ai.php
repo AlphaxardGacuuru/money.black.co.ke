@@ -40,6 +40,25 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Pricing
+    |--------------------------------------------------------------------------
+    |
+    | US dollars per million tokens for each model, used to work out what every
+    | AI request cost. Check the provider's pricing page when prices change:
+    | costs already recorded keep the price they were charged at.
+    |
+    */
+
+    'pricing' => [
+        'gemini-3.1-flash-lite' => [
+            'input' => (float) env('AI_PRICE_GEMINI_FLASH_LITE_INPUT', 0.25),
+            'cached_input' => (float) env('AI_PRICE_GEMINI_FLASH_LITE_CACHED_INPUT', 0.025),
+            'output' => (float) env('AI_PRICE_GEMINI_FLASH_LITE_OUTPUT', 1.50),
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | AI Providers
     |--------------------------------------------------------------------------
     |
