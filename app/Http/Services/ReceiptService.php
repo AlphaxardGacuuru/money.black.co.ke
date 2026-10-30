@@ -10,7 +10,6 @@ use App\Models\Receipt;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -179,7 +178,7 @@ class ReceiptService extends Service
     }
 
     /**
-     * Save the reviewed line items and create one transaction per category.
+     * Save the reviewed line items and create one transaction per item.
      *
      * @param  array{account_id: string, merchant?: string|null, receipt_date: string, total: int, items: array<int, array{description: string, quantity?: float|int|null, amount: int, category_id: string}>}  $data
      *
@@ -218,28 +217,26 @@ class ReceiptService extends Service
                 ])->all()
             );
 
-            $itemsByCategory = $items->groupBy('category_id');
-
             $allocatedAmounts = $this->allocateTotal(
-                $itemsByCategory->map(fn (Collection $categoryItems): int => (int) $categoryItems->sum('amount'))->all(),
+                $items->map(fn (array $item): int => (int) $item['amount'])->all(),
                 (int) $data['total'],
             );
 
-            foreach ($allocatedAmounts as $categoryId => $amount) {
+            foreach ($allocatedAmounts as $index => $amount) {
                 if ($amount <= 0) {
                     continue;
                 }
 
                 $this->transactionService->createTransaction(
-                    $categories[$categoryId],
+                    $categories[$items[$index]['category_id']],
                     $account,
                     $amount,
-                    $this->transactionNotes($merchant, $itemsByCategory[$categoryId]),
+                    $this->transactionNotes($merchant, $items[$index]['description']),
                     $transactionDate,
                     $receipt->id,
                 );
 
-                // Reload so the next category in the loop sees the updated balance.
+                // Reload so the next item in the loop sees the updated balance.
                 $account->refresh();
             }
 
@@ -268,11 +265,11 @@ class ReceiptService extends Service
     }
 
     /**
-     * Split the receipt total across categories in proportion to their item subtotals,
+     * Split the receipt total across items in proportion to their amounts,
      * so tax, discounts and rounding are shared out and the amounts add up exactly.
      *
-     * @param  array<string, int>  $subtotals
-     * @return array<string, int>
+     * @param  array<array-key, int>  $subtotals
+     * @return array<array-key, int>
      */
     public function allocateTotal(array $subtotals, int $total): array
     {
@@ -285,20 +282,20 @@ class ReceiptService extends Service
         $allocated = [];
         $remainders = [];
 
-        foreach ($subtotals as $categoryId => $subtotal) {
+        foreach ($subtotals as $key => $subtotal) {
             $exact = $subtotal * $total / $itemsTotal;
-            $allocated[$categoryId] = (int) floor($exact);
-            $remainders[$categoryId] = $exact - floor($exact);
+            $allocated[$key] = (int) floor($exact);
+            $remainders[$key] = $exact - floor($exact);
         }
 
         arsort($remainders);
 
-        foreach (array_keys($remainders) as $categoryId) {
+        foreach (array_keys($remainders) as $key) {
             if (array_sum($allocated) >= $total) {
                 break;
             }
 
-            $allocated[$categoryId]++;
+            $allocated[$key]++;
         }
 
         return $allocated;
@@ -375,18 +372,8 @@ class ReceiptService extends Service
         return preg_match('/^[A-Z]{3}$/', $currency) ? $currency : null;
     }
 
-    /**
-     * @param  Collection<int, array{description: string}>  $items
-     */
-    private function transactionNotes(?string $merchant, Collection $items): string
+    private function transactionNotes(?string $merchant, string $description): string
     {
-        $descriptions = $items->pluck('description')->take(3)->implode(', ');
-        $remaining = $items->count() - 3;
-
-        if ($remaining > 0) {
-            $descriptions .= " +{$remaining} more";
-        }
-
-        return Str::limit($merchant ? "{$merchant}: {$descriptions}" : $descriptions, 250);
+        return Str::limit($merchant ? "{$merchant}: {$description}" : $description, 250);
     }
 }

@@ -47,6 +47,7 @@ class ReceiptResource extends JsonResource
                 'amount' => $transaction->amount,
                 'categoryId' => $transaction->category_id,
                 'categoryName' => $transaction->category?->name,
+                'notes' => $transaction->notes,
             ])),
         ];
     }

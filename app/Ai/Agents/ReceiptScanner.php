@@ -46,6 +46,10 @@ class ReceiptScanner implements Agent, HasStructuredOutput
         - tax and discount: the totals printed on the receipt, or null if none are shown.
         - items: one entry per purchased line. "amount" is the line total (quantity x unit price) as printed.
           Do not include subtotal, tax, discount, change, tendered cash, or payment lines as items.
+        - description: what a shopper would call the item, e.g. "Dorm 3-in-1" for "DORM.3IN1 IR18GX12".
+          Read the whole printed line to work out the item, then leave out product codes, SKUs, barcodes and
+          other internal codes that mean nothing to a shopper. Keep sizes and pack counts that are clear,
+          like 500ml, 2kg or x12. If you can't tell what part of the line is a code, keep the line as printed.
 
         Amounts are plain numbers without currency symbols or thousands separators.
 

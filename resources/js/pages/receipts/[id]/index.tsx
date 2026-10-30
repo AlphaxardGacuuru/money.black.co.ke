@@ -241,9 +241,14 @@ export default function ReceiptReviewPage() {
 									{receipt.transactions?.map((transaction) => (
 										<li
 											key={transaction.id}
-											className="flex justify-between p-3">
-											<span>{transaction.categoryName}</span>
-											<span className="font-medium">
+											className="flex items-center justify-between gap-3 p-3">
+											<div className="min-w-0">
+												<p className="truncate">{transaction.notes ?? transaction.categoryName}</p>
+												{transaction.notes && (
+													<p className="text-xs text-muted-foreground">{transaction.categoryName}</p>
+												)}
+											</div>
+											<span className="shrink-0 font-medium">
 												{formatAmount(transaction.amount, receipt.currency)}
 											</span>
 										</li>

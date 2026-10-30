@@ -93,6 +93,14 @@ class ReceiptControllerTest extends TestCase
         });
     }
 
+    public function test_the_scanner_is_told_to_drop_meaningless_item_codes(): void
+    {
+        $instructions = (string) (new ReceiptScanner)->instructions();
+
+        $this->assertStringContainsString('leave out product codes, SKUs, barcodes', $instructions);
+        $this->assertStringContainsString("If you can't tell what part of the line is a code, keep the line as printed.", $instructions);
+    }
+
     public function test_only_expense_categories_are_offered_to_the_scanner(): void
     {
         $user = User::factory()->create();
@@ -275,7 +283,7 @@ class ReceiptControllerTest extends TestCase
         $this->assertSame('image-bytes', $response->streamedContent());
     }
 
-    public function test_confirming_creates_one_transaction_per_category_and_shares_out_the_tax(): void
+    public function test_confirming_creates_one_transaction_per_item_and_shares_out_the_tax(): void
     {
         $user = User::factory()->create();
         $account = Account::factory()->for($user)->create(['balance' => 10000]);
@@ -297,15 +305,18 @@ class ReceiptControllerTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('data.status', Receipt::STATUS_CONFIRMED)
-            ->assertJsonPath('message', 'Added 2 transactions.');
+            ->assertJsonPath('message', 'Added 3 transactions.')
+            ->assertJsonCount(3, 'data.transactions');
 
-        $transactions = Transaction::query()->where('receipt_id', $receipt->id)->get()->keyBy('category_id');
+        $transactions = Transaction::query()->where('receipt_id', $receipt->id)->get()->keyBy('notes');
 
-        $this->assertCount(2, $transactions);
-        $this->assertSame(696, $transactions[$groceries->id]->amount, '600 of 1000 items + 60% of the 160 tax');
-        $this->assertSame(464, $transactions[$household->id]->amount, '400 of 1000 items + 40% of the 160 tax');
-        $this->assertSame('Naivas: Bread, Milk', $transactions[$groceries->id]->notes);
-        $this->assertSame('2026-10-20', $transactions[$groceries->id]->transaction_date->toDateString());
+        $this->assertCount(3, $transactions, 'Items in the same category still get their own transaction.');
+        $this->assertSame(348, $transactions['Naivas: Bread']->amount, '300 of 1000 items + 30% of the 160 tax');
+        $this->assertSame(348, $transactions['Naivas: Milk']->amount);
+        $this->assertSame(464, $transactions['Naivas: Omo']->amount, '400 of 1000 items + 40% of the 160 tax');
+        $this->assertSame($groceries->id, $transactions['Naivas: Milk']->category_id);
+        $this->assertSame($household->id, $transactions['Naivas: Omo']->category_id);
+        $this->assertSame('2026-10-20', $transactions['Naivas: Bread']->transaction_date->toDateString());
 
         $this->assertSame(10000 - 1160, $account->fresh()->balance);
         $this->assertSame(696, $groceries->fresh()->total);

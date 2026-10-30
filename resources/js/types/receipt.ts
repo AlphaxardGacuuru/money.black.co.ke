@@ -15,6 +15,7 @@ export type ReceiptTransaction = {
 	amount: number
 	categoryId: string
 	categoryName?: string | null
+	notes?: string | null
 }
 
 export type Receipt = {
