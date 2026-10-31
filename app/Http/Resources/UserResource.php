@@ -20,6 +20,7 @@ class UserResource extends JsonResource
             'home_page' => $this->homePage(),
             'can_view_telescope' => config('telescope.enabled') && Gate::forUser($this->resource)->allows('viewTelescope'),
             'can_view_horizon' => Gate::forUser($this->resource)->allows('viewHorizon'),
+            'can_view_pulse' => Gate::forUser($this->resource)->allows('viewPulse'),
             'can_view_ai_usage' => Gate::forUser($this->resource)->allows('viewAiUsage'),
         ];
     }

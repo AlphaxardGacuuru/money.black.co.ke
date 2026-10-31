@@ -7,7 +7,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * The sidebar's Admin menu shows Telescope/Horizon links based on these flags,
+ * The sidebar's Admin menu shows Telescope/Horizon/Pulse links based on these flags,
  * which come from the same gates that protect the dashboards.
  */
 class AdminDashboardLinksTest extends TestCase
@@ -23,7 +23,8 @@ class AdminDashboardLinksTest extends TestCase
         $this->actingAs($admin)->getJson(route('api.auth.show'))
             ->assertOk()
             ->assertJsonPath('data.can_view_telescope', true)
-            ->assertJsonPath('data.can_view_horizon', true);
+            ->assertJsonPath('data.can_view_horizon', true)
+            ->assertJsonPath('data.can_view_pulse', true);
     }
 
     public function test_other_users_see_neither_dashboard(): void
@@ -35,7 +36,8 @@ class AdminDashboardLinksTest extends TestCase
         $this->actingAs($user)->getJson(route('api.auth.show'))
             ->assertOk()
             ->assertJsonPath('data.can_view_telescope', false)
-            ->assertJsonPath('data.can_view_horizon', false);
+            ->assertJsonPath('data.can_view_horizon', false)
+            ->assertJsonPath('data.can_view_pulse', false);
     }
 
     public function test_the_telescope_link_is_hidden_when_telescope_is_disabled(): void

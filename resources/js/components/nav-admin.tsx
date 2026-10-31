@@ -1,4 +1,11 @@
-import { Activity, ChevronDown, Coins, Layers, ShieldCheck } from "lucide-react"
+import {
+	Activity,
+	ChevronDown,
+	Coins,
+	Gauge,
+	Layers,
+	ShieldCheck,
+} from "lucide-react"
 import {
 	Collapsible,
 	CollapsibleContent,
@@ -44,6 +51,12 @@ export function NavAdmin() {
 			title: "Horizon",
 			href: "/horizon",
 			icon: Layers,
+			internal: false,
+		},
+		auth?.can_view_pulse && {
+			title: "Pulse",
+			href: "/pulse",
+			icon: Gauge,
 			internal: false,
 		},
 	].filter(
