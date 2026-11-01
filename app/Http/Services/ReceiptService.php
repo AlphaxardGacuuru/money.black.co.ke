@@ -153,7 +153,7 @@ class ReceiptService extends Service
                 'status' => Receipt::STATUS_REVIEW,
                 'processing_step' => null,
                 'merchant' => filled($extraction['merchant'] ?? null) ? Str::limit(trim($extraction['merchant']), 250, '') : null,
-                'receipt_date' => $this->toReceiptDate($extraction['date'] ?? null),
+                'receipt_date' => $this->toReceiptDate($extraction['date'] ?? null, CarbonImmutable::parse($receipt->created_at)),
                 'currency' => $this->toCurrency($extraction['currency'] ?? null) ?? $receipt->currency,
                 'total' => $total,
                 'tax' => $this->toWholeAmount($extraction['tax'] ?? null),
@@ -354,19 +354,41 @@ class ReceiptService extends Service
         return (int) round(abs((float) $value));
     }
 
-    private function toReceiptDate(mixed $value): ?string
+    /**
+     * Kenyan receipts print dates day first (1/11/26 is 1 November), but the
+     * scanner sometimes reads them month first. When the date as read is
+     * in the future or over a month before the upload, and swapping the day
+     * and month lands within the month before the upload, the swap is used.
+     */
+    private function toReceiptDate(mixed $value, ?CarbonImmutable $scannedAt = null): ?string
     {
-        if (! is_string($value) || ! preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+        if (! is_string($value) || ! preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $value, $parts)) {
             return null;
         }
 
-        try {
-            $date = CarbonImmutable::createFromFormat('Y-m-d', $value)->startOfDay();
-        } catch (Throwable) {
+        [, $year, $month, $day] = array_map('intval', $parts);
+
+        if (! checkdate($month, $day, $year)) {
             return null;
         }
 
-        return $date->isAfter(now()->endOfDay()) ? null : $date->toDateString();
+        $scannedAt = ($scannedAt ?? CarbonImmutable::now())->startOfDay();
+        $date = CarbonImmutable::create($year, $month, $day);
+
+        if (! $this->isRecent($date, $scannedAt) && $day <= 12 && $day !== $month) {
+            $swapped = CarbonImmutable::create($year, $day, $month);
+
+            if ($this->isRecent($swapped, $scannedAt)) {
+                $date = $swapped;
+            }
+        }
+
+        return $date->isAfter($scannedAt) ? null : $date->toDateString();
+    }
+
+    private function isRecent(CarbonImmutable $date, CarbonImmutable $scannedAt): bool
+    {
+        return ! $date->isAfter($scannedAt) && ! $date->isBefore($scannedAt->subMonth());
     }
 
     private function toCurrency(mixed $value): ?string
