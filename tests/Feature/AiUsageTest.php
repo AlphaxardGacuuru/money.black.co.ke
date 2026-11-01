@@ -4,15 +4,15 @@ namespace Tests\Feature;
 
 use App\Ai\Agents\CategoryAdvisor;
 use App\Ai\Agents\ReceiptScanner;
-use App\Http\Services\AiUsageService;
-use App\Http\Services\CategorySuggestionService;
-use App\Http\Services\ReceiptService;
 use App\Models\Account;
 use App\Models\AiUsage;
 use App\Models\Category;
 use App\Models\Receipt;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Services\AiUsageService;
+use App\Services\CategorySuggestionService;
+use App\Services\ReceiptService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;

@@ -41,7 +41,7 @@ class CategorySuggestionService
     {
         $catalog = CategoryCatalog::starterByName();
 
-        return DB::transaction(function () use ($user, $names, $catalog) {
+        return DB::transaction(function() use ($user, $names, $catalog) {
             $existing = $this->normalizedCategoryNames($user);
             $position = Category::query()->where('user_id', $user->id)->count();
             $created = collect();
@@ -88,7 +88,7 @@ class CategorySuggestionService
 
         $categoryIds = $categories
             ->pluck('id')
-            ->map(fn($id): string => (string) $id)
+            ->map(fn ($id): string => (string) $id)
             ->all();
 
         $reviewPrompt = $this->buildReviewPrompt($month, $categories, $transactions);
@@ -103,13 +103,13 @@ class CategorySuggestionService
             $response['suggestions'] ?? []
         );
 
-        DB::transaction(function () use ($user, $suggestions, $period) {
+        DB::transaction(function() use ($user, $suggestions, $period) {
             CategorySuggestion::query()
                 ->where('user_id', $user->id)
                 ->where('status', CategorySuggestion::STATUS_PENDING)
                 ->delete();
 
-            $suggestions->each(fn(array $suggestion) => CategorySuggestion::create([
+            $suggestions->each(fn (array $suggestion) => CategorySuggestion::create([
                 ...$suggestion,
                 'user_id' => $user->id,
                 'period' => $period,
@@ -117,7 +117,14 @@ class CategorySuggestionService
         });
 
         if ($suggestions->isNotEmpty()) {
-            $user->notify(new CategorySuggestionsReady($suggestions->count()));
+            $categoryNames = $categories->pluck('name', 'id');
+
+            $user->notify(new CategorySuggestionsReady(
+                $suggestions->map(fn (array $suggestion): string => $suggestion['action'] === CategorySuggestion::ACTION_RENAME
+                    ? __('Rename ":current" to ":name"', ['current' => $categoryNames->get($suggestion['category_id']), 'name' => $suggestion['name']])
+                    : __('Add a ":name" category', ['name' => $suggestion['name']]))->all(),
+                $period,
+            ));
         }
 
         return $suggestions->count();
@@ -130,7 +137,7 @@ class CategorySuggestionService
      */
     public function accept(CategorySuggestion $suggestion): ?Category
     {
-        return DB::transaction(function () use ($suggestion) {
+        return DB::transaction(function() use ($suggestion) {
             $suggestion = CategorySuggestion::query()->lockForUpdate()->findOrFail($suggestion->id);
 
             if (! $suggestion->isPending()) {
@@ -177,7 +184,7 @@ class CategorySuggestionService
     {
         $byCategory = $transactions->groupBy('category_id');
 
-        $categorySummary = $categories->map(fn(Category $category): array => [
+        $categorySummary = $categories->map(fn (Category $category): array => [
             'id' => (string) $category->id,
             'name' => $category->name,
             'type' => $category->type,
@@ -186,10 +193,10 @@ class CategorySuggestionService
         ])->values();
 
         $notes = $transactions
-            ->filter(fn(Transaction $transaction): bool => filled($transaction->notes))
-            ->unique(fn(Transaction $transaction): string => Str::lower(trim($transaction->notes)))
+            ->filter(fn (Transaction $transaction): bool => filled($transaction->notes))
+            ->unique(fn (Transaction $transaction): string => Str::lower(trim($transaction->notes)))
             ->take(self::MAX_NOTES)
-            ->map(fn(Transaction $transaction): array => [
+            ->map(fn (Transaction $transaction): array => [
                 'note' => Str::limit(trim($transaction->notes), 80),
                 'category' => $transaction->category?->name,
                 'amount' => (int) $transaction->amount,
@@ -214,16 +221,16 @@ class CategorySuggestionService
         array $rawSuggestions
     ): Collection {
         $existingNames = $categories
-            ->map(fn(Category $category): string => $this->normalize($category->name))->all();
+            ->map(fn (Category $category): string => $this->normalize($category->name))->all();
 
         $categoriesById = $categories
-            ->keyBy(fn(Category $category): string => (string) $category->id);
+            ->keyBy(fn (Category $category): string => (string) $category->id);
 
         $dismissed = CategorySuggestion::query()
             ->where('user_id', $user->id)
             ->where('status', CategorySuggestion::STATUS_DISMISSED)
             ->get(['action', 'category_id', 'name'])
-            ->map(fn(CategorySuggestion $suggestion): string => $this->suggestionKey(
+            ->map(fn (CategorySuggestion $suggestion): string => $this->suggestionKey(
                 $suggestion->action,
                 $suggestion->category_id,
                 $suggestion->name
@@ -233,7 +240,7 @@ class CategorySuggestionService
         $seen = [];
 
         return collect($rawSuggestions)
-            ->map(function (array $raw) use ($categoriesById): ?array {
+            ->map(function(array $raw) use ($categoriesById): ?array {
                 $action = $raw['action'] ?? null;
                 $name = Str::title(Str::limit(trim((string) ($raw['name'] ?? '')), 50, ''));
 
@@ -262,7 +269,7 @@ class CategorySuggestionService
                 ];
             })
             ->filter()
-            ->filter(function (array $suggestion) use ($existingNames, $dismissed, &$seen): bool {
+            ->filter(function(array $suggestion) use ($existingNames, $dismissed, &$seen): bool {
                 $key = $this->suggestionKey($suggestion['action'], $suggestion['category_id'], $suggestion['name']);
 
                 if (in_array($this->normalize($suggestion['name']), $existingNames, true) || in_array($key, $dismissed, true) || isset($seen[$key])) {
@@ -304,7 +311,7 @@ class CategorySuggestionService
         return Category::query()
             ->where('user_id', $user->id)
             ->pluck('name')
-            ->map(fn(string $name): string => $this->normalize($name))
+            ->map(fn (string $name): string => $this->normalize($name))
             ->all();
     }
 

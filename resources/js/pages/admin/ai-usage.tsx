@@ -54,7 +54,7 @@ function monthLabel(month: string): string {
 function formatCost(costMicros: number): string {
 	const dollars = costMicros / 1_000_000
 
-	return `$${dollars.toFixed(dollars > 0 && dollars < 1 ? 4 : 2)}`
+	return `$${dollars.toLocaleString("en-KE", { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`
 }
 
 const formatNumber = (value: number) => value.toLocaleString("en-KE")

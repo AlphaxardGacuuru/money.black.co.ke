@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use App\Http\Services\ReceiptService;
 use App\Models\Account;
 use App\Models\Category;
 use App\Models\Receipt;
 use App\Models\User;
+use App\Services\ReceiptService;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;

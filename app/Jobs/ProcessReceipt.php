@@ -2,8 +2,8 @@
 
 namespace App\Jobs;
 
-use App\Http\Services\ReceiptService;
 use App\Models\Receipt;
+use App\Services\ReceiptService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Throwable;

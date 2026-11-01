@@ -30,7 +30,8 @@ const emptyItem = (): ReceiptItem => ({
 export default function ReceiptReviewForm({ receipt, accounts, categories, onConfirmed }: Props) {
 	const [merchant, setMerchant] = useState(receipt.merchant ?? "")
 	const [receiptDate, setReceiptDate] = useState(
-		receipt.receiptDate ?? new Date().toISOString().slice(0, 10)
+		// No date printed: fall back to the day it was scanned (local time), not the day it's reviewed.
+		receipt.receiptDate ?? new Date(receipt.createdAt).toLocaleDateString("en-CA")
 	)
 	const [accountId, setAccountId] = useState(
 		receipt.accountId ?? String(accounts.find((account) => account.isDefault)?.id ?? accounts[0]?.id ?? "")

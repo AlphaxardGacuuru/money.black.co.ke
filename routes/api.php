@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AiUsageController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CategorySuggestionController;
+use App\Http\Controllers\MonthlySummaryController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\OneMoneyImportController;
 use App\Http\Controllers\OverviewController;
@@ -28,6 +29,9 @@ Route::middleware(['auth:sanctum'])->group(function() {
     Route::post('category-suggestions/starter', [CategorySuggestionController::class, 'storeStarter'])->name('api.category-suggestions.starter');
     Route::post('category-suggestions/{suggestion}/accept', [CategorySuggestionController::class, 'accept'])->name('api.category-suggestions.accept');
     Route::post('category-suggestions/{suggestion}/dismiss', [CategorySuggestionController::class, 'dismiss'])->name('api.category-suggestions.dismiss');
+    Route::get('monthly-summaries/{period}', [MonthlySummaryController::class, 'show'])
+        ->where('period', '\d{4}-\d{2}')
+        ->name('api.monthly-summaries.show');
     Route::post('imports/one-money', [OneMoneyImportController::class, 'store'])
         ->name('imports.one-money.store');
 

@@ -3,10 +3,10 @@
 namespace Tests\Feature;
 
 use App\Ai\Agents\ReceiptScanner;
-use App\Http\Services\ReceiptService;
 use App\Jobs\ProcessReceipt;
 use App\Models\Receipt;
 use App\Models\User;
+use App\Services\ReceiptService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;

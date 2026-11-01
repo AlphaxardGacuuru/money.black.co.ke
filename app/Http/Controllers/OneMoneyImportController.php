@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Services\OneMoneyImportService;
+use App\Services\OneMoneyImportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

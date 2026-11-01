@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import Heading from "@/components/heading"
 import DateFilterSheet from "@/components/categories/date-filter-sheet"
 import LucideIconDisplay from "@/components/lucide-icon-display"
+import MonthlySummaryCard from "@/components/overview/monthly-summary-card"
 import SwipeableDateView from "@/components/swipeable-date-view"
 import type { Category } from "@/types/category"
 import type { OverviewTotals } from "@/types/overview"
@@ -48,6 +49,16 @@ export default function OverviewIndex() {
 	>([])
 	const [isTransactionsSheetOpen, setIsTransactionsSheetOpen] = useState(false)
 	const [isTransactionsLoading, setIsTransactionsLoading] = useState(false)
+
+	// Links from the monthly summary notification open on that month: /overview?month=2026-10
+	useEffect(() => {
+		const month = new URLSearchParams(window.location.search).get("month")
+
+		if (month && /^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+			props.setDateFilters({ filter: "month", date: `${month}-01` })
+			window.history.replaceState(window.history.state, "", window.location.pathname)
+		}
+	}, [])
 
 	useEffect(() => {
 		const query = buildFilterQuery(props.dateFilters)
@@ -166,6 +177,10 @@ export default function OverviewIndex() {
 					{/* Overview Header End */}
 
 					<DateFilterSheet />
+
+					{props.dateFilters.filter === "month" && props.dateFilters.date && (
+						<MonthlySummaryCard period={props.dateFilters.date.slice(0, 7)} />
+					)}
 
 					{/* Summary Cards Start */}
 					<div className="mt-4 grid grid-cols-3 gap-3">

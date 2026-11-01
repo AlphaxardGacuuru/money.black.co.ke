@@ -2,8 +2,8 @@
 
 namespace App\Jobs;
 
-use App\Http\Services\CategorySuggestionService;
 use App\Models\User;
+use App\Services\CategorySuggestionService;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;

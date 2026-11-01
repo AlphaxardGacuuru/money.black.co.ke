@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ConfirmReceiptRequest;
 use App\Http\Resources\ReceiptResource;
-use App\Http\Services\ReceiptService;
 use App\Models\Receipt;
+use App\Services\ReceiptService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;

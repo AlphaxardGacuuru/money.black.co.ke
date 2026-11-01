@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Ai\Agents\ReceiptScanner;
-use App\Http\Services\ReceiptService;
 use App\Jobs\ProcessReceipt;
 use App\Models\Account;
 use App\Models\Category;
@@ -11,6 +10,7 @@ use App\Models\Receipt;
 use App\Models\ReceiptItem;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Services\ReceiptService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Queue;
@@ -324,6 +324,29 @@ class ReceiptControllerTest extends TestCase
 
         $this->assertSame(Receipt::STATUS_CONFIRMED, $receipt->fresh()->status);
         $this->assertCount(3, $receipt->fresh()->items);
+    }
+
+    public function test_transactions_use_the_scan_time_not_the_review_time(): void
+    {
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create();
+        $category = Category::factory()->for($user)->expense()->create();
+
+        $this->travelTo('2026-10-20 08:15:00');
+        $receipt = Receipt::factory()->for($user)->review()->create(['receipt_date' => '2026-10-20']);
+
+        $this->travelTo('2026-10-23 21:40:00');
+
+        $this->actingAs($user)->postJson(route('api.receipts.confirm', $receipt), [
+            'account_id' => $account->id,
+            'receipt_date' => '2026-10-20',
+            'total' => 250,
+            'items' => [['description' => 'Lunch', 'amount' => 250, 'category_id' => $category->id]],
+        ])->assertOk();
+
+        $transaction = Transaction::query()->where('receipt_id', $receipt->id)->sole();
+
+        $this->assertSame('2026-10-20 08:15:00', $transaction->transaction_date->format('Y-m-d H:i:s'));
     }
 
     public function test_a_failed_receipt_can_be_entered_manually_and_confirmed(): void

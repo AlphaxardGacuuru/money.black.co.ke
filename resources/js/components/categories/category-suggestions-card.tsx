@@ -1,5 +1,5 @@
 import { Lightbulb, X } from "lucide-react"
-import { useEffect, useState } from "react"
+import { type ReactNode, useEffect, useState } from "react"
 import LucideIconDisplay from "@/components/lucide-icon-display"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
@@ -10,23 +10,31 @@ import type { CategorySuggestion } from "@/types/category-suggestion"
 
 type Props = {
 	onChanged: () => void
+	/** Shown when there are no pending suggestions. Without it, the card hides itself. */
+	emptyState?: ReactNode
 }
 
 /**
  * The monthly category ideas. Nothing changes until the user accepts one.
  */
-export default function CategorySuggestionsCard({ onChanged }: Props) {
+export default function CategorySuggestionsCard({
+	onChanged,
+	emptyState,
+}: Props) {
 	const [suggestions, setSuggestions] = useState<CategorySuggestion[]>([])
 	const [busyId, setBusyId] = useState<string | null>(null)
+	const [loaded, setLoaded] = useState(false)
 
 	useEffect(() => {
-		Axios.get<{ suggestions: CategorySuggestion[] }>(index().url).then((response) =>
-			setSuggestions(response.data.suggestions)
-		)
+		Axios.get<{ suggestions: CategorySuggestion[] }>(index().url)
+			.then((response) => setSuggestions(response.data.suggestions))
+			.finally(() => setLoaded(true))
 	}, [])
 
 	function remove(id: string) {
-		setSuggestions((current) => current.filter((suggestion) => suggestion.id !== id))
+		setSuggestions((current) =>
+			current.filter((suggestion) => suggestion.id !== id)
+		)
 	}
 
 	function handleAccept(suggestion: CategorySuggestion) {
@@ -40,8 +48,11 @@ export default function CategorySuggestionsCard({ onChanged }: Props) {
 				onChanged()
 			})
 			.catch((error: unknown) => {
-				const message = (error as { response?: { data?: { errors?: { suggestion?: string[] } } } }).response
-					?.data?.errors?.suggestion?.[0]
+				const message = (
+					error as {
+						response?: { data?: { errors?: { suggestion?: string[] } } }
+					}
+				).response?.data?.errors?.suggestion?.[0]
 
 				toast.error(message ?? "Couldn't apply that suggestion.")
 
@@ -56,11 +67,13 @@ export default function CategorySuggestionsCard({ onChanged }: Props) {
 		remove(suggestion.id)
 		const { url, method } = dismiss(suggestion.id)
 
-		Axios.request({ url, method }).catch(() => setSuggestions((current) => [suggestion, ...current]))
+		Axios.request({ url, method }).catch(() =>
+			setSuggestions((current) => [suggestion, ...current])
+		)
 	}
 
 	if (suggestions.length === 0) {
-		return null
+		return loaded && emptyState ? emptyState : null
 	}
 
 	return (
@@ -69,7 +82,9 @@ export default function CategorySuggestionsCard({ onChanged }: Props) {
 			className="space-y-3 rounded-2xl border bg-card p-4">
 			<div className="flex items-center gap-2">
 				<Lightbulb className="size-4 text-amber-500" />
-				<h2 className="text-sm font-medium">Ideas from last month's spending</h2>
+				<h2 className="text-sm font-medium">
+					Ideas from last month's spending
+				</h2>
 			</div>
 
 			<ul className="space-y-2">
@@ -92,7 +107,11 @@ export default function CategorySuggestionsCard({ onChanged }: Props) {
 									? `Rename "${suggestion.currentName}" to "${suggestion.name}"`
 									: `Add a "${suggestion.name}" category`}
 							</p>
-							{suggestion.reason && <p className="text-xs text-muted-foreground">{suggestion.reason}</p>}
+							{suggestion.reason && (
+								<p className="text-xs text-muted-foreground">
+									{suggestion.reason}
+								</p>
+							)}
 						</div>
 
 						<div className="flex shrink-0 items-center gap-1">

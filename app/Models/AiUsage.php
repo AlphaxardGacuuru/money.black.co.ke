@@ -29,6 +29,11 @@ class AiUsage extends Model
      */
     public const FEATURE_CATEGORY_REVIEW = 'category_review';
 
+    /**
+     * The AI-written summary of a month's spending on the Overview page.
+     */
+    public const FEATURE_MONTHLY_SUMMARY = 'monthly_summary';
+
     protected $fillable = [
         'user_id',
         'subject_type',

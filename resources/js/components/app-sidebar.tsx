@@ -4,6 +4,7 @@ import {
 	Calculator,
 	ChartColumnIncreasing,
 	FileSpreadsheet,
+	Lightbulb,
 	ReceiptText,
 	Tags,
 	Wallet,
@@ -49,7 +50,16 @@ export const mainNavItems: NavItem[] = [
 	{
 		title: "Overview",
 		href: "/overview",
-		icon: ChartColumnIncreasing, 
+		icon: ChartColumnIncreasing,
+	},
+]
+
+/** Sidebar only: the bottom nav on phones has room for just the main items. */
+const sidebarOnlyNavItems: NavItem[] = [
+	{
+		title: "Category ideas",
+		href: "/category-suggestions",
+		icon: Lightbulb,
 	},
 ]
 
@@ -73,7 +83,7 @@ export function AppSidebar() {
 			collapsible="icon"
 			variant="inset">
 			<SidebarHeader>
-				<div className="flex items-center gap-2 mt-2">
+				<div className="mt-2 flex items-center gap-2">
 					<SidebarMenu className="min-w-0 flex-1 items-center">
 						<SidebarMenuItem>
 							<SidebarMenuButton
@@ -92,7 +102,7 @@ export function AppSidebar() {
 			</SidebarHeader>
 
 			<SidebarContent>
-				<NavMain items={mainNavItems} />
+				<NavMain items={[...mainNavItems, ...sidebarOnlyNavItems]} />
 			</SidebarContent>
 
 			<SidebarFooter>

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\CategoryResource;
-use App\Http\Services\CategorySuggestionService;
 use App\Models\CategorySuggestion;
+use App\Services\CategorySuggestionService;
 use App\Support\CategoryCatalog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

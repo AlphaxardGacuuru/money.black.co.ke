@@ -3,19 +3,20 @@
 namespace Tests\Feature;
 
 use App\Ai\Agents\CategoryAdvisor;
-use App\Http\Services\CategorySuggestionService;
 use App\Jobs\GenerateCategorySuggestions;
 use App\Models\Category;
 use App\Models\CategorySuggestion;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Notifications\CategorySuggestionsReady;
+use App\Services\CategorySuggestionService;
 use App\Support\CategoryCatalog;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Laravel\Ai\Prompts\AgentPrompt;
+use NotificationChannels\WebPush\WebPushChannel;
 use Tests\TestCase;
 
 class CategorySuggestionTest extends TestCase
@@ -126,6 +127,23 @@ class CategorySuggestionTest extends TestCase
         CategoryAdvisor::assertPrompted(fn ($prompt): bool => str_contains($prompt->prompt, 'Month: September 2026'));
     }
 
+    public function test_category_ideas_are_sent_by_push_email_and_in_app(): void
+    {
+        $user = User::factory()->create(['name' => 'Wanjiku']);
+        $notification = new CategorySuggestionsReady(['Add a "Fuel" category', 'Rename "Misc" to "Household"'], '2026-10');
+
+        $this->assertSame([WebPushChannel::class, 'mail', 'database'], $notification->via($user));
+
+        $mail = $notification->toMail($user);
+        $this->assertSame('2 category ideas from your October spending', $mail->subject);
+        $this->assertContains('• Add a "Fuel" category', $mail->introLines);
+        $this->assertSame(url('/category-suggestions'), $mail->actionUrl);
+
+        $this->assertSame('/category-suggestions', $notification->toArray($user)['url']);
+        $this->assertSame('We have 2 ideas to keep your categories tidy.', $notification->toArray($user)['message']);
+        $this->assertSame('/category-suggestions', $notification->toWebPush($user, $notification)->toArray()['data']['url']);
+    }
+
     public function test_monthly_review_saves_only_new_valid_suggestions(): void
     {
         $user = User::factory()->create();
@@ -162,7 +180,8 @@ class CategorySuggestionTest extends TestCase
         $this->assertSame('Tags', $pending[1]->icon, 'Unknown icons fall back to a safe default.');
         $this->assertSame('2026-09', $pending[0]->period);
 
-        Notification::assertSentTo($user, CategorySuggestionsReady::class, fn (CategorySuggestionsReady $notification): bool => $notification->count === 3);
+        Notification::assertSentTo($user, CategorySuggestionsReady::class, fn (CategorySuggestionsReady $notification): bool => $notification->period === '2026-09'
+            && $notification->ideas === ['Add a "Fuel" category', 'Rename "Misc" to "Household Items"', 'Add a "Subscriptions" category']);
 
         CategoryAdvisor::assertPrompted(fn (AgentPrompt $prompt): bool => str_contains($prompt->prompt, 'September 2026')
             && str_contains($prompt->prompt, '"name":"Transport"')
