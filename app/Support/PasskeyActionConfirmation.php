@@ -33,9 +33,14 @@ class PasskeyActionConfirmation
         return Cache::has($this->key('confirmed'));
     }
 
+    /**
+     * Confirming identity also unlocks the app on this device.
+     */
     public function markConfirmed(): void
     {
         Cache::put($this->key('confirmed'), now()->timestamp, now()->addMinutes(self::CONFIRMATION_MINUTES));
+
+        AppLock::for($this->user)->touch();
     }
 
     /**

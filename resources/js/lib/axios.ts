@@ -1,4 +1,5 @@
-import Axios from "axios"
+import Axios, { isAxiosError } from "axios"
+import { queryClient } from "@/lib/query-client"
 
 const AxiosClient = Axios.create({
 	baseURL: "/",
@@ -27,6 +28,19 @@ AxiosClient.interceptors.request.use((config) => {
 	}
 
 	return config
+})
+
+// The device locked while idle: refetch auth so the lock screen shows.
+AxiosClient.interceptors.response.use(undefined, (error) => {
+	if (
+		isAxiosError(error) &&
+		error.response?.status === 423 &&
+		error.response.data?.app_locked
+	) {
+		queryClient.invalidateQueries({ queryKey: ["auth"] })
+	}
+
+	return Promise.reject(error)
 })
 
 export default AxiosClient

@@ -13,6 +13,7 @@ use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\Settings\PasskeyConfirmationController;
 use App\Http\Controllers\Settings\PasskeyController;
+use App\Http\Middleware\EnsureAppUnlocked;
 use App\Http\Middleware\EnsurePasskeyActionConfirmed;
 use Illuminate\Support\Facades\Route;
 
@@ -57,7 +58,7 @@ Route::post('two-factor-challenge', [TwoFactorChallengeController::class, 'store
 Route::get('verify-email/{id}/{hash}', [EmailVerificationPromptController::class, '__invoke'])
     ->name('verification.notice');
 
-Route::middleware('auth:sanctum')->group(function() {
+Route::middleware(['auth:sanctum', EnsureAppUnlocked::class])->group(function() {
     Route::post('verify-email/{id}/{hash}', [VerifyEmailController::class, '__invoke'])
         ->middleware(['signed', 'throttle:6,1'])
         ->name('verification.verify');
@@ -67,11 +68,13 @@ Route::middleware('auth:sanctum')->group(function() {
         ->name('verification.send');
 
     Route::get('confirm-password', fn () => view('app'))
+        ->withoutMiddleware(EnsureAppUnlocked::class)
         ->name('password.confirm');
 
     Route::post('confirm-password', [ConfirmablePasswordController::class, 'store']);
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
+        ->withoutMiddleware(EnsureAppUnlocked::class)
         ->name('logout');
 
     Route::post('two-factor/enable', [TwoFactorController::class, 'enable'])
@@ -104,10 +107,12 @@ Route::middleware('auth:sanctum')->group(function() {
 
     Route::get('user/passkeys/confirmation/options', [PasskeyConfirmationController::class, 'options'])
         ->middleware('throttle:10,1,passkey-confirm')
+        ->withoutMiddleware(EnsureAppUnlocked::class)
         ->name('passkey.confirmation.options');
 
     Route::post('user/passkeys/confirmation', [PasskeyConfirmationController::class, 'store'])
         ->middleware('throttle:10,1,passkey-confirm')
+        ->withoutMiddleware(EnsureAppUnlocked::class)
         ->name('passkey.confirmation.store');
 
     Route::post('user/passkeys/confirmation/email', [PasskeyConfirmationController::class, 'sendEmailCode'])

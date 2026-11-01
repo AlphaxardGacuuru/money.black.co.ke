@@ -2,6 +2,7 @@ import { Head } from "@/lib/spa"
 import { ShieldCheck } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import SecurityController from "@/actions/App/Http/Controllers/Settings/SecurityController"
+import AppLockSetting from "@/components/app-lock-setting"
 import Heading from "@/components/heading"
 import InputError from "@/components/input-error"
 import PasskeyConfirmationDialog from "@/components/passkey-confirmation-dialog"
@@ -16,16 +17,14 @@ import { useApp } from "@/contexts/AppContext"
 import { invalidateAuth } from "@/middleware/auth"
 import { toast } from "@/lib/toast"
 import { edit } from "@/routes/security"
-import { disable, enable } from '@/routes/two-factor'
+import { disable, enable } from "@/routes/two-factor"
 import { Spinner } from "@/components/ui/spinner"
 
 type Props = {
 	requiresConfirmation?: boolean
 }
 
-export default function Security({
-	requiresConfirmation = false,
-}: Props) {
+export default function Security({ requiresConfirmation = false }: Props) {
 	const { auth } = useApp()
 	const twoFactorEnabled = auth?.twoFactorEnabled ?? false
 	const passwordInput = useRef<HTMLInputElement>(null)
@@ -77,7 +76,8 @@ export default function Security({
 				data: Object.fromEntries(fd),
 			})
 			.then((response) => {
-				const finalUrl = (response.request as XMLHttpRequest | null)?.responseURL
+				const finalUrl = (response.request as XMLHttpRequest | null)
+					?.responseURL
 				// Reset all password fields on success
 				form
 					.querySelectorAll<HTMLInputElement>('input[type="password"]')
@@ -138,7 +138,9 @@ export default function Security({
 			})
 			.catch((error: unknown) => {
 				// Turning 2FA off needs a fresh "confirm it's you", like passkey changes.
-				if ((error as { response?: { status?: number } }).response?.status === 423) {
+				if (
+					(error as { response?: { status?: number } }).response?.status === 423
+				) {
 					setConfirmBeforeDisable2fa(true)
 
 					return
@@ -225,85 +227,87 @@ export default function Security({
 
 			<PasskeysManager />
 
+			<AppLockSetting />
+
 			<div className="space-y-6">
-					<Heading
-						variant="small"
-						title="Two-factor authentication"
-						description="Manage your two-factor authentication settings"
-					/>
-					{twoFactorEnabled ? (
-						<div className="flex flex-col items-start justify-start space-y-4">
-							<p className="text-sm text-muted-foreground">
-								You will be prompted for a secure, random pin during login,
-								which you can retrieve from the TOTP-supported application on
-								your phone.
-							</p>
+				<Heading
+					variant="small"
+					title="Two-factor authentication"
+					description="Manage your two-factor authentication settings"
+				/>
+				{twoFactorEnabled ? (
+					<div className="flex flex-col items-start justify-start space-y-4">
+						<p className="text-sm text-muted-foreground">
+							You will be prompted for a secure, random pin during login, which
+							you can retrieve from the TOTP-supported application on your
+							phone.
+						</p>
 
-							<div className="relative inline">
-								<Button
-									variant="destructive"
-									type="button"
-									disabled={disable2faProcessing}
-									onClick={handleDisable2fa}>
-									Disable 2FA
-									{disable2faProcessing && <Spinner />}
+						<div className="relative inline">
+							<Button
+								variant="destructive"
+								type="button"
+								disabled={disable2faProcessing}
+								onClick={handleDisable2fa}>
+								Disable 2FA
+								{disable2faProcessing && <Spinner />}
+							</Button>
+						</div>
+
+						<TwoFactorRecoveryCodes
+							recoveryCodesList={recoveryCodesList}
+							fetchRecoveryCodes={fetchRecoveryCodes}
+							errors={errors}
+						/>
+					</div>
+				) : (
+					<div className="flex flex-col items-start justify-start space-y-4">
+						<p className="text-sm text-muted-foreground">
+							When you enable two-factor authentication, you will be prompted
+							for a secure pin during login. This pin can be retrieved from a
+							TOTP-supported application on your phone.
+						</p>
+
+						<div>
+							{hasSetupData ? (
+								<Button onClick={() => setShowSetupModal(true)}>
+									<ShieldCheck />
+									Continue setup
 								</Button>
-							</div>
-
-							<TwoFactorRecoveryCodes
-								recoveryCodesList={recoveryCodesList}
-								fetchRecoveryCodes={fetchRecoveryCodes}
-								errors={errors}
-							/>
+							) : (
+								<Button
+									type="button"
+									disabled={enable2faProcessing}
+									onClick={handleEnable2fa}>
+									Enable 2FA
+									{enable2faProcessing && <Spinner />}
+								</Button>
+							)}
 						</div>
-					) : (
-						<div className="flex flex-col items-start justify-start space-y-4">
-							<p className="text-sm text-muted-foreground">
-								When you enable two-factor authentication, you will be prompted
-								for a secure pin during login. This pin can be retrieved from a
-								TOTP-supported application on your phone.
-							</p>
+					</div>
+				)}
 
-							<div>
-								{hasSetupData ? (
-									<Button onClick={() => setShowSetupModal(true)}>
-										<ShieldCheck />
-										Continue setup
-									</Button>
-								) : (
-									<Button
-										type="button"
-										disabled={enable2faProcessing}
-										onClick={handleEnable2fa}>
-										Enable 2FA
-										{enable2faProcessing && <Spinner />}
-									</Button>
-								)}
-							</div>
-						</div>
-					)}
+				<PasskeyConfirmationDialog
+					isOpen={confirmBeforeDisable2fa}
+					onClose={() => setConfirmBeforeDisable2fa(false)}
+					onContinue={() => {
+						setConfirmBeforeDisable2fa(false)
+						handleDisable2fa()
+					}}
+				/>
 
-					<PasskeyConfirmationDialog
-						isOpen={confirmBeforeDisable2fa}
-						onClose={() => setConfirmBeforeDisable2fa(false)}
-						onContinue={() => {
-							setConfirmBeforeDisable2fa(false)
-							handleDisable2fa()
-						}}
-					/>
-
-					<TwoFactorSetupModal
-						isOpen={showSetupModal}
-						onClose={() => setShowSetupModal(false)}
-						requiresConfirmation={requiresConfirmation}
-						twoFactorEnabled={twoFactorEnabled}
-						qrCodeSvg={qrCodeSvg}
-						manualSetupKey={manualSetupKey}
-						clearSetupData={clearSetupData}
-						fetchSetupData={fetchSetupData}
-						errors={errors}
-					/>
-				</div>
+				<TwoFactorSetupModal
+					isOpen={showSetupModal}
+					onClose={() => setShowSetupModal(false)}
+					requiresConfirmation={requiresConfirmation}
+					twoFactorEnabled={twoFactorEnabled}
+					qrCodeSvg={qrCodeSvg}
+					manualSetupKey={manualSetupKey}
+					clearSetupData={clearSetupData}
+					fetchSetupData={fetchSetupData}
+					errors={errors}
+				/>
+			</div>
 		</>
 	)
 }

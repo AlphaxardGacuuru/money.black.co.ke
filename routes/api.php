@@ -10,13 +10,18 @@ use App\Http\Controllers\OneMoneyImportController;
 use App\Http\Controllers\OverviewController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ReceiptController;
+use App\Http\Controllers\Settings\AppLockController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Middleware\EnsureAppUnlocked;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth:sanctum'])->group(function() {
+Route::middleware(['auth:sanctum', EnsureAppUnlocked::class])->group(function() {
     Route::get('auth', fn () => UserResource::make(request()->user()))
+        ->withoutMiddleware(EnsureAppUnlocked::class)
         ->name('api.auth.show');
+
+    Route::put('user/app-lock', [AppLockController::class, 'update'])->name('api.app-lock.update');
 
     Route::apiResources([
         'accounts' => AccountController::class,

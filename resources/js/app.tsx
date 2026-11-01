@@ -21,6 +21,7 @@ import AppLayout from "@/layouts/app-layout"
 import AuthLayout from "@/layouts/auth-layout"
 import SettingsLayout from "@/layouts/settings/layout"
 import { AppProvider } from "@/contexts/AppContext"
+import AppLockScreen from "@/components/app-lock-screen"
 import InstallAppOnboardingModal from "@/components/install-app-onboarding-modal"
 import PermissionsOnboardingModal from "@/components/permissions-onboarding-modal"
 import { discoverPageRoutes } from "@/router/page-routes"
@@ -69,6 +70,7 @@ function RootLayout() {
 					<Outlet />
 				</TooltipProvider>
 				<Toaster />
+				<AppLockScreen />
 				<InstallAppOnboardingModal />
 				<PermissionsOnboardingModal />
 			</AppProvider>
@@ -130,12 +132,11 @@ const tanstackRoutes = discoveredRoutes.map((discoveredRoute) => {
 		getParentRoute: () => rootRoute,
 		path: routePath,
 		component,
-		beforeLoad:
-			GUEST_ONLY.has(discoveredRoute.componentName)
-				? requireGuest
-				: PUBLIC.has(discoveredRoute.componentName)
-					? undefined
-					: requireAuth,
+		beforeLoad: GUEST_ONLY.has(discoveredRoute.componentName)
+			? requireGuest
+			: PUBLIC.has(discoveredRoute.componentName)
+				? undefined
+				: requireAuth,
 	})
 
 	return route
@@ -229,7 +230,10 @@ if (!rootedContainer._reactRoot) {
 
 rootedContainer._reactRoot.render(
 	<StrictMode>
-		<RouterProvider router={router} defaultPendingMs={0} />
+		<RouterProvider
+			router={router}
+			defaultPendingMs={0}
+		/>
 	</StrictMode>
 )
 
