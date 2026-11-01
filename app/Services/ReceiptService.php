@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Services;
+namespace App\Services;
 
 use App\Ai\Agents\ReceiptScanner;
+use App\Http\Services\TransactionService;
 use App\Jobs\ProcessReceipt;
 use App\Models\Account;
 use App\Models\AiUsage;
@@ -20,7 +21,7 @@ use Laravel\Ai\Files\Document;
 use Laravel\Ai\Files\Image;
 use Throwable;
 
-class ReceiptService extends Service
+class ReceiptService
 {
     public function __construct(protected TransactionService $transactionService, protected AiUsageService $aiUsageService) {}
 
@@ -208,7 +209,8 @@ class ReceiptService extends Service
                 ->keyBy('id');
 
             $merchant = filled($data['merchant'] ?? null) ? trim($data['merchant']) : null;
-            $transactionDate = CarbonImmutable::parse($data['receipt_date'])->setTimeFrom(now());
+            // Use the time the receipt was scanned, not when it was reviewed, which can be days later.
+            $transactionDate = CarbonImmutable::parse($data['receipt_date'])->setTimeFrom($receipt->created_at);
 
             $receipt->items()->delete();
             $receipt->items()->createMany(
