@@ -2,8 +2,10 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\RateLimiter;
 use Tests\TestCase;
 
 class TwoFactorChallengeTest extends TestCase
@@ -64,6 +66,50 @@ class TwoFactorChallengeTest extends TestCase
             ->assertJsonValidationErrors('code');
     }
 
+    public function test_two_factor_challenge_locks_out_after_too_many_wrong_codes(): void
+    {
+        $user = User::factory()->withTwoFactor()->create();
+
+        collect(range(1, TwoFactorChallengeController::MAX_ATTEMPTS))
+            ->each(fn () => $this
+                ->postJson(route('two-factor-challenge.store'), [
+                    'pending_token' => $this->startChallenge($user),
+                    'code' => '000000',
+                ])
+                ->assertJsonValidationErrors(['code' => 'incorrect']));
+
+        $this
+            ->postJson(route('two-factor-challenge.store'), [
+                'pending_token' => $this->startChallenge($user),
+                'code' => $user->makeTwoFactorCode(),
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['code' => 'Too many attempts']);
+
+        $this->assertDatabaseCount('personal_access_tokens', 0);
+    }
+
+    public function test_a_valid_code_resets_the_failed_attempt_count(): void
+    {
+        $user = User::factory()->withTwoFactor()->create();
+
+        collect(range(1, TwoFactorChallengeController::MAX_ATTEMPTS - 1))
+            ->each(fn () => $this
+                ->postJson(route('two-factor-challenge.store'), [
+                    'pending_token' => $this->startChallenge($user),
+                    'code' => '000000',
+                ]));
+
+        $this
+            ->postJson(route('two-factor-challenge.store'), [
+                'pending_token' => $this->startChallenge($user),
+                'code' => $user->makeTwoFactorCode(),
+            ])
+            ->assertOk();
+
+        $this->assertFalse(RateLimiter::tooManyAttempts("2fa_challenge:{$user->id}", 1));
+    }
+
     public function test_two_factor_challenge_rejects_an_unknown_pending_token(): void
     {
         $response = $this->postJson(route('two-factor-challenge.store'), [
@@ -73,5 +119,16 @@ class TwoFactorChallengeTest extends TestCase
 
         $response->assertUnprocessable()
             ->assertJsonValidationErrors('pending_token');
+    }
+
+    private function startChallenge(User $user): string
+    {
+        return $this
+            ->postJson(route('login.store'), [
+                'email' => $user->email,
+                'password' => 'password',
+                'device_name' => 'test-device',
+            ])
+            ->json('data');
     }
 }

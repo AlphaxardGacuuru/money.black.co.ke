@@ -114,8 +114,6 @@ class FortifyServiceProvider extends ServiceProvider
 
         Fortify::registerView(fn() => Spa::render('auth/register'));
 
-        Fortify::twoFactorChallengeView(fn() => Spa::render('auth/two-factor-challenge'));
-
         Fortify::confirmPasswordView(fn() => Spa::render('auth/confirm-password'));
     }
 
@@ -124,10 +122,6 @@ class FortifyServiceProvider extends ServiceProvider
      */
     private function configureRateLimiting(): void
     {
-        RateLimiter::for('two-factor', function (Request $request) {
-            return Limit::perMinute(5)->by($request->session()->get('login.id'));
-        });
-
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())) . '|' . $request->ip());
 
