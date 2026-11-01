@@ -75,7 +75,7 @@ export function NavAdmin() {
 	}
 
 	return (
-		<SidebarGroup className="group-data-[collapsible=icon]:p-0">
+		<SidebarGroup className="px-2 py-0">
 			<SidebarGroupContent>
 				<SidebarMenu>
 					<Collapsible className="group/admin">

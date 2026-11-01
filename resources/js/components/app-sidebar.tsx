@@ -103,10 +103,10 @@ export function AppSidebar() {
 
 			<SidebarContent>
 				<NavMain items={[...mainNavItems, ...sidebarOnlyNavItems]} />
+				<NavAdmin />
 			</SidebarContent>
 
 			<SidebarFooter>
-				<NavAdmin />
 				<NavFooter
 					items={footerNavItems}
 					className="mt-auto"
