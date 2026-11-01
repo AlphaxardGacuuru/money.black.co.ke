@@ -41,6 +41,7 @@ class ReceiptScanner implements Agent, HasStructuredOutput
         Extract exactly what is printed on the receipt:
         - merchant: the shop or business name.
         - date: the purchase date as YYYY-MM-DD. Use null if it is not printed or unreadable.
+          Kenyan receipts print the day before the month, so 1/11/26 or 01-11-2026 is 1 November 2026, not 11 January.
         - currency: the ISO 4217 code. Assume KES unless another currency is printed.
         - total: the final amount paid, after tax and discounts.
         - tax and discount: the totals printed on the receipt, or null if none are shown.
