@@ -2,8 +2,10 @@ import type { AxiosError } from "axios"
 import { isCancel } from "axios"
 import { createContext, useContext, useEffect, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
+import { useRouter } from "@tanstack/react-router"
 import type { ChangeEvent } from "react"
 import Axios from "@/lib/axios"
+import { AUTH_QUERY, clearAuth, isUnauthenticated } from "@/middleware/auth"
 import type {
 	AppContextValue,
 	AppProviderProps,
@@ -12,7 +14,6 @@ import type {
 	PaginatedList,
 	PageState,
 } from "../types/app-context"
-import type { User } from "@/types/auth"
 import type { Account } from "@/types/account"
 import type { Category } from "@/types/category"
 import type { OverviewState } from "@/types/overview"
@@ -236,16 +237,23 @@ export const AppProvider = ({ children }: AppProviderProps) => {
 		return event.target.value.replace(/,/g, "")
 	}
 
-	const { data: auth } = useQuery<User>({
-		queryKey: ["auth"],
-		queryFn: () => Axios.get("/api/auth").then((res) => res.data.data),
-	})
+	const router = useRouter()
+	const { data: auth, error: authError } = useQuery(AUTH_QUERY)
 
 	useEffect(() => {
 		if (auth) {
 			setLocalStorage("auth", auth)
 		}
 	}, [auth])
+
+	// The saved session expired or was revoked: forget it and re-run the route
+	// guards, which send protected pages to /login.
+	useEffect(() => {
+		if (isUnauthenticated(authError) && localStorage.getItem("sanctumToken")) {
+			clearAuth()
+			router.invalidate()
+		}
+	}, [authError, router])
 
 	useEffect(() => {
 		setLocalStorage("dateFilters", {
