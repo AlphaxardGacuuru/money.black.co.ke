@@ -29,7 +29,9 @@ class AppLock
 
     public function isLocked(): bool
     {
-        if (! $this->isEnabled() || Cache::has($this->key())) {
+        $key = $this->key();
+
+        if ($key === null || ! $this->isEnabled() || Cache::has($key)) {
             return false;
         }
 
@@ -43,16 +45,28 @@ class AppLock
      */
     public function touch(): void
     {
-        Cache::put($this->key(), now()->timestamp, now()->addMinutes(self::IDLE_MINUTES));
+        $key = $this->key();
+
+        if ($key !== null) {
+            Cache::put($key, now()->timestamp, now()->addMinutes(self::IDLE_MINUTES));
+        }
     }
 
     /**
      * Scope state to the current API token (or web session) so unlocking one device does not unlock another.
+     * Null when the request has neither, as there is no device to lock.
      */
-    private function key(): string
+    private function key(): ?string
     {
         $token = CurrentAccessToken::for($this->user);
-        $scope = $token ? "token:{$token->getKey()}" : 'session:' . request()->session()->getId();
+
+        if ($token) {
+            $scope = "token:{$token->getKey()}";
+        } elseif (request()->hasSession()) {
+            $scope = 'session:' . request()->session()->getId();
+        } else {
+            return null;
+        }
 
         return "app_lock:{$this->user->getKey()}:{$scope}:active";
     }
