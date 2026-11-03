@@ -66,7 +66,7 @@ const sidebarOnlyNavItems: NavItem[] = [
 const footerNavItems: NavItem[] = [
 	{
 		title: "Calculator",
-		href: "/calculator",
+		href: "/tools",
 		icon: Calculator,
 	},
 	{
