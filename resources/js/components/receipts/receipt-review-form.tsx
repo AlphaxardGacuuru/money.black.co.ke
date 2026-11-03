@@ -263,7 +263,7 @@ export default function ReceiptReviewForm({ receipt, accounts, categories, onCon
 					<p className="text-xs text-muted-foreground">
 						The {formatAmount(Math.abs(difference), receipt.currency)}{" "}
 						{difference > 0 ? "extra (tax, fees)" : "discount"} will be shared across the
-						categories so the transactions add up to the total paid.
+						items so the transactions add up to the total paid.
 					</p>
 				)}
 				{Object.keys(breakdown).length > 0 && (
@@ -285,8 +285,8 @@ export default function ReceiptReviewForm({ receipt, accounts, categories, onCon
 				className="w-full sm:w-auto"
 				disabled={processing || accounts.length === 0}
 				data-test="confirm-receipt-button">
-				Add {Object.keys(breakdown).length || ""} transaction
-				{Object.keys(breakdown).length === 1 ? "" : "s"}
+				Add {items.length} transaction
+				{items.length === 1 ? "" : "s"}
 				{processing && <Spinner />}
 			</Button>
 			{accounts.length === 0 && (
