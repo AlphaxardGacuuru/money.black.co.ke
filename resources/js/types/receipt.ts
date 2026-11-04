@@ -1,6 +1,11 @@
 export type ReceiptStatus = "processing" | "review" | "confirmed" | "failed"
 
-export type ReceiptProcessingStep = "queued" | "preparing" | "reading" | "sorting" | "retrying"
+export type ReceiptProcessingStep =
+	| "queued"
+	| "preparing"
+	| "reading"
+	| "sorting"
+	| "retrying"
 
 export type ReceiptItem = {
 	id?: string
@@ -16,6 +21,7 @@ export type ReceiptTransaction = {
 	categoryId: string
 	categoryName?: string | null
 	notes?: string | null
+	transactionDate?: string | null
 }
 
 export type Receipt = {
@@ -40,4 +46,7 @@ export type Receipt = {
 	itemsCount?: number
 	items?: ReceiptItem[]
 	transactions?: ReceiptTransaction[]
+	/** Money paid back for the receipt (reimbursements, refunds), recorded as income. */
+	compensations?: ReceiptTransaction[]
+	compensated?: number
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CompensateReceiptRequest;
 use App\Http\Requests\ConfirmReceiptRequest;
 use App\Http\Resources\ReceiptResource;
 use App\Models\Receipt;
@@ -95,6 +96,18 @@ class ReceiptController extends Controller
 
         return (new ReceiptResource($receipt))->additional([
             'message' => trans_choice('{1} Added :count transaction.|[2,*] Added :count transactions.', $receipt->transactions->count()),
+        ]);
+    }
+
+    /**
+     * Record money paid back for a confirmed receipt.
+     */
+    public function compensate(CompensateReceiptRequest $request, Receipt $receipt): ReceiptResource
+    {
+        $receipt = $this->service->compensate($receipt, $request->validated());
+
+        return (new ReceiptResource($receipt))->additional([
+            'message' => __('Compensation added.'),
         ]);
     }
 

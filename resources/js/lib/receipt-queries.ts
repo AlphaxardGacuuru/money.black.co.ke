@@ -15,6 +15,7 @@ export const receiptKeys = {
 	file: (id: string) => [...receiptKeys.all, "file", id] as const,
 	accounts: () => [...receiptKeys.all, "accounts"] as const,
 	expenseCategories: () => [...receiptKeys.all, "expense-categories"] as const,
+	incomeCategories: () => [...receiptKeys.all, "income-categories"] as const,
 }
 
 export type ReceiptFile = { url: string; isPdf: boolean }
@@ -32,6 +33,7 @@ function updateListEntry(receipt: Receipt) {
 				...receipt,
 				items: undefined,
 				transactions: undefined,
+				compensations: undefined,
 				itemsCount: receipt.items?.length ?? cached.itemsCount,
 			}
 		})
@@ -56,9 +58,14 @@ export function forgetReceipt(id: string) {
 export function receiptListQuery() {
 	return queryOptions({
 		queryKey: receiptKeys.list(),
-		queryFn: () => Axios.get<{ data: Receipt[] }>(index().url).then((response) => response.data.data),
+		queryFn: () =>
+			Axios.get<{ data: Receipt[] }>(index().url).then(
+				(response) => response.data.data
+			),
 		refetchInterval: (query) =>
-			query.state.data?.some((receipt) => receipt.status === "processing") ? 3000 : false,
+			query.state.data?.some((receipt) => receipt.status === "processing")
+				? 3000
+				: false,
 	})
 }
 
@@ -66,7 +73,9 @@ export function receiptQuery(id: string) {
 	return queryOptions({
 		queryKey: receiptKeys.detail(id),
 		queryFn: async () => {
-			const receipt = await Axios.get<{ data: Receipt }>(show(id).url).then((response) => response.data.data)
+			const receipt = await Axios.get<{ data: Receipt }>(show(id).url).then(
+				(response) => response.data.data
+			)
 
 			updateListEntry(receipt)
 
@@ -74,8 +83,11 @@ export function receiptQuery(id: string) {
 		},
 		// Show what the list already knows while the full receipt loads.
 		placeholderData: () =>
-			queryClient.getQueryData<Receipt[]>(receiptKeys.list())?.find((receipt) => receipt.id === id),
-		refetchInterval: (query) => (query.state.data?.status === "processing" ? 2000 : false),
+			queryClient
+				.getQueryData<Receipt[]>(receiptKeys.list())
+				?.find((receipt) => receipt.id === id),
+		refetchInterval: (query) =>
+			query.state.data?.status === "processing" ? 2000 : false,
 		retry: false,
 	})
 }
@@ -103,7 +115,10 @@ export function receiptFileQuery(id: string) {
 export function receiptAccountsQuery() {
 	return queryOptions({
 		queryKey: receiptKeys.accounts(),
-		queryFn: () => Axios.get<{ data: Account[] }>(accountsIndex().url).then((response) => response.data.data),
+		queryFn: () =>
+			Axios.get<{ data: Account[] }>(accountsIndex().url).then(
+				(response) => response.data.data
+			),
 		staleTime: 30 * 1000,
 	})
 }
@@ -114,6 +129,18 @@ export function receiptCategoriesQuery() {
 		queryFn: () =>
 			Axios.get<{ data: Category[] }>(categoriesIndex().url).then((response) =>
 				response.data.data.filter((category) => category.type === "expense")
+			),
+		staleTime: 30 * 1000,
+	})
+}
+
+/** Income categories, for recording money paid back on a receipt. */
+export function receiptIncomeCategoriesQuery() {
+	return queryOptions({
+		queryKey: receiptKeys.incomeCategories(),
+		queryFn: () =>
+			Axios.get<{ data: Category[] }>(categoriesIndex().url).then((response) =>
+				response.data.data.filter((category) => category.type === "income")
 			),
 		staleTime: 30 * 1000,
 	})

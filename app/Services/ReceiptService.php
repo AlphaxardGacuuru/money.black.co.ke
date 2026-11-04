@@ -261,6 +261,55 @@ class ReceiptService
     }
 
     /**
+     * Record money paid back for a confirmed receipt (a reimbursement or refund)
+     * as an income transaction linked to the receipt.
+     *
+     * @param  array{account_id: string, category_id: string, amount: int, compensation_date: string, notes?: string|null}  $data
+     *
+     * @throws ValidationException
+     */
+    public function compensate(Receipt $receipt, array $data): Receipt
+    {
+        return DB::transaction(function() use ($receipt, $data) {
+            $receipt = Receipt::query()
+                ->lockForUpdate()
+                ->findOrFail($receipt->id);
+
+            if ($receipt->status !== Receipt::STATUS_CONFIRMED) {
+                throw ValidationException::withMessages(['receipt' => __('Confirm the receipt before adding compensation.')]);
+            }
+
+            $remaining = (int) $receipt->total - $receipt->compensatedAmount();
+
+            if ((int) $data['amount'] > $remaining) {
+                throw ValidationException::withMessages(['amount' => $remaining > 0 ? __('Only :amount of this receipt is left to compensate.', ['amount' => "{$receipt->currency} " . number_format($remaining)]) : __('This receipt has already been fully compensated.')]);
+            }
+
+            $category = Category::query()
+                ->where('user_id', $receipt->user_id)
+                ->findOrFail($data['category_id']);
+
+            $account = Account::query()
+                ->where('user_id', $receipt->user_id)
+                ->findOrFail($data['account_id']);
+
+            $this->transactionService->createTransaction(
+                $category,
+                $account,
+                (int) $data['amount'],
+                filled($data['notes'] ?? null)
+                    ? trim($data['notes'])
+                    : $this->transactionNotes($receipt->merchant, __('Compensation')),
+                CarbonImmutable::parse($data['compensation_date'])
+                    ->setTimeFrom(now()),
+                $receipt->id,
+            );
+
+            return $receipt->load(['items', 'transactions.category']);
+        });
+    }
+
+    /**
      * Delete a receipt and its stored file. Transactions created from it are kept.
      */
     public function delete(Receipt $receipt): void

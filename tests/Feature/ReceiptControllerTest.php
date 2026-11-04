@@ -453,6 +453,155 @@ class ReceiptControllerTest extends TestCase
         $this->actingAs($user)->postJson(route('api.receipts.retry', $receipt))->assertUnprocessable();
     }
 
+    public function test_compensation_adds_income_back_to_the_account_and_is_listed_on_the_receipt(): void
+    {
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create(['balance' => 1000]);
+        $groceries = Category::factory()->for($user)->expense()->create();
+        $reimbursements = Category::factory()->for($user)->income()->create(['name' => 'Reimbursements', 'total' => 0]);
+        $receipt = Receipt::factory()->for($user)->confirmed()->create(['merchant' => 'Naivas', 'total' => 3000]);
+        Transaction::factory()->for($user)->create([
+            'receipt_id' => $receipt->id,
+            'category_id' => $groceries->id,
+            'account_id' => $account->id,
+            'amount' => 3000,
+        ]);
+
+        $this->actingAs($user)
+            ->postJson(route('api.receipts.compensate', $receipt), [
+                'account_id' => $account->id,
+                'category_id' => $reimbursements->id,
+                'amount' => 2000,
+                'compensation_date' => '2026-10-25',
+            ])
+            ->assertOk()
+            ->assertJsonPath('message', 'Compensation added.')
+            ->assertJsonCount(1, 'data.transactions')
+            ->assertJsonCount(1, 'data.compensations')
+            ->assertJsonPath('data.compensations.0.amount', 2000)
+            ->assertJsonPath('data.compensations.0.categoryName', 'Reimbursements')
+            ->assertJsonPath('data.compensations.0.notes', 'Naivas: Compensation')
+            ->assertJsonPath('data.compensations.0.transactionDate', '2026-10-25')
+            ->assertJsonPath('data.compensated', 2000);
+
+        $this->assertSame(3000, $account->fresh()->balance);
+        $this->assertSame(2000, $reimbursements->fresh()->total);
+    }
+
+    public function test_compensation_keeps_the_users_own_note(): void
+    {
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create();
+        $income = Category::factory()->for($user)->income()->create();
+        $receipt = Receipt::factory()->for($user)->confirmed()->create(['total' => 500]);
+
+        $this->actingAs($user)
+            ->postJson(route('api.receipts.compensate', $receipt), [
+                'account_id' => $account->id,
+                'category_id' => $income->id,
+                'amount' => 500,
+                'compensation_date' => now()->toDateString(),
+                'notes' => '  Paid back by Acme  ',
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.compensations.0.notes', 'Paid back by Acme');
+    }
+
+    public function test_compensation_cannot_exceed_what_is_left_of_the_receipt(): void
+    {
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create(['balance' => 0]);
+        $income = Category::factory()->for($user)->income()->create();
+        $receipt = Receipt::factory()->for($user)->confirmed()->create(['total' => 1000, 'currency' => 'KES']);
+        Transaction::factory()->for($user)->create([
+            'receipt_id' => $receipt->id,
+            'category_id' => $income->id,
+            'account_id' => $account->id,
+            'amount' => 700,
+        ]);
+
+        $payload = [
+            'account_id' => $account->id,
+            'category_id' => $income->id,
+            'compensation_date' => now()->toDateString(),
+        ];
+
+        $this->actingAs($user)
+            ->postJson(route('api.receipts.compensate', $receipt), [...$payload, 'amount' => 301])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['amount' => 'Only KES 300 of this receipt is left to compensate.']);
+
+        $this->actingAs($user)
+            ->postJson(route('api.receipts.compensate', $receipt), [...$payload, 'amount' => 300])
+            ->assertOk()
+            ->assertJsonPath('data.compensated', 1000);
+
+        $this->actingAs($user)
+            ->postJson(route('api.receipts.compensate', $receipt), [...$payload, 'amount' => 1])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['amount' => 'This receipt has already been fully compensated.']);
+
+        $this->assertSame(300, $account->fresh()->balance, 'Rejected compensations never reach the account.');
+    }
+
+    public function test_only_confirmed_receipts_can_be_compensated(): void
+    {
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create();
+        $income = Category::factory()->for($user)->income()->create();
+        $receipt = Receipt::factory()->for($user)->review()->create();
+
+        $this->actingAs($user)
+            ->postJson(route('api.receipts.compensate', $receipt), [
+                'account_id' => $account->id,
+                'category_id' => $income->id,
+                'amount' => 100,
+                'compensation_date' => now()->toDateString(),
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('receipt');
+
+        $this->assertDatabaseCount('transactions', 0);
+    }
+
+    public function test_compensation_requires_the_users_own_income_category_and_account(): void
+    {
+        $user = User::factory()->create();
+        $expense = Category::factory()->for($user)->expense()->create();
+        $otherUsersIncome = Category::factory()->income()->create();
+        $otherUsersAccount = Account::factory()->create();
+        $receipt = Receipt::factory()->for($user)->confirmed()->create();
+
+        $this->actingAs($user)
+            ->postJson(route('api.receipts.compensate', $receipt), [
+                'account_id' => $otherUsersAccount->id,
+                'category_id' => $expense->id,
+                'amount' => 100,
+                'compensation_date' => now()->addDay()->toDateString(),
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['account_id', 'category_id' => 'Choose one of your income categories.', 'compensation_date']);
+
+        $this->actingAs($user)
+            ->postJson(route('api.receipts.compensate', $receipt), [
+                'account_id' => $otherUsersAccount->id,
+                'category_id' => $otherUsersIncome->id,
+                'amount' => 100,
+                'compensation_date' => now()->toDateString(),
+            ])
+            ->assertJsonValidationErrors(['account_id', 'category_id']);
+    }
+
+    public function test_users_cannot_compensate_another_users_receipt(): void
+    {
+        $user = User::factory()->create();
+        $receipt = Receipt::factory()->confirmed()->create();
+
+        $this->actingAs($user)
+            ->postJson(route('api.receipts.compensate', $receipt), [])
+            ->assertForbidden();
+    }
+
     public function test_deleting_a_receipt_removes_the_file_but_keeps_its_transactions(): void
     {
         $user = User::factory()->create();

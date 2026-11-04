@@ -1,9 +1,17 @@
 import { useQuery } from "@tanstack/react-query"
 import { useNavigate, useParams } from "@tanstack/react-router"
 import { Head } from "@/lib/spa"
-import { AlertCircle, ArrowLeft, CircleCheck, PencilLine, RotateCcw, Trash2 } from "lucide-react"
+import {
+	AlertCircle,
+	ArrowLeft,
+	CircleCheck,
+	PencilLine,
+	RotateCcw,
+	Trash2,
+} from "lucide-react"
 import { useEffect, useState } from "react"
 import Heading from "@/components/heading"
+import ReceiptCompensationDialog from "@/components/receipts/receipt-compensation-dialog"
 import ReceiptPreview from "@/components/receipts/receipt-preview"
 import ReceiptProgress from "@/components/receipts/receipt-progress"
 import ReceiptReviewForm from "@/components/receipts/receipt-review-form"
@@ -26,6 +34,7 @@ import {
 	forgetReceipt,
 	receiptAccountsQuery,
 	receiptCategoriesQuery,
+	receiptIncomeCategoriesQuery,
 	receiptQuery,
 } from "@/lib/receipt-queries"
 import { formatAmount } from "@/lib/receipts"
@@ -56,6 +65,10 @@ export default function ReceiptReviewPage() {
 	const { data: receipt, isError } = useQuery(receiptQuery(id))
 	const { data: accounts = [] } = useQuery(receiptAccountsQuery())
 	const { data: categories = [] } = useQuery(receiptCategoriesQuery())
+	const { data: incomeCategories = [] } = useQuery({
+		...receiptIncomeCategoriesQuery(),
+		enabled: receipt?.status === "confirmed",
+	})
 
 	const [enteringManually, setEnteringManually] = useState(false)
 	const [retrying, setRetrying] = useState(false)
@@ -84,7 +97,9 @@ export default function ReceiptReviewPage() {
 				setEnteringManually(false)
 				cacheReceipt(response.data.data)
 			})
-			.catch(() => toast.error("Couldn't retry. Please wait a minute and try again."))
+			.catch(() =>
+				toast.error("Couldn't retry. Please wait a minute and try again.")
+			)
 			.finally(() => setRetrying(false))
 	}
 
@@ -112,7 +127,11 @@ export default function ReceiptReviewPage() {
 	// transactions wait for the full receipt.
 	const hasDetails = receipt?.items !== undefined
 	const showForm =
-		hasDetails && (receipt.status === "review" || (receipt.status === "failed" && enteringManually))
+		hasDetails &&
+		(receipt.status === "review" ||
+			(receipt.status === "failed" && enteringManually))
+	const compensated = receipt?.compensated ?? 0
+	const remainingToCompensate = Math.max((receipt?.total ?? 0) - compensated, 0)
 	const isLoadingDetails =
 		!receipt ||
 		(!hasDetails &&
@@ -180,7 +199,9 @@ export default function ReceiptReviewPage() {
 					<div className="min-w-0 rounded-xl border bg-card p-6 shadow-sm">
 						{isLoadingDetails && <ReceiptDetailsSkeleton />}
 
-						{receipt?.status === "processing" && <ReceiptProgress receipt={receipt} />}
+						{receipt?.status === "processing" && (
+							<ReceiptProgress receipt={receipt} />
+						)}
 
 						{receipt?.status === "failed" && !enteringManually && (
 							<div className="flex flex-col items-start gap-4">
@@ -188,7 +209,9 @@ export default function ReceiptReviewPage() {
 									<AlertCircle className="mt-0.5 size-5 shrink-0 text-destructive" />
 									<div>
 										<p className="font-medium">We couldn't read this receipt</p>
-										<p className="text-sm text-muted-foreground">{receipt.failureReason}</p>
+										<p className="text-sm text-muted-foreground">
+											{receipt.failureReason}
+										</p>
 									</div>
 								</div>
 								<div className="flex flex-wrap gap-3">
@@ -234,7 +257,10 @@ export default function ReceiptReviewPage() {
 								<div className="flex items-center gap-2">
 									<CircleCheck className="size-5 text-green-600" />
 									<p className="font-medium">
-										Added {receipt.merchant ? `from ${receipt.merchant}` : "to your records"}
+										Added{" "}
+										{receipt.merchant
+											? `from ${receipt.merchant}`
+											: "to your records"}
 									</p>
 								</div>
 								<ul className="divide-y rounded-lg border text-sm">
@@ -243,9 +269,13 @@ export default function ReceiptReviewPage() {
 											key={transaction.id}
 											className="flex items-center justify-between gap-3 p-3">
 											<div className="min-w-0">
-												<p className="truncate">{transaction.notes ?? transaction.categoryName}</p>
+												<p className="truncate">
+													{transaction.notes ?? transaction.categoryName}
+												</p>
 												{transaction.notes && (
-													<p className="text-xs text-muted-foreground">{transaction.categoryName}</p>
+													<p className="text-xs text-muted-foreground">
+														{transaction.categoryName}
+													</p>
 												)}
 											</div>
 											<span className="shrink-0 font-medium">
@@ -254,6 +284,57 @@ export default function ReceiptReviewPage() {
 										</li>
 									))}
 								</ul>
+
+								<div
+									className="space-y-3 border-t pt-4"
+									data-test="receipt-compensations">
+									<div className="flex flex-wrap items-center justify-between gap-3">
+										<div>
+											<p className="font-medium">Paid back</p>
+											<p className="text-sm text-muted-foreground">
+												{compensated > 0
+													? `${formatAmount(compensated, receipt.currency)} of ${formatAmount(receipt.total ?? 0, receipt.currency)}`
+													: "Reimbursed or refunded? Add it here and it goes back into the account."}
+											</p>
+										</div>
+										<ReceiptCompensationDialog
+											receipt={receipt}
+											remaining={remainingToCompensate}
+											accounts={accounts}
+											incomeCategories={incomeCategories}
+											onCompensated={cacheReceipt}
+										/>
+									</div>
+
+									{(receipt.compensations?.length ?? 0) > 0 && (
+										<ul className="divide-y rounded-lg border text-sm">
+											{receipt.compensations?.map((compensation) => (
+												<li
+													key={compensation.id}
+													className="flex items-center justify-between gap-3 p-3">
+													<div className="min-w-0">
+														<p className="truncate">
+															{compensation.notes ?? compensation.categoryName}
+														</p>
+														<p className="text-xs text-muted-foreground">
+															{compensation.categoryName}
+															{compensation.transactionDate &&
+																` · ${new Date(`${compensation.transactionDate}T00:00:00`).toLocaleDateString("en-KE", { day: "numeric", month: "short", year: "numeric" })}`}
+														</p>
+													</div>
+													<span className="shrink-0 font-medium text-green-600 dark:text-green-400">
+														+
+														{formatAmount(
+															compensation.amount,
+															receipt.currency
+														)}
+													</span>
+												</li>
+											))}
+										</ul>
+									)}
+								</div>
+
 								<Link
 									href="/transactions"
 									variant="unstyled"

@@ -47,6 +47,7 @@ Route::middleware(['auth:sanctum', EnsureAppUnlocked::class])->group(function() 
     Route::get('receipts/{receipt}', [ReceiptController::class, 'show'])->name('api.receipts.show');
     Route::get('receipts/{receipt}/file', [ReceiptController::class, 'file'])->name('api.receipts.file');
     Route::post('receipts/{receipt}/confirm', [ReceiptController::class, 'confirm'])->name('api.receipts.confirm');
+    Route::post('receipts/{receipt}/compensations', [ReceiptController::class, 'compensate'])->name('api.receipts.compensate');
     Route::post('receipts/{receipt}/retry', [ReceiptController::class, 'retry'])
         ->middleware('throttle:10,1,receipts-retry')
         ->name('api.receipts.retry');

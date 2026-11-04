@@ -114,6 +114,16 @@ class Receipt extends Model
     }
 
     /**
+     * Money paid back for this receipt: its transactions in income categories.
+     */
+    public function compensatedAmount(): int
+    {
+        return (int) $this->transactions()
+            ->whereHas('category', fn ($query) => $query->where('type', 'income'))
+            ->sum('amount');
+    }
+
+    /**
      * Record which step of the scan the receipt has reached, so the app can show progress.
      */
     public function moveToStep(string $step, ?int $attempt = null): void
