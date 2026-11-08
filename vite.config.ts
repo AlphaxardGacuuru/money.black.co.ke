@@ -2,38 +2,9 @@ import { wayfinder } from "@laravel/vite-plugin-wayfinder"
 import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
 import laravel from "laravel-vite-plugin"
-import { defineConfig, loadEnv, type Plugin } from "vite"
-import fs from "fs"
+import { defineConfig, loadEnv } from "vite"
+import { VitePWA } from "vite-plugin-pwa"
 import path from "path"
-
-// Stamps public/sw.js with a fresh build id on every production build so its
-// byte content always changes on deploy. That's what lets the browser's
-// native service-worker update check detect a new version and hand it to
-// workbox-window as a "waiting" worker, which the app surfaces as a toast.
-function stampServiceWorkerVersion(): Plugin {
-	return {
-		name: "stamp-service-worker-version",
-		apply: "build",
-		closeBundle() {
-			const swPath = path.resolve(__dirname, "public/sw.js")
-			const contents = fs.readFileSync(swPath, "utf8")
-			const match = contents.match(/const CACHE_NAME = "([^"]+)"/)
-
-			if (!match) {
-				return
-			}
-
-			const base = match[1].replace(/-[0-9a-z]{6,}$/, "")
-			const buildId = Date.now().toString(36)
-			const updated = contents.replace(
-				match[0],
-				`const CACHE_NAME = "${base}-${buildId}"`
-			)
-
-			fs.writeFileSync(swPath, updated)
-		},
-	}
-}
 
 export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), "")
@@ -54,7 +25,17 @@ export default defineConfig(({ mode }) => {
 			wayfinder({
 				formVariants: true,
 			}),
-			stampServiceWorkerVersion(),
+			VitePWA({
+				strategies: "injectManifest",
+				srcDir: "resources/js",
+				outDir: "public",
+				filename: "sw.ts",
+				registerType: "autoUpdate",
+				manifest: false,
+				devOptions: {
+					enabled: false,
+				},
+			}),
 		],
 		resolve: {
 			alias: {
