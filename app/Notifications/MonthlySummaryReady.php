@@ -3,13 +3,13 @@
 namespace App\Notifications;
 
 use App\Models\MonthlySummary;
+use App\Notifications\Messages\WebPushMessage;
 use Carbon\CarbonImmutable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use NotificationChannels\WebPush\WebPushChannel;
-use NotificationChannels\WebPush\WebPushMessage;
 
 /**
  * Sent when the AI summary of last month's spending is ready.
@@ -37,6 +37,8 @@ class MonthlySummaryReady extends Notification implements ShouldQueue
             ->icon('/notification-badge-192x192.png')
             ->badge('/notification-badge-192x192.png')
             ->body($this->summary->headline)
+            ->openAction('summary', __('View summary'), $this->url())
+            ->openAction('transactions', __('Transactions'), '/transactions')
             ->data(['url' => $this->url()]);
     }
 

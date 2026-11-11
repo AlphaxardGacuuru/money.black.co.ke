@@ -2,13 +2,13 @@
 
 namespace App\Notifications;
 
+use App\Notifications\Messages\WebPushMessage;
 use Carbon\CarbonImmutable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use NotificationChannels\WebPush\WebPushChannel;
-use NotificationChannels\WebPush\WebPushMessage;
 
 /**
  * Sent after the monthly category review when it produced at least one idea.
@@ -42,6 +42,8 @@ class CategorySuggestionsReady extends Notification implements ShouldQueue
             ->icon('/notification-badge-192x192.png')
             ->badge('/notification-badge-192x192.png')
             ->body($this->message())
+            ->openAction('review', __('Review ideas'), self::URL)
+            ->openAction('categories', __('My categories'), '/categories')
             ->data(['url' => self::URL]);
     }
 

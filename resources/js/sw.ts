@@ -138,6 +138,18 @@ registerRoute(
 
 // ─── Web push notifications ───────────────────────────────────────────────────
 
+type PushAction = { action: string; title: string }
+
+// What each button does, keyed by its action name (see
+// App\Notifications\Messages\WebPushMessage): open a page, or post to a
+// signed link in the background.
+type PushActionLink = { url?: string; post?: string }
+
+type PushNotificationData = {
+	url?: string
+	actions?: Record<string, PushActionLink>
+}
+
 type PushPayload = {
 	title?: string
 	body?: string
@@ -145,7 +157,8 @@ type PushPayload = {
 	badge?: string
 	tag?: string
 	renotify?: boolean
-	data?: { url?: string }
+	actions?: PushAction[]
+	data?: PushNotificationData
 }
 
 self.addEventListener("push", (event) => {
@@ -155,14 +168,18 @@ self.addEventListener("push", (event) => {
 
 	const payload: PushPayload = event.data.json()
 
-	// `renotify` is a real, supported NotificationOptions field missing from
-	// TypeScript's bundled DOM lib.
-	const options: NotificationOptions & { renotify?: boolean } = {
+	// `renotify` and `actions` are real, supported NotificationOptions fields
+	// missing from TypeScript's bundled DOM lib.
+	const options: NotificationOptions & {
+		renotify?: boolean
+		actions?: PushAction[]
+	} = {
 		body: payload.body,
 		icon: payload.icon ?? "/notification-badge-192x192.png",
 		badge: payload.badge ?? "/notification-badge-192x192.png",
 		tag: payload.tag,
 		renotify: payload.renotify,
+		actions: payload.actions,
 		data: payload.data,
 	}
 
@@ -172,32 +189,63 @@ self.addEventListener("push", (event) => {
 })
 
 // Opens the notification's target URL, or focuses it if already open in
-// some tab, so a click never opens a duplicate window for the same page.
+// some tab, so a click never opens a duplicate window for the same page. The
+// query string counts too, so /overview?month=2026-10 isn't mistaken for an
+// Overview tab showing another month.
 function openNotificationTarget(url: string) {
 	return self.clients
 		.matchAll({ type: "window", includeUncontrolled: true })
 		.then((clients) => {
-			const targetPath = new URL(url, self.location.origin).pathname
-			const existing = clients.find(
-				(client) => new URL(client.url).pathname === targetPath
-			)
+			const target = new URL(url, self.location.origin)
+			const existing = clients.find((client) => {
+				const open = new URL(client.url)
+
+				return open.pathname === target.pathname && open.search === target.search
+			})
 
 			if (existing) {
 				return existing.focus()
 			}
 
-			return self.clients.openWindow(new URL(url, self.location.origin).href)
+			return self.clients.openWindow(target.href)
 		})
+}
+
+// Posts a button's signed link. The signature stands in for the user's
+// token, which the service worker can't read. If it fails (the link expired
+// or the phone is offline) the notification's page opens instead, so the
+// user can do it in the app.
+function runSignedAction(post: string, fallbackUrl?: string) {
+	return fetch(new URL(post, self.location.origin), {
+		method: "POST",
+		headers: { Accept: "application/json" },
+	})
+		.then((response) => {
+			if (!response.ok) {
+				throw new Error(`Push action failed with ${response.status}`)
+			}
+		})
+		.catch(() => (fallbackUrl ? openNotificationTarget(fallbackUrl) : undefined))
 }
 
 self.addEventListener("notificationclick", (event) => {
 	event.notification.close()
 
-	const data = event.notification.data as { url?: string } | undefined
+	const data = event.notification.data as PushNotificationData | undefined
+	// event.action is empty for a click on the notification itself.
+	const link = event.action ? data?.actions?.[event.action] : undefined
 
-	if (!data?.url) {
+	if (link?.post) {
+		event.waitUntil(runSignedAction(link.post, data?.url))
+
 		return
 	}
 
-	event.waitUntil(openNotificationTarget(data.url))
+	const url = link?.url ?? data?.url
+
+	if (!url) {
+		return
+	}
+
+	event.waitUntil(openNotificationTarget(url))
 })
