@@ -2,6 +2,7 @@ import { Head } from "@/lib/spa"
 import { useState } from "react"
 import { useApp } from "@/contexts/AppContext"
 import ProfileController from "@/actions/App/Http/Controllers/Settings/ProfileController"
+import { AvatarUploadField } from "@/components/avatar-upload-field"
 import DeleteUser from "@/components/delete-user"
 import Heading from "@/components/heading"
 import InputError from "@/components/input-error"
@@ -13,6 +14,7 @@ import { DEFAULT_HOME_PAGE, HOME_PAGE_OPTIONS } from "@/lib/home-page"
 import { edit } from "@/routes/profile"
 import { send } from "@/routes/verification"
 import { Spinner } from "@/components/ui/spinner"
+import { useInitials } from "@/hooks/use-initials"
 
 export default function Profile({
 	mustVerifyEmail = false,
@@ -24,6 +26,7 @@ export default function Profile({
 	homePage?: string
 }) {
 	const { auth } = useApp()
+	const getInitials = useInitials()
 	const user = {
 		name: auth?.name ?? "",
 		email: auth?.email ?? "",
@@ -87,8 +90,15 @@ export default function Profile({
 				<Heading
 					variant="small"
 					title="Profile information"
-					description="Update your name and email address"
+					description="Update your picture, name and email address"
 				/>
+
+				{/* Avatar Start */}
+				<AvatarUploadField
+					avatar={auth?.avatar}
+					initials={getInitials(auth?.name ?? "")}
+				/>
+				{/* Avatar End */}
 
 				<form
 					onSubmit={handleSubmit}

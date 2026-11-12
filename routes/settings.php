@@ -12,6 +12,9 @@ Route::middleware(['auth'])->group(function() {
     Route::patch('settings/profile', [ProfileController::class, 'update'])
         ->middleware(EnsureAppUnlocked::class)
         ->name('profile.update');
+    Route::post('settings/profile/avatar', [ProfileController::class, 'updateAvatar'])
+        ->middleware(EnsureAppUnlocked::class)
+        ->name('profile.avatar.update');
 });
 
 Route::middleware(['auth', 'verified'])->group(function() {

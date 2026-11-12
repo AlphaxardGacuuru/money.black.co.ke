@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Settings\ProfileAvatarUpdateRequest;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
+use App\Http\Services\UserService;
 use App\Models\User;
 use App\Support\Spa;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -16,6 +19,8 @@ use Illuminate\Support\Facades\Auth;
 
 class ProfileController extends Controller
 {
+    public function __construct(protected UserService $service) {}
+
     /**
      * Show the user's profile settings page.
      */
@@ -51,6 +56,20 @@ class ProfileController extends Controller
         $request->session()->flash('flash.toast', ['type' => 'success', 'message' => __('Profile updated.')]);
 
         return to_route('profile.edit');
+    }
+
+    /**
+     * Replace the user's profile picture.
+     */
+    public function updateAvatar(ProfileAvatarUpdateRequest $request): JsonResponse
+    {
+        $this->service->updateAvatar($request->user(), $request->file('avatar'));
+
+        return response()->json([
+            'saved' => true,
+            'message' => __('Profile picture updated.'),
+            'avatar' => $request->user()->avatar,
+        ], 200);
     }
 
     /**
