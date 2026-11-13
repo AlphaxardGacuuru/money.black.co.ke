@@ -26,20 +26,31 @@ class ReceiptShareTargetTest extends TestCase
         $this->assertContains('image/jpeg', $shareTarget['params']['files'][0]['accept']);
     }
 
+    /**
+     * Read the service worker's source: public/sw.js is minified build output.
+     */
+    private function serviceWorkerSource(): string
+    {
+        return file_get_contents(resource_path('js/sw.ts'));
+    }
+
     public function test_the_service_worker_intercepts_the_share_target_and_keeps_shared_files_across_updates(): void
     {
-        $serviceWorker = file_get_contents(public_path('sw.js'));
+        $serviceWorker = $this->serviceWorkerSource();
 
         $this->assertStringContainsString('const SHARE_TARGET_PATH = "/receipts/share"', $serviceWorker);
         $this->assertStringContainsString('.getAll("receipt")', $serviceWorker);
-        $this->assertStringContainsString('key !== SHARED_RECEIPTS_CACHE', $serviceWorker);
+
+        // On activate only the old worker's caches and cached pages are deleted, never the shared files.
+        $this->assertStringContainsString('.filter((key) => key.startsWith("money-black-") || key === "navigation")', $serviceWorker);
+        $this->assertStringStartsNotWith('money-black-', 'shared-receipts');
     }
 
     public function test_the_receipts_page_reads_the_same_cache_the_service_worker_writes(): void
     {
         $cacheDeclaration = 'const SHARED_RECEIPTS_CACHE = "shared-receipts"';
 
-        $this->assertStringContainsString($cacheDeclaration, file_get_contents(public_path('sw.js')));
+        $this->assertStringContainsString($cacheDeclaration, $this->serviceWorkerSource());
         $this->assertStringContainsString($cacheDeclaration, file_get_contents(resource_path('js/hooks/use-shared-receipt-import.ts')));
     }
 
