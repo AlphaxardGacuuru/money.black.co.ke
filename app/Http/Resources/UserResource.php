@@ -24,6 +24,8 @@ class UserResource extends JsonResource
             'can_view_pulse' => Gate::forUser($this->resource)
                 ->allows('viewPulse'),
             'can_view_ai_usage' => Gate::forUser($this->resource)->allows('viewAiUsage'),
+            'can_view_user_logins' => Gate::forUser($this->resource)
+                ->allows('viewUserLogins'),
             'app_lock_enabled' => (bool) ($this->settings?->app_lock ?? false),
             'app_locked' => AppLock::for($this->resource)->isLocked(),
         ];

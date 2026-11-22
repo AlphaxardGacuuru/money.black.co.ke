@@ -15,6 +15,7 @@ export type User = {
 	can_view_horizon?: boolean
 	can_view_pulse?: boolean
 	can_view_ai_usage?: boolean
+	can_view_user_logins?: boolean
 	app_lock_enabled?: boolean
 	app_locked?: boolean
 	settings?: UserSettings | null

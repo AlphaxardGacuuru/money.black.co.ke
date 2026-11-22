@@ -12,6 +12,7 @@ use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\Settings\AppLockController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\UserLoginController;
 use App\Http\Middleware\EnsureAppUnlocked;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Route;
@@ -59,6 +60,10 @@ Route::middleware(['auth:sanctum', EnsureAppUnlocked::class])->group(function() 
     Route::get('admin/ai-usage', [AiUsageController::class, 'index'])
         ->middleware('can:viewAiUsage')
         ->name('api.admin.ai-usage.index');
+
+    Route::get('admin/user-logins', [UserLoginController::class, 'index'])
+        ->middleware('can:viewUserLogins')
+        ->name('api.admin.user-logins.index');
 
     Route::post('onboarding/permissions', [OnboardingController::class, 'completePermissions']);
 });

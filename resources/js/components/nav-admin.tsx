@@ -4,6 +4,7 @@ import {
 	Coins,
 	Gauge,
 	Layers,
+	LogIn,
 	ShieldCheck,
 } from "lucide-react"
 import {
@@ -26,7 +27,7 @@ import { useApp } from "@/contexts/AppContext"
 import { useCurrentUrl } from "@/hooks/use-current-url"
 
 /**
- * Admin pages: AI usage (an SPA page) and the server-rendered dashboards.
+ * Admin pages: AI usage and logins (SPA pages) and the server-rendered dashboards.
  * Each is shown only to users its gate allows (reported by /api/auth).
  */
 export function NavAdmin() {
@@ -39,6 +40,12 @@ export function NavAdmin() {
 			title: "AI usage",
 			href: "/admin/ai-usage",
 			icon: Coins,
+			internal: true,
+		},
+		auth?.can_view_user_logins && {
+			title: "Logins",
+			href: "/admin/logins",
+			icon: LogIn,
 			internal: true,
 		},
 		auth?.can_view_telescope && {

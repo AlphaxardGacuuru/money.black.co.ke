@@ -30,13 +30,14 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * The Pulse dashboard (/pulse) and the AI usage page are for the same people as Telescope, so
-     * there's one admin list to maintain (see TelescopeServiceProvider).
+     * The Pulse dashboard (/pulse), the AI usage page and the logins page are for the same people as
+     * Telescope, so there's one admin list to maintain (see TelescopeServiceProvider).
      */
     protected function configurePulse(): void
     {
         Gate::define('viewPulse', fn (?User $user = null): bool => Gate::forUser($user)->allows('viewTelescope'));
         Gate::define('viewAiUsage', fn (?User $user = null): bool => Gate::forUser($user)->allows('viewTelescope'));
+        Gate::define('viewUserLogins', fn (?User $user = null): bool => Gate::forUser($user)->allows('viewTelescope'));
     }
 
     /**

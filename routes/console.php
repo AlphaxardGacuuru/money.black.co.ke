@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\UserLogin;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -17,6 +18,10 @@ Schedule::command('overview:summarize')
     ->monthlyOn(1, '07:05')
     ->withoutOverlapping()
     ->onOneServer();
+
+// Sign-in records older than UserLogin::RETENTION_DAYS.
+Schedule::command('model:prune', ['--model' => [UserLogin::class]])
+    ->daily();
 
 // Records queue throughput and wait times for the Horizon metrics graphs.
 Schedule::command('horizon:snapshot')->everyFiveMinutes();
