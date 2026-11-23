@@ -32,6 +32,9 @@ export default defineConfig(({ mode }) => {
 				filename: "sw.ts",
 				registerType: "autoUpdate",
 				manifest: false,
+				injectManifest: {
+					maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+				},
 				devOptions: {
 					enabled: false,
 				},
