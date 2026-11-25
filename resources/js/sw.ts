@@ -119,6 +119,20 @@ registerRoute(
 	new NetworkFirst({ cacheName: "webmanifest" })
 )
 
+// ─── Offline page ─────────────────────────────────────────────────────────────
+// Shown instead of the browser's own error page when a page can't be loaded
+// and has no cached copy (never visited, or expired). public/offline.html
+// inlines its icon, so it needs no other request while offline.
+const OFFLINE_URL = "/offline.html"
+
+self.addEventListener("install", (event) => {
+	event.waitUntil(
+		caches
+			.open("offline")
+			.then((cache) => cache.add(new Request(OFFLINE_URL, { cache: "reload" })))
+	)
+})
+
 // ─── SPA navigation fallback ──────────────────────────────────────────────────
 // Every page is the app shell, routed on the client by TanStack Router. Kept
 // for a month so the app still opens while offline. After the phone has been
@@ -132,6 +146,7 @@ registerRoute(
 		networkTimeoutSeconds: 3,
 		plugins: [
 			new ExpirationPlugin({ maxEntries: 10, maxAgeSeconds: 30 * 24 * 60 * 60 }),
+			{ handlerDidError: () => caches.match(OFFLINE_URL) },
 		],
 	})
 )
