@@ -1,4 +1,5 @@
 import { Link } from "@/components/ui/link"
+import { AVATAR_ALIGNED_ITEM } from "@/components/nav-user"
 import { useApp } from "@/contexts/AppContext"
 import { getTodayDateFilter } from "@/lib/date-filter"
 import { toUrl } from "@/lib/utils"
@@ -42,12 +43,16 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
 						<SidebarMenuButton
 							asChild
 							isActive={isCurrentOrParentUrl(item.href)}
-							className="justify-start"
+							className={`justify-start ${AVATAR_ALIGNED_ITEM}`}
 							tooltip={{ children: item.title }}>
 							<Link
+								variant="unstyled"
 								href={toUrl(item.href)}
 								onClick={(event) => {
-									if (isCurrentOrParentUrl(item.href) && dateAwareRoutes.has(toUrl(item.href))) {
+									if (
+										isCurrentOrParentUrl(item.href) &&
+										dateAwareRoutes.has(toUrl(item.href))
+									) {
 										event.preventDefault()
 										setDateFilters((current) => getTodayDateFilter(current))
 										closeSidebar()

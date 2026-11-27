@@ -23,6 +23,7 @@ import {
 	SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
 import { Link } from "@/components/ui/link"
+import { AVATAR_ALIGNED_ITEM } from "@/components/nav-user"
 import { useApp } from "@/contexts/AppContext"
 import { useCurrentUrl } from "@/hooks/use-current-url"
 
@@ -88,7 +89,9 @@ export function NavAdmin() {
 					<Collapsible className="group/admin">
 						<SidebarMenuItem>
 							<CollapsibleTrigger asChild>
-								<SidebarMenuButton tooltip={{ children: "Admin" }}>
+								<SidebarMenuButton
+									tooltip={{ children: "Admin" }}
+									className={AVATAR_ALIGNED_ITEM}>
 									<ShieldCheck className="h-5 w-5" />
 									<span>Admin</span>
 									<ChevronDown className="ms-auto size-4 transition-transform group-data-[state=open]/admin:rotate-180" />

@@ -1,19 +1,16 @@
 import type { MouseEvent } from "react"
 import { Link } from "@/components/ui/link"
-import axios from "@/lib/axios"
-import { toast } from "@/lib/toast"
 import { Home, LogOut, Settings } from "lucide-react"
-import { useNavigate } from "@tanstack/react-router"
 import {
 	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
+import { Spinner } from "@/components/ui/spinner"
 import { UserInfo } from "@/components/user-info"
+import { useLogout } from "@/hooks/use-logout"
 import { useMobileNavigation } from "@/hooks/use-mobile-navigation"
-import { clearAuth } from "@/middleware/auth"
-import { logout } from "@/routes"
 import { edit } from "@/routes/profile"
 import type { User } from "@/types"
 
@@ -23,7 +20,7 @@ type Props = {
 
 export function UserMenuContent({ user }: Props) {
 	const cleanup = useMobileNavigation()
-	const navigate = useNavigate()
+	const { logout, loggingOut } = useLogout()
 
 	const handleLogout = (
 		event: MouseEvent<HTMLAnchorElement | HTMLButtonElement>
@@ -31,32 +28,7 @@ export function UserMenuContent({ user }: Props) {
 		event.preventDefault()
 		cleanup()
 
-		const route = logout()
-
-		axios
-			.request({
-				url: route.url,
-				method: route.method,
-			})
-			.then((response) => {
-				toast.success(response.data?.message ?? "Logged out")
-				clearAuth()
-				navigate({ to: "/" })
-			})
-			.catch((error: unknown) => {
-				const message =
-					error &&
-					typeof error === "object" &&
-					"response" in error &&
-					error.response &&
-					typeof (error as any).response === "object"
-						? (error as any).response?.data?.message
-						: null
-
-				toast.error(message ?? "Unable to log out")
-				clearAuth()
-				navigate({ to: "/" })
-			})
+		logout()
 	}
 
 	return (
@@ -95,9 +67,14 @@ export function UserMenuContent({ user }: Props) {
 			<DropdownMenuItem asChild>
 				<button
 					className="block w-full cursor-pointer"
+					disabled={loggingOut}
 					onClick={handleLogout}
 					data-test="logout-button">
-					<LogOut className="mr-2" />
+					{loggingOut ? (
+						<Spinner className="mr-2" />
+					) : (
+						<LogOut className="mr-2" />
+					)}
 					Log out
 				</button>
 			</DropdownMenuItem>

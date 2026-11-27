@@ -10,6 +10,7 @@ import {
 import { toUrl } from "@/lib/utils"
 import type { NavItem } from "@/types"
 import { Link } from "@/components/ui/link"
+import { AVATAR_ALIGNED_ITEM } from "@/components/nav-user"
 
 export function NavFooter({
 	items,
@@ -40,8 +41,9 @@ export function NavFooter({
 						<SidebarMenuItem key={item.title}>
 							<SidebarMenuButton
 								asChild
-								className="justify-start text-right text-neutral-600 group-data-[collapsible=icon]:justify-center hover:text-sidebar-hover-foreground dark:text-neutral-300">
+								className={`justify-start text-right text-neutral-600 group-data-[collapsible=icon]:justify-center hover:text-sidebar-hover-foreground dark:text-neutral-300 ${AVATAR_ALIGNED_ITEM}`}>
 								<Link
+									variant="unstyled"
 									href={toUrl(item.href)}
 									rel="noopener noreferrer"
 									onClick={closeSidebar}>
